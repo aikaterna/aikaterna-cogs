@@ -3,5 +3,5 @@
     "INSTALL_MSG" : "Thanks for installing Pug. Now you can check out your Warcraft pugs for raid-readiness through Discord.",
     "NAME" : "Pug",
     "SHORT" : "Warcraft character lookup.",
-    "DESCRIPTION" : "This tool lets you check potential group pugs for enchants, gems, and raid completion. It was made possible by Pugbot: https://github.com/reznok/PugBot"
+    "DESCRIPTION" : "This tool lets you check potential group pugs for enchants, gems, and raid completion. It was made possible by PugBot: https://github.com/reznok/PugBot"
 }
