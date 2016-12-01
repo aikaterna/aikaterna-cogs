@@ -17,18 +17,19 @@ class Pug:
         default_region = self.settings["default_region"]
 
     LEG_WITH_SOCKET = [
-        132369, 132410, 137044, 132444, 132449, 132452, 132460, 133973, 133974, 137037, 137038, 137039, 137040,
-        137041, 137042, 137043, 132378, 137045, 137046, 137047, 137048, 137049, 137050, 137051, 137052, 137054, 137055,
-        137220, 137223, 137276, 137382, 138854
+        132369, 132410, 137044, 132444, 132449, 132452, 132460, 133973, 133974, 137037, 137038, 137039, 137040, 137041,
+        137042, 137043, 132378, 137045, 137046, 137047, 137048, 137049, 137050, 137051, 137052, 137054, 137055, 137220,
+        137223, 137276, 137382, 138854
     ]
 
     ENCHANTABLE_SLOTS = ["neck", "back", "finger1", "finger2"]
 
     region_locale = {
         'us': ['us', 'en_US', 'en'],
+        'eu': ['eu', 'en_GB', 'en']
     #    'kr': ['kr', 'ko_KR', 'ko'],
     #    'tw': ['tw', 'zh_TW', 'zh'],
-        'eu': ['eu', 'en_GB', 'en']
+    #    'es': ['es', 'es_MX', 'es'],	es lookup is broken until the armory site is migrated to the new format
     }
 
     def get_sockets(self, player_dictionary):
@@ -50,6 +51,10 @@ class Pug:
 
             for bonus in player_dictionary["items"][item]["bonusLists"]:
                 if bonus == 1808:  # 1808 is Legion prismatic socket bonus
+                    sockets += 1
+
+            if item in ["neck", "finger1", "finger2"]:
+                if player_dictionary["items"][item]["context"] == "trade-skill":
                     sockets += 1
 
             for ttip in player_dictionary["items"][item]["tooltipParams"]:
@@ -208,9 +213,7 @@ class Pug:
             await self.bot.send_message(ctx.message.channel, character_info)
         except Exception as e:
             print(e)
-            await self.bot.send_message(ctx.message.channel, "Error with character name or server.\n"
-                                                   "Use: !pug <name> <server> <region>\n"
-                                                   "Hyphenate two-word servers (Ex: Wyrmrest-Accord).")
+            await self.bot.send_message(ctx.message.channel, "Error with character name or server.")
 
     @commands.command(pass_context=True, name='pugtoken')
     @checks.is_owner()
@@ -223,6 +226,15 @@ class Pug:
         settings['blizzard_api_key'] = key
         dataIO.save_json(self.fp, settings)
         await self.bot.say("API key set.")
+
+    @commands.command(pass_context=True, name='pugregion')
+    @checks.is_owner()
+    async def _pugregion(self, context, key: str):
+        """Sets the default region."""
+        settings = dataIO.load_json(self.fp)
+        settings['default_region'] = key
+        dataIO.save_json(self.fp, settings)
+        await self.bot.say("Default region set.")
 
     @commands.command()
     async def pugcredits(self):
