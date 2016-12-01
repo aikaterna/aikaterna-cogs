@@ -1,0 +1,7 @@
+{
+    "AUTHOR" : "aikaterna",
+    "INSTALL_MSG" : "Thanks for installing. Please PR any issues or code changes, I'm sure some cogs of mine will need some work.",
+    "NAME" : "aikaterna-cogs",
+    "SHORT" : "Some cogs I've mashed together while learning Python.",
+    "DESCRIPTION" : "Someday, this repository will have cogs that I actually wrote by myself. Until then, enjoy my learning process of taking code and modifying it."
+}
