@@ -6,11 +6,12 @@ from __main__ import send_cmd_help
 from discord.ext import commands
 from .utils import checks
 
+
 class Pug:
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = dataIO.load_json("data/pug/config.json")	
+        self.settings = dataIO.load_json("data/pug/config.json")
         self.fp = "data/pug/config.json"
         API_KEY = self.settings["blizzard_api_key"]
         default_region = self.settings["default_region"]
@@ -42,7 +43,7 @@ class Pug:
 
         for item in player_dictionary["items"]:
             if item in "averageItemLevel" or item in "averageItemLevelEquipped":
-                 continue
+                continue
 
             if int(player_dictionary["items"][item]["id"]) in self.LEG_WITH_SOCKET:
                 sockets += 1
@@ -60,7 +61,6 @@ class Pug:
         return {"total_sockets": sockets,
                 "equipped_gems": equipped_gems}
 
-
     def get_enchants(self, player_dictionary):
         """
         Get count of enchants missing and slots that are missing
@@ -77,7 +77,6 @@ class Pug:
             "missing_slots": self.missing_enchant_slots,
             "total_missing": len(self.missing_enchant_slots)
         }
-
 
     def get_raid_progression(self, player_dictionary, raid):
         r = [x for x in player_dictionary["progression"]
@@ -98,7 +97,6 @@ class Pug:
                 "heroic": heroic,
                 "mythic": mythic,
                 "total_bosses": len(r["bosses"])}
-
 
     def get_mythic_progression(self, player_dictionary):
         achievements = player_dictionary["achievements"]
@@ -125,11 +123,11 @@ class Pug:
         }
 
     def get_char(self, name, server, target_region):
-        self.settings = dataIO.load_json("data/pug/config.json") # Load Configs
+        self.settings = dataIO.load_json("data/pug/config.json")  # Load Configs
         API_KEY = self.settings["blizzard_api_key"]
         r = requests.get("https://%s.api.battle.net/wow/character/%s/%s?fields=items+progression+achievements&locale=%s&apikey=%s" % (
                 self.region_locale[target_region][0], server, name, self.region_locale[target_region][1], API_KEY))
-    
+
         if r.status_code != 200:
             raise Exception("Could not find character (No 200 from API).")
 
@@ -196,7 +194,7 @@ class Pug:
         """A Warcraft Armory character lookup tool.
         Use: !pug <name> <server> <region>
         Hyphenate two-word servers (Ex: Twisting-Nether)."""
-        self.settings = dataIO.load_json("data/pug/config.json") # Load Configs
+        self.settings = dataIO.load_json("data/pug/config.json")  # Load Configs
         default_region = self.settings["default_region"]
         target_region = default_region
         channel = ctx.message.channel
@@ -237,6 +235,7 @@ class Pug:
         message+= "Please visit https://github.com/reznok/PugBot for more information.\n"
         message+= "```"
         return message
+
 
 def check_folders():
     if not os.path.exists("data/pug"):
