@@ -145,7 +145,29 @@ class Pug:
             raise Exception("Could Not Find Character Classes (No 200 From API)")
         class_dict = json.loads(r.text)
         class_dict = {c['id']: c['name'] for c in class_dict["classes"]}
+		
+        r = requests.get("https://%s.api.battle.net/wow/character/%s/%s?fields=stats&locale=%s&apikey=%s" % (
+                self.region_locale[target_region][0], server, name, self.region_locale[target_region][1], API_KEY))
+        if r.status_code != 200:
+            raise Exception("Could not find character stats (No 200 From API).")
+        stats_dict = json.loads(r.text)
 
+        health = stats_dict["stats"]["health"]
+        power = stats_dict["stats"]["power"]
+        powertype = stats_dict["stats"]["powerType"]
+        powertypeproper = powertype.title()
+        strength = stats_dict["stats"]["str"]
+        agi = stats_dict["stats"]["agi"]
+        int = stats_dict["stats"]["int"]
+        sta = stats_dict["stats"]["sta"]
+        crit = stats_dict["stats"]["critRating"]
+        critrating = stats_dict["stats"]["crit"]
+        haste = stats_dict["stats"]["hasteRating"]
+        hasterating = stats_dict["stats"]["haste"]
+        mastery = stats_dict["stats"]["masteryRating"]
+        masteryrating = stats_dict["stats"]["mastery"]
+        vers = stats_dict["stats"]["versatility"]
+        versrating = stats_dict["stats"]["versatilityDamageDoneBonus"]
         equipped_ivl = player_dict["items"]["averageItemLevelEquipped"]
         sockets = self.get_sockets(player_dict)
         enchants = self.get_enchants(player_dict)
@@ -160,36 +182,44 @@ class Pug:
         return_string += "**%s** - **%s** - **%s %s**\n" % (
             name.title(), server.title(), player_dict['level'], class_dict[player_dict['class']])
         return_string += '<{}>\n'.format(armory_url)
-        return_string += '```prolog\n'  # start Markdown
+        return_string += '```ini\n'  # start Markdown
 
         # iLvL
-        return_string += "Equipped Item Level: %s\n" % equipped_ivl
+        return_string += "[Equipped Item Level]: %s\n" % equipped_ivl
 
         # Mythic Progression
-        return_string += "Mythics: +2: %s, +5: %s, +10: %s\n" % (mythic_progress["plus_two"],
+        return_string += "[Mythics]: +2: %s, +5: %s, +10: %s\n" % (mythic_progress["plus_two"],
                                                                  mythic_progress["plus_five"],
                                                                  mythic_progress["plus_ten"])
 
         # Raid Progression
-        return_string += "EN: {1}/{0} (N), {2}/{0} (H), {3}/{0} (M)\n".format(en_progress["total_bosses"],
+        return_string += "[EN]: {1}/{0} (N), {2}/{0} (H), {3}/{0} (M)\n".format(en_progress["total_bosses"],
                                                                               en_progress["normal"],
                                                                               en_progress["heroic"],
                                                                               en_progress["mythic"])
-        return_string += "TOV: {1}/{0} (N), {2}/{0} (H), {3}/{0} (M)\n".format(tov_progress["total_bosses"],
+        return_string += "[TOV]: {1}/{0} (N), {2}/{0} (H), {3}/{0} (M)\n".format(tov_progress["total_bosses"],
                                                                                tov_progress["normal"],
                                                                                tov_progress["heroic"],
                                                                                tov_progress["mythic"])
 
         # Gems
-        return_string += "Gems Equipped: %s/%s\n" % (
+        return_string += "[Gems Equipped]: %s/%s\n" % (
             sockets["equipped_gems"], sockets["total_sockets"])
 
         # Enchants
-        return_string += "Enchants: %s/%s\n" % (enchants["enchantable_slots"] - enchants["total_missing"],
+        return_string += "[Enchants]: %s/%s\n" % (enchants["enchantable_slots"] - enchants["total_missing"],
                                                 enchants["enchantable_slots"])
         if enchants["total_missing"] > 0:
-            return_string += "Missing Enchants: {0}".format(
+            return_string += "[Missing Enchants]: {0}".format(
                 ", ".join(enchants["missing_slots"]))
+
+        # Stats
+        return_string += "\n"
+        return_string += "[Health]: {}   [{}]: {}\n".format(health, powertypeproper, power)
+        return_string += "[Str]: {}  [Agi]: {}\n".format(strength, agi, int, sta)
+        return_string += "[Int]: {}  [Sta]: {}\n".format(int, sta)
+        return_string += "[Crit]:    {}, {}%   [Haste]: {}, {}%\n".format(crit, critrating, haste, hasterating,)
+        return_string += "[Mastery]: {}, {}%   [Vers]:  {}, {}% bonus damage\n".format(mastery, masteryrating, vers, versrating)
 
         return_string += '```'  # end Markdown
         return return_string
