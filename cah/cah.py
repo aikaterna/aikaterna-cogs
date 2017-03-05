@@ -33,7 +33,7 @@ class CardsAgainstHumanity:
         self.minMembers = 3
         self.loopsleep = 0.05
         if file == None:
-            file = "/data/cah/deck.json"
+            file = "data/cah/deck.json"
         # Let's load our deck file
         # Can be found at http://www.crhallberg.com/cah/json
         if os.path.exists(file):
