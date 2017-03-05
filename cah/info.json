@@ -1,0 +1,7 @@
+{
+    "AUTHOR" : "aikaterna",
+    "INSTALL_MSG" : "Thanks for installing Cards Against Humanity. I highly advise only playing this game with 3-4 people on one server, on a private bot, because of the high amount of DM's this game generates."
+    "NAME" : "cah",
+    "SHORT" : "Cards Against Humanity.",
+    "DESCRIPTION" : "This cog was made possible by CorpBot: https://github.com/corpnewt/CorpBot.py"
+}
