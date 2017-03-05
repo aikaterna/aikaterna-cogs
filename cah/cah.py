@@ -873,7 +873,7 @@ class CardsAgainstHumanity:
 
 
     @commands.command(pass_context=True)
-    async def say(self, ctx, *, message = None):
+    async def chat(self, ctx, *, message = None):
         """Broadcasts a message to the other players in your game."""
         if not await self.checkPM(ctx.message):
             return
@@ -1208,7 +1208,7 @@ class CardsAgainstHumanity:
 
 
     @commands.command(pass_context=True)
-    async def addbot(self, ctx):
+    async def joinbot(self, ctx):
         """Adds a bot to the game.  Can only be done by the player who created the game."""
         if not await self.checkPM(ctx.message):
             return
@@ -1265,7 +1265,7 @@ class CardsAgainstHumanity:
 
 
     @commands.command(pass_context=True)
-    async def addbots(self, ctx, number = None):
+    async def joinbots(self, ctx, number = None):
         """Adds bots to the game.  Can only be done by the player who created the game."""
         if not await self.checkPM(ctx.message):
             return
