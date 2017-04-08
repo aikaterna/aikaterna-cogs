@@ -23,6 +23,6 @@ class ChatterBot:
 def setup(bot):
     if chatbotInstalled is False:
         raise RuntimeError("Install ChatterBot:\n"
-                           "[p]debug bot.pip_install('ChatterBot')\n"
+                           "[p]debug bot.pip_install('chatterbot')\n"
                            "Then [p]load chatterbot")
     bot.add_cog(ChatterBot(bot))
