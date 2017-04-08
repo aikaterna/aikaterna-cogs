@@ -4,5 +4,5 @@
     "NAME" : "Pug",
     "SHORT" : "Warcraft character lookup.",
     "DESCRIPTION" : "This tool lets you check potential group pugs for enchants, gems, and raid completion. It was made possible by PugBot: https://github.com/reznok/PugBot",
-    "TAGS" : ["warcraft", "raiding"]
+    "TAGS" : ["warcraft", "raiding", "raid"]
 }
