@@ -6,4 +6,5 @@
     "REQUIREMENTS" : ["ChatterBot"],
     "DESCRIPTION" : "ChatterBot is a machine-learning based conversational dialog engine, check it out at: https://github.com/gunthercox/ChatterBot",
     "TAGS" : ["chatter", "chat"]
+    "HIDDEN": true
 }
