@@ -45,7 +45,7 @@ class ImgWelcome:
         NoProfilePicture = Image.open("data/imgwelcome/noimage.png")
 
         global WelcomePicture
-        WelcomePicture = Image.new("RGB",(500,150))
+        WelcomePicture = Image.new("RGBA",(500,150))
         WelcomePicture = ImageOps.fit(Background,(500,150),centering=(0.5,0.5))
         WelcomePicture.paste(Background)
         WelcomePicture = WelcomePicture.resize((500,150), Image.NEAREST)
@@ -238,7 +238,7 @@ class ImgWelcome:
                 serverbg = 'data/imgwelcome/{}/serverbg.png'.format(server.id)
                 with open(serverbg, 'wb') as f:
                     f.write(image)
-                    serverimage = Image.open(serverbg).convert('RGB')
+                    serverimage = Image.open(serverbg).convert('RGBA')
                     success = True
 
             except Exception as e:
