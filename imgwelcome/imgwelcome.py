@@ -133,7 +133,7 @@ class ImgWelcome:
         else:
             return "th"
 
-    @checks.is_owner()
+    @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
     async def imgwelcomeset(self, ctx):
         if ctx.invoked_subcommand is None:
