@@ -2,6 +2,8 @@
 #  https://github.com/AznStevy/Maybe-Useful-Cogs
 #  imgwelcomeset_upload is based on code in orels' drawing.py
 #  https://github.com/orels1/ORELS-Cogs
+#  Parts of createWelcomeImage and on_member_join are from the Welcomer bot:
+#  https://discordbots.org/bot/330416853971107840
 import asyncio
 import aiohttp
 import datetime
@@ -30,6 +32,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
+        self.version = "0.1.1a"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -37,7 +40,7 @@ class ImgWelcome:
     async def createWelcomeImage(self, member, url):
         server = member.server
         defaultFont = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",50)
-        smallFont =  ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",20)
+        smallFont = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",20)
         italicFont = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",30)
         italicFontsmall = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",22)
         italicFontsupersmall = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",18)
@@ -75,9 +78,9 @@ class ImgWelcome:
         # Draw welcome text
         uname = (str(member.name) + "#" + str(member.discriminator))
         drawtwo.text((150,16),"Welcome",font=defaultFont, fill=(fontcolor))
-        if len(uname) <= 18:
+        if len(uname) <= 17:
             drawtwo.text((152,63),uname,font=italicFont, fill=(fontcolor))
-        if len(uname) > 18:
+        if len(uname) > 17:
             if len(uname) <= 23:
                 drawtwo.text((152,66),uname,font=italicFontsmall, fill=(fontcolor))
         if len(uname) >= 24:
@@ -136,15 +139,20 @@ class ImgWelcome:
     @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
     async def imgwelcomeset(self, ctx):
+        """Configuration options for the welcome image."""
         if ctx.invoked_subcommand is None:
             await send_cmd_help(ctx)
             return
 
     @imgwelcomeset.command(pass_context=True, name="colors", no_pm=True)
     async def imgwelcomeset_colors(self, ctx, bordercolor:str, textcolor:str, servercolor:str):
-        """Set image border and text colors."""
+        """Set image border and text colors. Accepts hex code for colors."""
         user = ctx.message.author
         server = ctx.message.server
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
         default_a = 230
         valid = True
 
@@ -157,7 +165,7 @@ class ImgWelcome:
         if self._is_hex(textcolor):
             self.settings[server.id]["TEXT"] = self._hex_to_rgb(textcolor, default_a)
         else:
-            await self.bot.say('Welcome color is invalid. Use #000000 as a format.')
+            await self.bot.say('Welcome text color is invalid. Use #000000 as a format.')
             valid = False
 
         if self._is_hex(servercolor):
@@ -170,8 +178,7 @@ class ImgWelcome:
             await self.bot.say('The profile and text colors have been set.')
             await self.save_settings()
 
-
-    @imgwelcomeset.command(pass_context=True, name="channel")
+    @imgwelcomeset.command(pass_context=True, name="channel", no_pm=True)
     async def imgwelcomeset_channel(self, ctx, channel: discord.Channel):
         """Set the announcement channel."""
         server = ctx.message.server
@@ -190,11 +197,44 @@ class ImgWelcome:
     async def imgwelcomeset_clear(self, ctx):
         """Set the background to transparent."""
         server = ctx.message.server
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
         self.settings[server.id]['BACKGROUND'] = 'data/imgwelcome/transparent.png'
         await self.save_settings()
         await self.bot.say('Welcome image background is now transparent.')
 
-    @imgwelcomeset.command(pass_context=True, name="toggle")
+    @imgwelcomeset.command(name='clearborder', pass_context=True, no_pm=True)
+    async def imgwelcomeset_clearborder(self, ctx):
+        """Set the image border to transparent."""
+        server = ctx.message.server
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+        self.settings[server.id]['BORDER'] = [0,0,0,0]
+        await self.save_settings()
+        await self.bot.say('Profile image border is now transparent.')
+
+    @imgwelcomeset.command(name="preview", pass_context=True)
+    async def imagewelcomeset_preview(self, ctx, member:discord.Member=None):
+        """Show a welcome image with the current settings."""
+        server = ctx.message.server
+        author = ctx.message.author
+        if member is None:
+            member = ctx.message.author
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+        channelid = self.settings[server.id]["CHANNEL"]
+        channelobj = self.bot.get_channel(channelid)
+        await self.bot.send_typing(channelobj)
+        ImageObject = await self.createWelcomeImage(member, member.avatar_url)
+        await self.bot.send_file(channelobj,ImageObject,filename="welcome.png")
+
+    @imgwelcomeset.command(pass_context=True, name="toggle", no_pm=True)
     async def imgwelcomeset_toggle(self, ctx):
         """Toggle welcome messages on the server."""
         server = ctx.message.server
@@ -214,7 +254,11 @@ class ImgWelcome:
         """Upload a background through Discord. 500px x 150px."""
         # request image from user
         server = ctx.message.server
-        await self.bot.say("Please send the file to use as a background.")
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+        await self.bot.say("Please send the file to use as a background. File must be 500px x 150px.")
         answer = await self.bot.wait_for_message(timeout=30, author=ctx.message.author)
 
         # get the image from message
@@ -261,6 +305,11 @@ class ImgWelcome:
                 await self.bot.say("Couldn't get the image from Discord.")
         else:
             await self.bot.say("Couldn't get the image.")
+
+    @imgwelcomeset.command(name="version", pass_context=True, hidden=True)
+    async def imagewelcomeset_version(self):
+        """Displays the imgwelcome version."""
+        await self.bot.say("imgwelcome version {}.".format(self.version))
 
     async def on_member_join(self, member):
         server = member.server
