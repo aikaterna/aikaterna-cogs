@@ -247,7 +247,7 @@ class ImgWelcome:
             valid = False
 
         if valid:
-            await self.bot.say('The profile and text colors have been set.')
+            await self.bot.say('The text colors have been set.')
             await self.save_settings()
 
     @imgwelcome.command(pass_context=True, name="channel", no_pm=True)
