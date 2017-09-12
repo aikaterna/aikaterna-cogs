@@ -1,4 +1,5 @@
 #  _is_hex, _hex_to_rgb, _rgb_to_hex are from Stevy's leveler.py
+#  Also thanks to Stevy for nice, smooth circles.
 #  https://github.com/AznStevy/Maybe-Useful-Cogs
 #  imgwelcomeset_upload is based on code in orels' drawing.py
 #  https://github.com/orels1/ORELS-Cogs
@@ -54,9 +55,10 @@ class ImgWelcome:
         WelcomePicture = WelcomePicture.resize((500,150), Image.NEAREST)
 
         # Load profile picture and make template
-        ProfileArea = Image.new("L",(128,128),0)
+        ProfileArea = Image.new("L",(512,512),0)
         draw = ImageDraw.Draw(ProfileArea)
-        draw.ellipse(((0,0),(128,128)),fill=255)
+        draw.ellipse(((0,0),(512,512)),fill=255)
+        ProfileArea = ProfileArea.resize((128,128), Image.ANTIALIAS)
         try:
             url = url.replace('webp?size=1024', 'png')
             url = url.replace('gif?size=1024', 'png')
@@ -67,12 +69,21 @@ class ImgWelcome:
         ProfileAreaOutput = ImageOps.fit(ProfilePicture,(128,128),centering=(0,0))
         ProfileAreaOutput.putalpha(ProfileArea)
 
-        # Create profile picture
-        drawtwo = ImageDraw.Draw(WelcomePicture)
         bordercolor = tuple(self.settings[member.server.id]["BORDER"])
         fontcolor = tuple(self.settings[member.server.id]["TEXT"])
         servercolor = tuple(self.settings[member.server.id]["SERVERTEXT"])
-        drawtwo.ellipse(((7,7),(143,143)),fill=(bordercolor))
+
+        mask = Image.new('L', (512,512), 0)
+        draw_thumb = ImageDraw.Draw(mask)
+        draw_thumb.ellipse((0,0) + (512,512), fill=255, outline=0)
+        circle = Image.new("RGBA", (512,512))
+        draw_circle = ImageDraw.Draw(circle)
+        draw_circle.ellipse([0,0,512,512], fill=(bordercolor[0], bordercolor[1], bordercolor[2],180), outline = (255,255,255,250))
+        circle = circle.resize((136,136), Image.ANTIALIAS)
+        circle_mask = mask.resize((136,136), Image.ANTIALIAS)
+        drawtwo = ImageDraw.Draw(WelcomePicture)
+        CircleAreaOutput = ImageOps.fit(circle,(136,136),centering=(0,0))
+        WelcomePicture.paste(circle, (7,7), circle_mask)
         WelcomePicture.paste(ProfileAreaOutput,(11,11),ProfileAreaOutput)
 
         # Draw welcome text
@@ -136,6 +147,17 @@ class ImgWelcome:
         else:
             return "th"
 
+    async def data_check(self, ctx):
+        server = ctx.message.server
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+        channel = self.settings[server.id]["CHANNEL"]
+        if channel not in self.settings:
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+
     @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
     async def imgwelcomeset(self, ctx):
@@ -149,10 +171,7 @@ class ImgWelcome:
         """Set image border and text colors. Accepts hex code for colors."""
         user = ctx.message.author
         server = ctx.message.server
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
+        await self.data_check(ctx)
         default_a = 230
         valid = True
 
@@ -185,10 +204,7 @@ class ImgWelcome:
         if not server.me.permissions_in(channel).send_messages:
             await self.bot.say("No permissions to speak in that channel.")
             return
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = channel.id
-            await self.save_settings()
+        await self.data_check(ctx)
         self.settings[server.id]["CHANNEL"] = channel.id
         await self.save_settings()
         await self.bot.send_message(channel, "This channel will be used for welcome messages.")
@@ -197,10 +213,7 @@ class ImgWelcome:
     async def imgwelcomeset_clear(self, ctx):
         """Set the background to transparent."""
         server = ctx.message.server
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
+        await self.data_check(ctx)
         self.settings[server.id]['BACKGROUND'] = 'data/imgwelcome/transparent.png'
         await self.save_settings()
         await self.bot.say('Welcome image background is now transparent.')
@@ -209,10 +222,7 @@ class ImgWelcome:
     async def imgwelcomeset_clearborder(self, ctx):
         """Set the image border to transparent."""
         server = ctx.message.server
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
+        await self.data_check(ctx)
         self.settings[server.id]['BORDER'] = [0,0,0,0]
         await self.save_settings()
         await self.bot.say('Profile image border is now transparent.')
@@ -222,14 +232,11 @@ class ImgWelcome:
         """Show a welcome image with the current settings."""
         server = ctx.message.server
         author = ctx.message.author
+        channel = ctx.message.channel
         if member is None:
             member = ctx.message.author
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
-        channelid = self.settings[server.id]["CHANNEL"]
-        channelobj = self.bot.get_channel(channelid)
+        await self.data_check(ctx)
+        channelobj = self.bot.get_channel(channel.id)
         await self.bot.send_typing(channelobj)
         ImageObject = await self.createWelcomeImage(member, member.avatar_url)
         await self.bot.send_file(channelobj,ImageObject,filename="welcome.png")
@@ -238,10 +245,7 @@ class ImgWelcome:
     async def imgwelcomeset_toggle(self, ctx):
         """Toggle welcome messages on the server."""
         server = ctx.message.server
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
+        await self.data_check(ctx)
         self.settings[server.id]["ANNOUNCE"] = not self.settings[server.id]["ANNOUNCE"]
         if self.settings[server.id]["ANNOUNCE"]:
             await self.bot.say("Now welcoming new users.")
@@ -251,13 +255,11 @@ class ImgWelcome:
 
     @imgwelcomeset.command(name='upload', pass_context=True, no_pm=True)
     async def imgwelcomeset_upload(self, ctx, default=None):
-        """Upload a background through Discord. 500px x 150px."""
+        """Upload a background through Discord. 500px x 150px.
+        This must be an image file and not a url."""
         # request image from user
         server = ctx.message.server
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
+        await self.data_check(ctx)
         await self.bot.say("Please send the file to use as a background. File must be 500px x 150px.")
         answer = await self.bot.wait_for_message(timeout=30, author=ctx.message.author)
 
@@ -315,7 +317,6 @@ class ImgWelcome:
         server = member.server
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = server.default_channel.id
             await self.save_settings()
         if not self.settings[server.id]["ANNOUNCE"]:
             return
