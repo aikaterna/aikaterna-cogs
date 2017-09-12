@@ -24,7 +24,8 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 default_settings = {"ANNOUNCE": False,
                     "BACKGROUND": "data/imgwelcome/transparent.png",
                     "BORDER": [255,255,255,230], "CHANNEL": None,
-                    "SERVERTEXT": [255,255,255,230], "TEXT": [255,255,255,230]}
+                    "OUTLINE":[0,0,0,255], "SERVERTEXT": [255,255,255,230],
+                    "TEXT": [255,255,255,230]}
 
 
 class ImgWelcome:
@@ -33,7 +34,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.1a"
+        self.version = "0.1.2"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -45,6 +46,7 @@ class ImgWelcome:
         italicFont = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",30)
         italicFontsmall = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",22)
         italicFontsupersmall = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",18)
+        italicFontmicroscopic = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",12)
         Background = Image.open(self.settings[server.id]["BACKGROUND"])
         NoProfilePicture = Image.open("data/imgwelcome/noimage.png")
 
@@ -72,6 +74,7 @@ class ImgWelcome:
         bordercolor = tuple(self.settings[member.server.id]["BORDER"])
         fontcolor = tuple(self.settings[member.server.id]["TEXT"])
         servercolor = tuple(self.settings[member.server.id]["SERVERTEXT"])
+        textoutline = tuple(self.settings[server.id]["OUTLINE"])
 
         mask = Image.new('L', (512,512), 0)
         draw_thumb = ImageDraw.Draw(mask)
@@ -88,17 +91,49 @@ class ImgWelcome:
 
         # Draw welcome text
         uname = (str(member.name) + "#" + str(member.discriminator))
+        drawtwo.text((149,16),"Welcome",font=defaultFont, fill=(textoutline))
+        drawtwo.text((151,16),"Welcome",font=defaultFont, fill=(textoutline))
+        drawtwo.text((150,15),"Welcome",font=defaultFont, fill=(textoutline))
+        drawtwo.text((150,17),"Welcome",font=defaultFont, fill=(textoutline))
         drawtwo.text((150,16),"Welcome",font=defaultFont, fill=(fontcolor))
+
         if len(uname) <= 17:
+            drawtwo.text((151,63),uname,font=italicFont, fill=(textoutline))
+            drawtwo.text((153,63),uname,font=italicFont, fill=(textoutline))
+            drawtwo.text((152,62),uname,font=italicFont, fill=(textoutline))
+            drawtwo.text((152,64),uname,font=italicFont, fill=(textoutline))
             drawtwo.text((152,63),uname,font=italicFont, fill=(fontcolor))
         if len(uname) > 17:
             if len(uname) <= 23:
+                drawtwo.text((151,66),uname,font=italicFontsmall, fill=(textoutline))
+                drawtwo.text((153,66),uname,font=italicFontsmall, fill=(textoutline))
+                drawtwo.text((152,65),uname,font=italicFontsmall, fill=(textoutline))
+                drawtwo.text((152,67),uname,font=italicFontsmall, fill=(textoutline))
                 drawtwo.text((152,66),uname,font=italicFontsmall, fill=(fontcolor))
         if len(uname) >= 24:
-            drawtwo.text((152,70),uname,font=italicFontsupersmall, fill=(fontcolor))
+            if len(uname) <= 32:
+                drawtwo.text((151,70),uname,font=italicFontsupersmall, fill=(textoutline))
+                drawtwo.text((153,70),uname,font=italicFontsupersmall, fill=(textoutline))
+                drawtwo.text((152,69),uname,font=italicFontsupersmall, fill=(textoutline))
+                drawtwo.text((152,71),uname,font=italicFontsupersmall, fill=(textoutline))
+                drawtwo.text((152,70),uname,font=italicFontsupersmall, fill=(fontcolor))
+        if len(uname) >= 33:
+            drawtwo.text((151,73),uname,font=italicFontmicroscopic, fill=(textoutline))
+            drawtwo.text((153,73),uname,font=italicFontmicroscopic, fill=(textoutline))
+            drawtwo.text((152,72),uname,font=italicFontmicroscopic, fill=(textoutline))
+            drawtwo.text((152,74),uname,font=italicFontmicroscopic, fill=(textoutline))
+            drawtwo.text((152,73),uname,font=italicFontmicroscopic, fill=(fontcolor))
 
         member_number = len(member.server.members)
+        drawtwo.text((151,96),"You are the " + str(member_number) + self.getSuffix(member_number) + " member",font=smallFont, fill=(textoutline))
+        drawtwo.text((153,96),"You are the " + str(member_number) + self.getSuffix(member_number) + " member",font=smallFont, fill=(textoutline))
+        drawtwo.text((152,95),"You are the " + str(member_number) + self.getSuffix(member_number) + " member",font=smallFont, fill=(textoutline))
+        drawtwo.text((152,97),"You are the " + str(member_number) + self.getSuffix(member_number) + " member",font=smallFont, fill=(textoutline))
         drawtwo.text((152,96),"You are the " + str(member_number) + self.getSuffix(member_number) + " member",font=smallFont, fill=(servercolor))
+        drawtwo.text((151,116),"of " + str(member.server.name) + "!",font=smallFont, fill=(textoutline))
+        drawtwo.text((153,116),"of " + str(member.server.name) + "!",font=smallFont, fill=(textoutline))
+        drawtwo.text((152,115),"of " + str(member.server.name) + "!",font=smallFont, fill=(textoutline))
+        drawtwo.text((152,117),"of " + str(member.server.name) + "!",font=smallFont, fill=(textoutline))
         drawtwo.text((152,116),"of " + str(member.server.name) + "!",font=smallFont, fill=(servercolor))
         # Export
         ImageObject = BytesIO()
@@ -153,33 +188,51 @@ class ImgWelcome:
             self.settings[server.id] = deepcopy(default_settings)
             self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
             await self.save_settings()
-        channel = self.settings[server.id]["CHANNEL"]
-        if channel not in self.settings:
+
+        if "CHANNEL" not in self.settings[server.id].keys():
             self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+
+        if "OUTLINE" not in self.settings[server.id].keys():
+            self.settings[server.id]["OUTLINE"] = [0,0,0,255]
             await self.save_settings()
 
     @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
-    async def imgwelcomeset(self, ctx):
+    async def imgwelcome(self, ctx):
         """Configuration options for the welcome image."""
         if ctx.invoked_subcommand is None:
             await send_cmd_help(ctx)
             return
 
-    @imgwelcomeset.command(pass_context=True, name="colors", no_pm=True)
-    async def imgwelcomeset_colors(self, ctx, bordercolor:str, textcolor:str, servercolor:str):
-        """Set image border and text colors. Accepts hex code for colors."""
-        user = ctx.message.author
+    @imgwelcome.command(pass_context=True, name="border", no_pm=True)
+    async def imgwelcome_border(self, ctx, bordercolor=None):
+        """Set the profile image border color.
+        Use hex codes for colors and clear for transparent."""
         server = ctx.message.server
         await self.data_check(ctx)
         default_a = 230
         valid = True
 
-        if self._is_hex(bordercolor):
+        if bordercolor == "clear":
+            self.settings[server.id]["BORDER"] = [0,0,0,0]
+        elif self._is_hex(bordercolor):
             self.settings[server.id]["BORDER"] = self._hex_to_rgb(bordercolor, default_a)
         else:
             await self.bot.say('Border color is invalid. Use #000000 as a format.')
             valid = False
+
+        if valid:
+            await self.bot.say('The profile color has been set.')
+            await self.save_settings()
+
+    @imgwelcome.command(pass_context=True, name="text", no_pm=True)
+    async def imgwelcome_text(self, ctx, textcolor:str, servercolor:str):
+        """Set text colors. Use hex code for colors."""
+        server = ctx.message.server
+        await self.data_check(ctx)
+        default_a = 230
+        valid = True
 
         if self._is_hex(textcolor):
             self.settings[server.id]["TEXT"] = self._hex_to_rgb(textcolor, default_a)
@@ -197,8 +250,8 @@ class ImgWelcome:
             await self.bot.say('The profile and text colors have been set.')
             await self.save_settings()
 
-    @imgwelcomeset.command(pass_context=True, name="channel", no_pm=True)
-    async def imgwelcomeset_channel(self, ctx, channel: discord.Channel):
+    @imgwelcome.command(pass_context=True, name="channel", no_pm=True)
+    async def imgwelcome_channel(self, ctx, channel: discord.Channel):
         """Set the announcement channel."""
         server = ctx.message.server
         if not server.me.permissions_in(channel).send_messages:
@@ -209,8 +262,8 @@ class ImgWelcome:
         await self.save_settings()
         await self.bot.send_message(channel, "This channel will be used for welcome messages.")
 
-    @imgwelcomeset.command(name='clear', pass_context=True, no_pm=True)
-    async def imgwelcomeset_clear(self, ctx):
+    @imgwelcome.command(name='clear', pass_context=True, no_pm=True)
+    async def imgwelcome_clear(self, ctx):
         """Set the background to transparent."""
         server = ctx.message.server
         await self.data_check(ctx)
@@ -218,17 +271,27 @@ class ImgWelcome:
         await self.save_settings()
         await self.bot.say('Welcome image background is now transparent.')
 
-    @imgwelcomeset.command(name='clearborder', pass_context=True, no_pm=True)
-    async def imgwelcomeset_clearborder(self, ctx):
-        """Set the image border to transparent."""
+    @imgwelcome.command(pass_context=True, name="outline", no_pm=True)
+    async def imgwelcome_outline(self, ctx, outline=None):
+        """Set the text outline. White or black."""
         server = ctx.message.server
         await self.data_check(ctx)
-        self.settings[server.id]['BORDER'] = [0,0,0,0]
-        await self.save_settings()
-        await self.bot.say('Profile image border is now transparent.')
+        valid = True
+        if outline == "white":
+            self.settings[server.id]["OUTLINE"] = [255,255,255,255]
+            await self.save_settings()
+        elif outline == "black":
+            self.settings[server.id]["OUTLINE"] = [0,0,0,255]
+            await self.save_settings()
+        else:
+            await self.bot.say('Outline color is invalid. Use clear or black.')
+            valid = False
 
-    @imgwelcomeset.command(name="preview", pass_context=True)
-    async def imagewelcomeset_preview(self, ctx, member:discord.Member=None):
+        if valid:
+            await self.bot.say('The text outline has been set.')
+
+    @imgwelcome.command(name="preview", pass_context=True)
+    async def imagewelcome_preview(self, ctx, member:discord.Member=None):
         """Show a welcome image with the current settings."""
         server = ctx.message.server
         author = ctx.message.author
@@ -241,8 +304,8 @@ class ImgWelcome:
         ImageObject = await self.createWelcomeImage(member, member.avatar_url)
         await self.bot.send_file(channelobj,ImageObject,filename="welcome.png")
 
-    @imgwelcomeset.command(pass_context=True, name="toggle", no_pm=True)
-    async def imgwelcomeset_toggle(self, ctx):
+    @imgwelcome.command(pass_context=True, name="toggle", no_pm=True)
+    async def imgwelcome_toggle(self, ctx):
         """Toggle welcome messages on the server."""
         server = ctx.message.server
         await self.data_check(ctx)
@@ -253,8 +316,8 @@ class ImgWelcome:
             await self.bot.say("No longer welcoming new users.")
         await self.save_settings()
 
-    @imgwelcomeset.command(name='upload', pass_context=True, no_pm=True)
-    async def imgwelcomeset_upload(self, ctx, default=None):
+    @imgwelcome.command(name='upload', pass_context=True, no_pm=True)
+    async def imgwelcome_upload(self, ctx, default=None):
         """Upload a background through Discord. 500px x 150px.
         This must be an image file and not a url."""
         # request image from user
@@ -308,7 +371,7 @@ class ImgWelcome:
         else:
             await self.bot.say("Couldn't get the image.")
 
-    @imgwelcomeset.command(name="version", pass_context=True, hidden=True)
+    @imgwelcome.command(name="version", pass_context=True, hidden=True)
     async def imagewelcomeset_version(self):
         """Displays the imgwelcome version."""
         await self.bot.say("imgwelcome version {}.".format(self.version))
@@ -334,7 +397,6 @@ class ImgWelcome:
         timeSinceJoining = currentDate - joinDate
         if timeSinceJoining.days < 7:
             await self.bot.send_message(channelobj,"\N{WARNING SIGN} This account was created less than a week ago (" + str(timeSinceJoining.days) + " days ago)")
-
 
 def check_folders():
     if not os.path.exists('data/imgwelcome/'):
