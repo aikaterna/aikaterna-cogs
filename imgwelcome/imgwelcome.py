@@ -47,7 +47,7 @@ class ImgWelcome:
         italicFontsmall = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",22)
         italicFontsupersmall = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",18)
         italicFontmicroscopic = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf",12)
-        Background = Image.open(self.settings[server.id]["BACKGROUND"])
+        Background = Image.open(self.settings[server.id]["BACKGROUND"]).convert('RGBA')
         NoProfilePicture = Image.open("data/imgwelcome/noimage.png")
 
         global WelcomePicture
