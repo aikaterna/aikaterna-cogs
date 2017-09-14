@@ -4,6 +4,6 @@
     "NAME" : "imgwelcome",
     "SHORT" : "Image Welcome",
     "DESCRIPTION" : "Welcome users to your server with an image.",
-    "REQUIREMENTS": ["pillow"],
+    "REQUIREMENTS": ["Pillow"],
     "TAGS": ["welcome", "welcome image", "images"]
 }
