@@ -34,7 +34,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.2b"
+        self.version = "0.1.2c"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -88,52 +88,42 @@ class ImgWelcome:
         welcome_picture.paste(profile_area_output, (11, 11), profile_area_output)
 
         uname = (str(member.name) + "#" + str(member.discriminator))
-        drawtwo.text((149, 16), "Welcome", font=welcome_font, fill=(textoutline))
-        drawtwo.text((151, 16), "Welcome", font=welcome_font, fill=(textoutline))
-        drawtwo.text((150, 15), "Welcome", font=welcome_font, fill=(textoutline))
-        drawtwo.text((150, 17), "Welcome", font=welcome_font, fill=(textoutline))
+
+        def _outline(original_position: tuple, text: str, pixel_displacement: int, font, textoutline):
+            op = original_position
+            pd = pixel_displacement
+            textoutline = tuple(self.settings[server.id]["OUTLINE"])
+
+            drawtwo.text((op[0] - pd, op[1]), text, font=font, fill=(textoutline))
+            drawtwo.text((op[0] + pd, op[1]), text, font=font, fill=(textoutline))
+            drawtwo.text((op[0], op[1] - pd), text, font=font, fill=(textoutline))
+            drawtwo.text((op[0], op[1] + pd), text, font=font, fill=(textoutline))
+
+        _outline((150, 16), "Welcome", 1, welcome_font, (textoutline))
         drawtwo.text((150, 16), "Welcome", font=welcome_font, fill=(fontcolor))
 
         if len(uname) <= 17:
-            drawtwo.text((151, 63), uname, font=name_font, fill=(textoutline))
-            drawtwo.text((153, 63), uname, font=name_font, fill=(textoutline))
-            drawtwo.text((152, 62), uname, font=name_font, fill=(textoutline))
-            drawtwo.text((152, 64), uname, font=name_font, fill=(textoutline))
+            _outline((152, 63), uname, 1, name_font, (textoutline))
             drawtwo.text((152, 63), uname, font=name_font, fill=(fontcolor))
 
         if len(uname) > 17:
             if len(uname) <= 23:
-                drawtwo.text((151, 66), uname, font=name_font_medium, fill=(textoutline))
-                drawtwo.text((153, 66), uname, font=name_font_medium, fill=(textoutline))
-                drawtwo.text((152, 65), uname, font=name_font_medium, fill=(textoutline))
-                drawtwo.text((152, 67), uname, font=name_font_medium, fill=(textoutline))
+                _outline((152, 66), uname, 1,  name_font_medium, (textoutline))
                 drawtwo.text((152, 66), uname, font=name_font_medium, fill=(fontcolor))
 
         if len(uname) >= 24:
             if len(uname) <= 32:
-                drawtwo.text((151, 70), uname, font=name_font_small, fill=(textoutline))
-                drawtwo.text((153, 70), uname, font=name_font_small, fill=(textoutline))
-                drawtwo.text((152, 69), uname, font=name_font_small, fill=(textoutline))
-                drawtwo.text((152, 71), uname, font=name_font_small, fill=(textoutline))
+                _outline((152, 70), uname, 1,  name_font_small, (textoutline))
                 drawtwo.text((152, 70), uname, font=name_font_small, fill=(fontcolor))
 
         if len(uname) >= 33:
-            drawtwo.text((151, 73), uname, font=name_font_smallest, fill=(textoutline))
-            drawtwo.text((153, 73), uname, font=name_font_smallest, fill=(textoutline))
-            drawtwo.text((152, 72), uname, font=name_font_smallest, fill=(textoutline))
-            drawtwo.text((152, 74), uname, font=name_font_smallest, fill=(textoutline))
+            drawtwo.text((152, 73), uname, 1,  name_font_smallest, (textoutline))
             drawtwo.text((152, 73), uname, font=name_font_smallest, fill=(fontcolor))
 
         member_number = len(member.server.members)
-        drawtwo.text((151, 96), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", font=server_font, fill=(textoutline))
-        drawtwo.text((153, 96), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", font=server_font, fill=(textoutline))
-        drawtwo.text((152, 95), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", font=server_font, fill=(textoutline))
-        drawtwo.text((152, 97), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", font=server_font, fill=(textoutline))
+        _outline((152, 96), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", 1, server_font, (textoutline))
         drawtwo.text((152, 96), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", font=server_font, fill=(servercolor))
-        drawtwo.text((151, 116), "of " + str(member.server.name) + "!", font=server_font, fill=(textoutline))
-        drawtwo.text((153, 116), "of " + str(member.server.name) + "!", font=server_font, fill=(textoutline))
-        drawtwo.text((152, 115), "of " + str(member.server.name) + "!", font=server_font, fill=(textoutline))
-        drawtwo.text((152, 117), "of " + str(member.server.name) + "!", font=server_font, fill=(textoutline))
+        _outline((152, 116), "of " + str(member.server.name) + "!", 1, server_font, (textoutline))
         drawtwo.text((152, 116), "of " + str(member.server.name) + "!", font=server_font, fill=(servercolor))
 
         image_object = BytesIO()
