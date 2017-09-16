@@ -92,7 +92,6 @@ class ImgWelcome:
         def _outline(original_position: tuple, text: str, pixel_displacement: int, font, textoutline):
             op = original_position
             pd = pixel_displacement
-            textoutline = tuple(self.settings[server.id]["OUTLINE"])
 
             drawtwo.text((op[0] - pd, op[1]), text, font=font, fill=(textoutline))
             drawtwo.text((op[0] + pd, op[1]), text, font=font, fill=(textoutline))
