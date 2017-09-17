@@ -23,8 +23,9 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 
 default_settings = {"ANNOUNCE": False,
                     "BACKGROUND": "data/imgwelcome/transparent.png",
-                    "BORDER": [255, 255, 255, 230], "CHANNEL": None,
-                    "OUTLINE": [0, 0, 0, 255], "SERVERTEXT": [255, 255, 255, 230],
+                    "BORDER": [255, 255, 255, 230], "CIRCLE": [128, 128],
+                    "CHANNEL": None, "OUTLINE": [0, 0, 0, 255],
+                    "SERVERTEXT": [255, 255, 255, 230],
                     "TEXT": [255, 255, 255, 230]}
 
 
@@ -34,7 +35,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.2c"
+        self.version = "0.1.3"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -59,7 +60,8 @@ class ImgWelcome:
         profile_area = Image.new("L", (512, 512), 0)
         draw = ImageDraw.Draw(profile_area)
         draw.ellipse(((0, 0), (512, 512)), fill=255)
-        profile_area = profile_area.resize((128, 128), Image.ANTIALIAS)
+        circleimgsize = tuple(self.settings[member.server.id]["CIRCLE"])
+        profile_area = profile_area.resize((circleimgsize), Image.ANTIALIAS)
         try:
             url = url.replace('webp?size=1024', 'png')
             url = url.replace('gif?size=1024', 'png')
@@ -67,7 +69,7 @@ class ImgWelcome:
             profile_picture = Image.open('data/imgwelcome/profilepic.png')
         except:
             profile_picture = no_profile_picture
-        profile_area_output = ImageOps.fit(profile_picture, (128, 128), centering=(0, 0))
+        profile_area_output = ImageOps.fit(profile_picture, (circleimgsize), centering=(0, 0))
         profile_area_output.putalpha(profile_area)
 
         bordercolor = tuple(self.settings[member.server.id]["BORDER"])
@@ -81,17 +83,21 @@ class ImgWelcome:
         circle = Image.new("RGBA", (512, 512))
         draw_circle = ImageDraw.Draw(circle)
         draw_circle.ellipse([0, 0, 512, 512], fill=(bordercolor[0], bordercolor[1], bordercolor[2], 180), outline=(255, 255, 255, 250))
-        circle = circle.resize((136, 136), Image.ANTIALIAS)
-        circle_mask = mask.resize((136, 136), Image.ANTIALIAS)
+        circle_border_size = await self._circle_border(circleimgsize)
+        circle = circle.resize((circle_border_size), Image.ANTIALIAS)
+        circle_mask = mask.resize((circle_border_size), Image.ANTIALIAS)
+        circle_pos = (7 + int((132 - circle_border_size[0]) / 2))
+        border_pos = (11 + int((132 - circle_border_size[0]) / 2))
         drawtwo = ImageDraw.Draw(welcome_picture)
-        welcome_picture.paste(circle, (7, 7), circle_mask)
-        welcome_picture.paste(profile_area_output, (11, 11), profile_area_output)
+        welcome_picture.paste(circle, (circle_pos, circle_pos), circle_mask)
+        welcome_picture.paste(profile_area_output, (border_pos, border_pos), profile_area_output)
 
         uname = (str(member.name) + "#" + str(member.discriminator))
 
         def _outline(original_position: tuple, text: str, pixel_displacement: int, font, textoutline):
             op = original_position
             pd = pixel_displacement
+            textoutline = tuple(self.settings[server.id]["OUTLINE"])
 
             drawtwo.text((op[0] - pd, op[1]), text, font=font, fill=(textoutline))
             drawtwo.text((op[0] + pd, op[1]), text, font=font, fill=(textoutline))
@@ -130,9 +136,48 @@ class ImgWelcome:
         image_object.seek(0)
         return image_object
 
-    def _rgb_to_hex(self, rgb):
-        rgb = tuple(rgb[:3])
-        return '#%02x%02x%02x' % rgb
+    async def _circle_border(self, circleimgsize: tuple):
+        border_size = []
+        for i in range(len(circleimgsize)):
+            border_size.append(circleimgsize[0] + 8)
+        return tuple(border_size)
+
+    async def _data_check(self, ctx):
+        server = ctx.message.server
+        if server.id not in self.settings:
+            self.settings[server.id] = deepcopy(default_settings)
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+
+        if "CHANNEL" not in self.settings[server.id].keys():
+            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
+            await self.save_settings()
+
+        if "OUTLINE" not in self.settings[server.id].keys():
+            self.settings[server.id]["OUTLINE"] = [0, 0, 0, 255]
+            await self.save_settings()
+
+        if "CIRCLE" not in self.settings[server.id].keys():
+            self.settings[server.id]["CIRCLE"] = [128, 128]
+            await self.save_settings()
+
+    async def _get_profile(self, url):
+        async with aiohttp.get(url) as r:
+            image = await r.content.read()
+        with open('data/imgwelcome/profilepic.png', 'wb') as f:
+            f.write(image)
+
+    def _get_suffix(self, num):
+        num = str(num)
+        last = num[len(num)-1:len(num)]
+        if last == "1":
+            return "st"
+        elif last == "2":
+            return "nd"
+        elif last == "3":
+            return "rd"
+        else:
+            return "th"
 
     def _hex_to_rgb(self, hex_num: str, a: int):
         h = hex_num.lstrip('#')
@@ -153,38 +198,9 @@ class ImgWelcome:
         reg_ex = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
         return re.search(reg_ex, str(color))
 
-    async def _get_profile(self, url):
-        async with aiohttp.get(url) as r:
-            image = await r.content.read()
-        with open('data/imgwelcome/profilepic.png', 'wb') as f:
-            f.write(image)
-
-    def _get_suffix(self, num):
-        num = str(num)
-        last = num[len(num)-1:len(num)]
-        if last == "1":
-            return "st"
-        elif last == "2":
-            return "nd"
-        elif last == "3":
-            return "rd"
-        else:
-            return "th"
-
-    async def _data_check(self, ctx):
-        server = ctx.message.server
-        if server.id not in self.settings:
-            self.settings[server.id] = deepcopy(default_settings)
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
-
-        if "CHANNEL" not in self.settings[server.id].keys():
-            self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
-            await self.save_settings()
-
-        if "OUTLINE" not in self.settings[server.id].keys():
-            self.settings[server.id]["OUTLINE"] = [0, 0, 0, 255]
-            await self.save_settings()
+    def _rgb_to_hex(self, rgb):
+        rgb = tuple(rgb[:3])
+        return '#%02x%02x%02x' % rgb
 
     @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
@@ -291,6 +307,19 @@ class ImgWelcome:
         await self.bot.send_typing(channel_object)
         image_object = await self._create_welcome(member, member.avatar_url)
         await self.bot.send_file(channel_object, image_object, filename="welcome.png")
+
+    @imgwelcome.command(pass_context=True, name="size", no_pm=True)
+    async def imgwelcome_profilesize(self, ctx, profilesize: int):
+        """Set the profile size in pixels. Use one number, 128 is recommended."""
+        server = ctx.message.server
+        await self._data_check(ctx)
+        if profilesize is 0:
+            await self.bot.say("Profile picture size must be larger than 0.")
+            return
+        else:
+            self.settings[server.id]["CIRCLE"] = [profilesize, profilesize]
+            await self.save_settings()
+            await self.bot.say('The profile picture size has been set.')
 
     @imgwelcome.command(pass_context=True, name="toggle", no_pm=True)
     async def imgwelcome_toggle(self, ctx):
