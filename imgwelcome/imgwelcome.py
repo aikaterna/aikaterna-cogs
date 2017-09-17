@@ -35,7 +35,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.3a"
+        self.version = "0.1.3b"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -86,8 +86,8 @@ class ImgWelcome:
         circle_border_size = await self._circle_border(circle_img_size)
         circle = circle.resize((circle_border_size), Image.ANTIALIAS)
         circle_mask = mask.resize((circle_border_size), Image.ANTIALIAS)
-        circle_pos = (7 + int((132 - circle_border_size[0]) / 2))
-        border_pos = (11 + int((132 - circle_border_size[0]) / 2))
+        circle_pos = (7 + int((136 - circle_border_size[0]) / 2))
+        border_pos = (11 + int((136 - circle_border_size[0]) / 2))
         drawtwo = ImageDraw.Draw(welcome_picture)
         welcome_picture.paste(circle, (circle_pos, circle_pos), circle_mask)
         welcome_picture.paste(profile_area_output, (border_pos, border_pos), profile_area_output)
