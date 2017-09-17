@@ -169,7 +169,9 @@ class ImgWelcome:
 
     def _get_suffix(self, num):
         num = str(num)
-        last = num[len(num)-1:len(num)]
+        last = num[-1)]
+        if num[-2] == "1":
+          return "th"
         if last == "1":
             return "st"
         elif last == "2":
