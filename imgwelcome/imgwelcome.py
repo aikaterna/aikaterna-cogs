@@ -5,6 +5,9 @@
 #  https://github.com/orels1/ORELS-Cogs
 #  Parts of _create_welcome and on_member_join are from the Welcomer bot:
 #  https://discordbots.org/bot/330416853971107840
+#  Font switcher, font outline, and bonus text announcement toggles
+#  thanks to Sitryk.
+#  Font listing from FlapJack + aikaterna's yet unpublished wordcloud cog.
 import asyncio
 import aiohttp
 import datetime
@@ -23,10 +26,27 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 
 default_settings = {"ANNOUNCE": False,
                     "BACKGROUND": "data/imgwelcome/transparent.png",
-                    "BORDER": [255, 255, 255, 230], "CIRCLE": [128, 128],
-                    "CHANNEL": None, "OUTLINE": [0, 0, 0, 255],
+                    "BONUSES": {"ACCOUNT_WARNINGS": True,
+                                "SPECIAL_USERS": True
+                                },
+                    "BORDER": [255, 255, 255, 230],
+                    "CHANNEL": None,
+                    "OUTLINE": [0, 0, 0, 255],
                     "SERVERTEXT": [255, 255, 255, 230],
-                    "TEXT": [255, 255, 255, 230]}
+                    "TEXT": [255, 255, 255, 230],
+                    "FONT": {"WELCOME_FONT": {"PATH": "data/imgwelcome/fonts/UniSansHeavy.otf",
+                                               "SIZE": 50},
+                             "SERVER_FONT": {"PATH": "data/imgwelcome/fonts/UniSansHeavy.otf",
+                                              "SIZE": 20},
+                             "NAME_FONT": {"PATH": "data/imgwelcome/fonts/UniSansHeavy.otf",
+                                            "SIZE": {"NORMAL": 30,
+                                                      "MEDIUM": 22,
+                                                      "SMALL": 18,
+                                                      "SMALLEST": 12
+                                                    }
+                                            }
+                            }
+                    }
 
 
 class ImgWelcome:
@@ -35,19 +55,23 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.3b"
+        self.version = "0.1.4"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
 
-    async def _create_welcome(self, member, url):
+    async def _create_welcome(self, member, url, test_member_number: int = None):
         server = member.server
-        welcome_font = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf", 50)
-        server_font = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf", 20)
-        name_font = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf", 30)
-        name_font_medium = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf", 22)
-        name_font_small = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf", 18)
-        name_font_smallest = ImageFont.truetype("data/imgwelcome/fonts/UniSansHeavy.otf", 12)
+        wfont = self.settings[server.id]["FONT"]["WELCOME_FONT"]
+        sfont = self.settings[server.id]["FONT"]["SERVER_FONT"]
+        nfont = self.settings[server.id]["FONT"]["NAME_FONT"]
+        welcome_font = ImageFont.truetype(wfont["PATH"], wfont["SIZE"])
+        server_font = ImageFont.truetype(sfont["PATH"], sfont["SIZE"])
+
+        name_font = ImageFont.truetype(nfont["PATH"], nfont["SIZE"]["NORMAL"])
+        name_font_medium = ImageFont.truetype(nfont["PATH"], nfont["SIZE"]["MEDIUM"])
+        name_font_small = ImageFont.truetype(nfont["PATH"], nfont["SIZE"]["SMALL"])
+        name_font_smallest = ImageFont.truetype(nfont["PATH"], nfont["SIZE"]["SMALLEST"])
         background = Image.open(self.settings[server.id]["BACKGROUND"]).convert('RGBA')
         no_profile_picture = Image.open("data/imgwelcome/noimage.png")
 
@@ -98,10 +122,17 @@ class ImgWelcome:
             op = original_position
             pd = pixel_displacement
 
-            drawtwo.text((op[0] - pd, op[1]), text, font=font, fill=(textoutline))
-            drawtwo.text((op[0] + pd, op[1]), text, font=font, fill=(textoutline))
-            drawtwo.text((op[0], op[1] - pd), text, font=font, fill=(textoutline))
-            drawtwo.text((op[0], op[1] + pd), text, font=font, fill=(textoutline))
+            left = (op[0] - pd, op[1])
+            right = (op[0] + pd, op[1])
+            up = (op[0], op[1] - pd)
+            down = (op[0], op[1] + pd)
+
+            drawtwo.text(left, text, font=font, fill=(textoutline))
+            drawtwo.text(right, text, font=font, fill=(textoutline))
+            drawtwo.text(up, text, font=font, fill=(textoutline))
+            drawtwo.text(down, text, font=font, fill=(textoutline))
+
+            drawtwo.text(op, text, font=font, fill=(textoutline))
 
         _outline((150, 16), "Welcome", 1, welcome_font, (textoutline))
         drawtwo.text((150, 16), "Welcome", font=welcome_font, fill=(fontcolor))
@@ -124,9 +155,15 @@ class ImgWelcome:
             drawtwo.text((152, 73), uname, 1,  name_font_smallest, (textoutline))
             drawtwo.text((152, 73), uname, font=name_font_smallest, fill=(fontcolor))
 
-        member_number = len(member.server.members)
-        _outline((152, 96), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", 1, server_font, (textoutline))
-        drawtwo.text((152, 96), "You are the " + str(member_number) + self._get_suffix(member_number) + " member", font=server_font, fill=(servercolor))
+        if test_member_number is None:
+            members = sorted(server.members,
+                               key=lambda m: m.joined_at).index(member) + 1
+        else:
+            members = test_member_number
+
+        member_number = str(members) + self._get_suffix(members)
+        _outline((152, 96), "You are the " + str(member_number) + " member", 1, server_font, (textoutline))
+        drawtwo.text((152, 96), "You are the " + str(member_number) + " member", font=server_font, fill=(servercolor))
         _outline((152, 116), "of " + str(member.server.name) + "!", 1, server_font, (textoutline))
         drawtwo.text((152, 116), "of " + str(member.server.name) + "!", font=server_font, fill=(servercolor))
 
@@ -148,6 +185,11 @@ class ImgWelcome:
             self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
             await self.save_settings()
 
+        if "BONUSES" not in self.settings[server.id].keys():
+            self.settings[server.id]["BONUSES"] = {"ACCOUNT_WARNINGS": True,
+                                                   "SPECIAL_USERS": True
+                                                   }
+
         if "CIRCLE" not in self.settings[server.id].keys():
             self.settings[server.id]["CIRCLE"] = [128, 128]
             await self.save_settings()
@@ -156,10 +198,23 @@ class ImgWelcome:
             self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
             await self.save_settings()
 
+        if "FONT" not in self.settings[server.id].keys():
+            self.settings[server.id]["FONT"] = {"WELCOME_FONT": {"PATH": "data/imgwelcome/fonts/UniSansHeavy.otf",
+                                                                  "SIZE": 50},
+                                                "SERVER_FONT": {"PATH": "data/imgwelcome/fonts/UniSansHeavy.otf",
+                                                                 "SIZE": 20},
+                                                "NAME_FONT": {"PATH": "data/imgwelcome/fonts/UniSansHeavy.otf",
+                                                               "SIZE": {"NORMAL": 30,
+                                                                         "MEDIUM": 22,
+                                                                         "SMALL": 18,
+                                                                         "SMALLEST": 12
+                                                                        }
+                                                                }
+                                                }
+
         if "OUTLINE" not in self.settings[server.id].keys():
             self.settings[server.id]["OUTLINE"] = [0, 0, 0, 255]
             await self.save_settings()
-
 
     async def _get_profile(self, url):
         async with aiohttp.get(url) as r:
@@ -168,16 +223,12 @@ class ImgWelcome:
             f.write(image)
 
     def _get_suffix(self, num):
-        num = str(num)
-        last = num[len(num)-1:len(num)]
-        if last == "1":
-            return "st"
-        elif last == "2":
-            return "nd"
-        elif last == "3":
-            return "rd"
+        suffixes = {1: 'st', 2: 'nd', 3: 'rd'}
+        if 10 <= num % 100 <= 20:
+            suffix = 'th'
         else:
-            return "th"
+            suffix = suffixes.get(num % 10, 'th')
+        return suffix
 
     def _hex_to_rgb(self, hex_num: str, a: int):
         h = hex_num.lstrip('#')
@@ -231,30 +282,6 @@ class ImgWelcome:
             await self.bot.say('The profile border color has been set.')
             await self.save_settings()
 
-    @imgwelcome.command(pass_context=True, name="text", no_pm=True)
-    async def imgwelcome_text(self, ctx, textcolor: str, servercolor: str):
-        """Set text colors. Use hex code for colors."""
-        server = ctx.message.server
-        await self._data_check(ctx)
-        default_a = 230
-        valid = True
-
-        if self._is_hex(textcolor):
-            self.settings[server.id]["TEXT"] = self._hex_to_rgb(textcolor, default_a)
-        else:
-            await self.bot.say('Welcome text color is invalid. Use #000000 as a format.')
-            valid = False
-
-        if self._is_hex(servercolor):
-            self.settings[server.id]["SERVERTEXT"] = self._hex_to_rgb(servercolor, default_a)
-        else:
-            await self.bot.say('Server text color is invalid. Use #000000 as a format.')
-            valid = False
-
-        if valid:
-            await self.bot.say('The text colors have been set.')
-            await self.save_settings()
-
     @imgwelcome.command(pass_context=True, name="channel", no_pm=True)
     async def imgwelcome_channel(self, ctx, channel: discord.Channel):
         """Set the announcement channel."""
@@ -296,7 +323,7 @@ class ImgWelcome:
             await self.bot.say('The text outline has been set.')
 
     @imgwelcome.command(name="preview", pass_context=True, no_pm=True)
-    async def imagewelcome_preview(self, ctx, member: discord.Member=None):
+    async def imagewelcome_preview(self, ctx, member: discord.Member=None, number: int=None):
         """Show a welcome image with the current settings."""
         server = ctx.message.server
         channel = ctx.message.channel
@@ -305,7 +332,7 @@ class ImgWelcome:
         await self._data_check(ctx)
         channel_object = self.bot.get_channel(channel.id)
         await self.bot.send_typing(channel_object)
-        image_object = await self._create_welcome(member, member.avatar_url)
+        image_object = await self._create_welcome(member, member.avatar_url, number)
         await self.bot.send_file(channel_object, image_object, filename="welcome.png")
 
     @imgwelcome.command(pass_context=True, name="size", no_pm=True)
@@ -320,6 +347,30 @@ class ImgWelcome:
             self.settings[server.id]["CIRCLE"] = [profilesize, profilesize]
             await self.save_settings()
             await self.bot.say('The profile picture size has been set.')
+
+    @imgwelcome.command(pass_context=True, name="text", no_pm=True)
+    async def imgwelcome_text(self, ctx, textcolor: str, servercolor: str):
+        """Set text colors. Use hex code for colors."""
+        server = ctx.message.server
+        await self._data_check(ctx)
+        default_a = 230
+        valid = True
+
+        if self._is_hex(textcolor):
+            self.settings[server.id]["TEXT"] = self._hex_to_rgb(textcolor, default_a)
+        else:
+            await self.bot.say('Welcome text color is invalid. Use #000000 as a format.')
+            valid = False
+
+        if self._is_hex(servercolor):
+            self.settings[server.id]["SERVERTEXT"] = self._hex_to_rgb(servercolor, default_a)
+        else:
+            await self.bot.say('Server text color is invalid. Use #000000 as a format.')
+            valid = False
+
+        if valid:
+            await self.bot.say('The text colors have been set.')
+            await self.save_settings()
 
     @imgwelcome.command(pass_context=True, name="toggle", no_pm=True)
     async def imgwelcome_toggle(self, ctx):
@@ -382,6 +433,143 @@ class ImgWelcome:
         else:
             await self.bot.say("Couldn't get the image.")
 
+    @imgwelcome.group(pass_context=True, name='bonus', no_pm=True)
+    async def imgwelcome_bonus(self, ctx):
+        """Toggle display of additional text welcome messages when a user joins the server."""
+        if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
+            await send_cmd_help(ctx)
+            return
+
+    @imgwelcome_bonus.command(pass_context=True, name='user', no_pm=True)
+    async def bonus_user(self, ctx):
+        """Toggle text announcement when a user is x 100th to join or #1337."""
+        server = ctx.message.server
+        await self._data_check(ctx)
+        self.settings[server.id]["BONUSES"]["SPECIAL_USERS"] = not self.settings[server.id]["BONUSES"]["SPECIAL_USERS"]
+        await self.save_settings()
+        if self.settings[server.id]["BONUSES"]["SPECIAL_USERS"]:
+            msg = "I will now announce when special users join."
+        else:
+            msg = "I will no longer announce when special users join."
+        await self.bot.say(msg)
+
+    @imgwelcome_bonus.command(pass_context=True, name='warn', no_pm=True)
+    async def bonus_warn(self, ctx):
+        """Toggle text announcement when a new user's account is <7d old."""
+        server = ctx.message.server
+        await self._data_check(ctx)
+        self.settings[server.id]["BONUSES"]["ACCOUNT_WARNINGS"] = not self.settings[server.id]["BONUSES"]["ACCOUNT_WARNINGS"]
+        await self.save_settings()
+        if self.settings[server.id]["BONUSES"]["ACCOUNT_WARNINGS"]:
+            msg = "I will now announce when new accounts join."
+        else:
+            msg = "I will no longer announce when new accounts join."
+        await self.bot.say(msg)
+
+    @imgwelcome.group(pass_context=True, name='font', no_pm=True)
+    async def imgwelcome_font(self, ctx):
+        """Place your font files in the data/imgwelcome/fonts/ directory.
+        Valid font areas to change are: welcome, server and name.
+        """
+        if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
+            await send_cmd_help(ctx)
+            return
+
+    @imgwelcome_font.command(pass_context=True, name='list', no_pm=True)
+    async def fontg_list(self, ctx):
+        """List fonts in the directory."""
+        channel = ctx.message.channel
+        directory = "data/imgwelcome/fonts/"
+        fonts = sorted(os.listdir(directory))
+
+        if len(fonts) == 0:
+            await self.bot.send_message(channel, "No fonts found. Place "
+                                        "fonts in /data/imgwelcome/fonts/.")
+            return
+
+        pager = commands.formatter.Paginator(prefix='```', suffix='```', max_size=2000)
+        pager.add_line('Current fonts:')
+        for font_name in fonts:
+            pager.add_line(font_name)
+        for page in pager.pages:
+            await self.bot.send_message(channel, page)
+
+    @imgwelcome_font.command(pass_context=True, name='name', no_pm=True)
+    async def fontg_name(self, ctx, font_name: str, size: int=None):
+        """Change the name text font.
+        e.g. [p]imgwelcome font name "UniSansHeavy.otf"
+        """
+        await self._data_check(ctx)
+        server = ctx.message.server
+
+        directory = "data/imgwelcome/fonts/"
+        if size is None:
+            size = self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["NORMAL"]
+
+        try:
+            ImageFont.truetype(directory + font_name, size)
+        except:
+            await self.bot.say("I could not find that font file.")
+            await self.bot.say("```\n <list of fonts available>\n```")
+            return
+
+        self.settings[server.id]["FONT"]["NAME_FONT"]["PATH"] = directory + font_name
+        self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["NORMAL"] = size
+        self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["MEDIUM"] = size - 8
+        self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["SMALL"] = size - 12
+        self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["SMALLEST"] = size - 18
+        self.save_settings()
+        await self.bot.say("Name font changed to: {}".format(font_name[:-4]))
+
+    @imgwelcome_font.command(pass_context=True, name='server', no_pm=True)
+    async def fontg_server(self, ctx, font_name: str, size: int=None):
+        """Change the server text font."""
+        await self._data_check(ctx)
+        server = ctx.message.server
+
+        directory = "data/imgwelcome/fonts/"
+        if size is None:
+            size = self.settings[server.id]["FONT"]["SERVER_FONT"]["SIZE"]
+
+        try:
+            ImageFont.truetype(directory + font_name, size)
+        except:
+            await self.bot.say("I could not find that font file.")
+            await self.bot.say("```\n <list of fonts available>\n```")
+            return
+
+        self.settings[server.id]["FONT"]["SERVER_FONT"]["PATH"] = directory + font_name
+        self.settings[server.id]["FONT"]["SERVER_FONT"]["SIZE"] = size
+        self.save_settings()
+        await self.bot.say("Server text font changed to: {}".format(font_name[:-4]))
+        pass
+
+    @imgwelcome_font.command(pass_context=True, name='welcome', no_pm=True)
+    async def fontg_welcome(self, ctx, font_name: str, size: int=None):
+        """Change the welcome text font."""
+        # try open file_name, if fail tell user
+        # if opens change settings, tell user success
+        # if file_name doesn't exist, list available fonts
+        await self._data_check(ctx)
+        server = ctx.message.server
+
+        directory = "data/imgwelcome/fonts/"
+        if size is None:
+            size = self.settings[server.id]["FONT"]["WELCOME_FONT"]["SIZE"]
+
+        try:
+            ImageFont.truetype(directory + font_name, size)
+        except:
+            await self.bot.say("I could not find that font file.")
+            await self.bot.say("```\n <list of fonts available>\n```")
+            return
+
+        self.settings[server.id]["FONT"]["WELCOME_FONT"]["PATH"] = directory + font_name
+        self.settings[server.id]["FONT"]["WELCOME_FONT"]["SIZE"] = size
+        self.save_settings()
+        await self.bot.say("Welcome font changed to: {}".format(font_name[:-4]))
+        pass
+
     @imgwelcome.command(name="version", pass_context=True, hidden=True)
     async def imagewelcomeset_version(self):
         """Displays the imgwelcome version."""
@@ -399,14 +587,14 @@ class ImgWelcome:
         await self.bot.send_typing(channel_object)
         image_object = await self._create_welcome(member, member.avatar_url)
         await self.bot.send_file(channel_object, image_object, filename="welcome.png")
-        if (len(member.server.members) % 100) == 0 or (len(member.server.members) == 1337):
+        if (len(member.server.members) % 100) == 0 or (len(member.server.members) == 1337) and self.settings[server.id]["SPECIAL_USERS"]:
             msg = "\N{PARTY POPPER} Thanks <@" + member.id + ">, you're the ***" + str(len(member.server.members)) + "*** th user on this server! \N{PARTY POPPER}"
             await self.bot.send_message(channel_object, msg)
         date_join = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
         date_now = datetime.datetime.now(datetime.timezone.utc)
         date_now = date_now.replace(tzinfo=None)
         since_join = date_now - date_join
-        if since_join.days < 7:
+        if since_join.days < 7 and self.settings[server.id]["ACCOUNT_WARNINGS"]:
             await self.bot.send_message(channel_object, "\N{WARNING SIGN} This account was created less than a week ago (" + str(since_join.days) + " days ago)")
 
 
