@@ -518,7 +518,7 @@ class ImgWelcome:
         self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["MEDIUM"] = size - 8
         self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["SMALL"] = size - 12
         self.settings[server.id]["FONT"]["NAME_FONT"]["SIZE"]["SMALLEST"] = size - 18
-        self.save_settings()
+        await self.save_settings()
         await self.bot.say("Name font changed to: {}".format(font_name[:-4]))
 
     @imgwelcome_font.command(pass_context=True, name='server', no_pm=True)
@@ -540,7 +540,7 @@ class ImgWelcome:
 
         self.settings[server.id]["FONT"]["SERVER_FONT"]["PATH"] = directory + font_name
         self.settings[server.id]["FONT"]["SERVER_FONT"]["SIZE"] = size
-        self.save_settings()
+        await self.save_settings()
         await self.bot.say("Server text font changed to: {}".format(font_name[:-4]))
         pass
 
@@ -566,7 +566,7 @@ class ImgWelcome:
 
         self.settings[server.id]["FONT"]["WELCOME_FONT"]["PATH"] = directory + font_name
         self.settings[server.id]["FONT"]["WELCOME_FONT"]["SIZE"] = size
-        self.save_settings()
+        await self.save_settings()
         await self.bot.say("Welcome font changed to: {}".format(font_name[:-4]))
         pass
 
