@@ -510,7 +510,6 @@ class ImgWelcome:
             ImageFont.truetype(directory + font_name, size)
         except:
             await self.bot.say("I could not find that font file.")
-            await self.bot.say("```\n <list of fonts available>\n```")
             return
 
         self.settings[server.id]["FONT"]["NAME_FONT"]["PATH"] = directory + font_name
@@ -535,7 +534,6 @@ class ImgWelcome:
             ImageFont.truetype(directory + font_name, size)
         except:
             await self.bot.say("I could not find that font file.")
-            await self.bot.say("```\n <list of fonts available>\n```")
             return
 
         self.settings[server.id]["FONT"]["SERVER_FONT"]["PATH"] = directory + font_name
@@ -561,7 +559,6 @@ class ImgWelcome:
             ImageFont.truetype(directory + font_name, size)
         except:
             await self.bot.say("I could not find that font file.")
-            await self.bot.say("```\n <list of fonts available>\n```")
             return
 
         self.settings[server.id]["FONT"]["WELCOME_FONT"]["PATH"] = directory + font_name
