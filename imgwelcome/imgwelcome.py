@@ -55,7 +55,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.4"
+        self.version = "0.1.4a"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -316,7 +316,7 @@ class ImgWelcome:
             self.settings[server.id]["OUTLINE"] = [0, 0, 0, 255]
             await self.save_settings()
         else:
-            await self.bot.say('Outline color is invalid. Use clear or black.')
+            await self.bot.say('Outline color is invalid. Use white or black.')
             valid = False
 
         if valid:
