@@ -55,7 +55,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.4a"
+        self.version = "0.1.5a"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -189,6 +189,7 @@ class ImgWelcome:
             self.settings[server.id]["BONUSES"] = {"ACCOUNT_WARNINGS": True,
                                                    "SPECIAL_USERS": True
                                                    }
+            await self.save_settings()
 
         if "CIRCLE" not in self.settings[server.id].keys():
             self.settings[server.id]["CIRCLE"] = [128, 128]
