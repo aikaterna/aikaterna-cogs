@@ -3,6 +3,8 @@ Cogs for Red-DiscordBot by Twentysix26.
 
 cah - Cards Against Humanity. A port of CorpBot's module: https://github.com/corpnewt/CorpBot.py
 
+chatchart - Generates a pie chart to display chat activity over the last 5000 messages. Requested by violetnyte.
+
 imgwelcome - Welcome users to your server with a customized image.
 
 pug - Warcraft pug checker. A port of PugBot's module: https://github.com/reznok/PugBot

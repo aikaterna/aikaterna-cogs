@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "aikaterna and Redjumpman",
+    "INSTALL_MSG" : "Use [p]chatchart to generate a chart for that channel.",
+    "NAME" : "chatchart",
+    "SHORT" : "Chat chart",
+    "DESCRIPTION" : "Generate a pie chart from the last 5000 messages in a channel to see who's been talking the most.",
+    "REQUIREMENTS": ["matplotlib"],
+    "TAGS": ["data", "chart", "activity"]
+}
