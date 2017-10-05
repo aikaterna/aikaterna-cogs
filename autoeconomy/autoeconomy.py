@@ -35,6 +35,7 @@ class AutoEconomy:
             await self.bot.say("You must have Economy loaded to use this cog. \nAny settings saved will not work until the cog is loaded.")
             return
 
+    @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
     async def autoeconomy(self, ctx):
         """Configuration options for auto-registering Economy accounts."""
