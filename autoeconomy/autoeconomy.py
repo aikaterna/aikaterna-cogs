@@ -19,7 +19,8 @@ class AutoEconomy:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/autoeconomy/settings.json')
-        self.version = "0.1.1a"
+        self.banksettings = dataIO.load_json('data/economy/settings.json')
+        self.version = "0.1.1b"
 
     async def save_settings(self):
         dataIO.save_json('data/autoeconomy/settings.json', self.settings)
@@ -103,12 +104,12 @@ class AutoEconomy:
             if self.settings[server.id]["DEBUG"]:
                 await self.bot.send_message(channel_object, "Economy account already exists for {}.".format(member.name))
                 return
-            else:
-                pass
-        if self.settings[server.id]["DEBUG"]:
-            await self.bot.send_message(channel_object, "Economy account auto-registered for {}.".format(member.name))
-        else:
-            return
+        if self.banksettings[server.id]["REGISTER_CREDITS"]:
+            reg_credits = self.banksettings[server.id]["REGISTER_CREDITS"]
+            bank.deposit_credits(member, reg_credits)
+            if self.settings[server.id]["DEBUG"]:
+                await self.bot.send_message(channel_object, "Bank account opened for {} and initial credits given.".format(member.name))
+                return
 
 
 def check_folders():
