@@ -1,5 +1,6 @@
 import os
 import discord
+import asyncio
 from .utils import checks
 from discord.ext import commands
 from cogs.utils.dataIO import dataIO
@@ -13,11 +14,22 @@ class Away:
 
     async def listener(self, message):
         tmp = {}
+        author = message.author
         server = message.server
         if server.id not in self.data:
             for mention in message.mentions:
                 tmp[mention] = True
+                
             if message.author.id != self.bot.user.id:
+                try:
+                    if author.id in self.data:
+                        del self.data[author.id]
+                        msg = "You're now back"
+                        await self.bot.send_message(message.channel, msg)
+                        dataIO.save_json('data/away/away.json', self.data)
+                except PermissionError:
+                    pass
+
                 for author in tmp:
                     if author.id in self.data:
                         try:
@@ -44,6 +56,7 @@ class Away:
             del self.data[author.id]
             msg = 'You\'re now back.'
         else:
+            await asyncio.sleep(.25) #prevent listener interuption
             self.data[context.message.author.id] = {}
             if len(str(message)) < 256:
                 self.data[context.message.author.id]['MESSAGE'] = ' '.join(context.message.clean_content.split()[1:])
