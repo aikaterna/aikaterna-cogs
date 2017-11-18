@@ -31,14 +31,12 @@ class PicWelcome:
     async def save_settings(self):
         dataIO.save_json('data/picwelcome/settings.json', self.settings)
 
-
     async def _data_check(self, ctx):
         server = ctx.message.server
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
             self.settings[server.id]["CHANNEL"] = ctx.message.channel.id
             await self.save_settings()
-
 
     @checks.admin_or_permissions(manage_server=True)
     @commands.group(pass_context=True)
@@ -82,7 +80,6 @@ class PicWelcome:
         serverpicture = self.settings[server.id]["PICTURE"]
         await self.bot.send_file(channel_object, serverpicture)
 
-
     @picwelcome.command(pass_context=True, name="toggle", no_pm=True)
     async def picwelcome_toggle(self, ctx):
         """Toggle welcome pictures on the server."""
@@ -97,7 +94,7 @@ class PicWelcome:
 
     @picwelcome.command(name='upload', pass_context=True, no_pm=True)
     async def picwelcome_upload(self, ctx, default=None):
-        """Upload a picture through Discord. 
+        """Upload a picture through Discord.
         This must be an image file and not a url."""
         server = ctx.message.server
         await self._data_check(ctx)
@@ -136,7 +133,6 @@ class PicWelcome:
                 await self.bot.say("Couldn't get the image from Discord.")
         else:
             await self.bot.say("Couldn't get the image.")
-
 
     @picwelcome.command(name="version", pass_context=True, hidden=True)
     async def picwelcome_version(self):
