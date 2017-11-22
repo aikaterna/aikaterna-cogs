@@ -55,7 +55,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.5a"
+        self.version = "0.1.6"
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -162,10 +162,12 @@ class ImgWelcome:
             members = test_member_number
 
         member_number = str(members) + self._get_suffix(members)
+        sname = str(member.server.name) + '!' if len(str(member.server.name)) <= 28 else str(member.server.name)[:23] + '...'
+
         _outline((152, 96), "You are the " + str(member_number) + " member", 1, server_font, (textoutline))
         drawtwo.text((152, 96), "You are the " + str(member_number) + " member", font=server_font, fill=(servercolor))
-        _outline((152, 116), "of " + str(member.server.name) + "!", 1, server_font, (textoutline))
-        drawtwo.text((152, 116), "of " + str(member.server.name) + "!", font=server_font, fill=(servercolor))
+        _outline((152, 116), 'of ' + sname, 1, server_font, (textoutline))
+        drawtwo.text((152, 116), 'of ' + sname, font=server_font, fill=(servercolor))
 
         image_object = BytesIO()
         welcome_picture.save(image_object, format="PNG")
