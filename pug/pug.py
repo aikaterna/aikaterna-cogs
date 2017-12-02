@@ -175,6 +175,7 @@ class Pug:
         en_progress = self.get_raid_progression(player_dict, "The Emerald Nightmare")
         nh_progress = self.get_raid_progression(player_dict, "The Nighthold")
         tos_progress = self.get_raid_progression(player_dict, "Tomb of Sargeras")
+        ant_progress = self.get_raid_progression(player_dict, "Antorus, the Burning Throne")
         mythic_progress = self.get_mythic_progression(player_dict)
 
         armory_url = 'http://{}.battle.net/wow/{}/character/{}/{}/advanced'.format(
@@ -211,6 +212,10 @@ class Pug:
                                                                                tos_progress["normal"],
                                                                                tos_progress["heroic"],
                                                                                tos_progress["mythic"])
+        return_string += "[ANT]: {1}/{0} (N), {2}/{0} (H), {3}/{0} (M)\n".format(ant_progress["total_bosses"],
+                                                                               ant_progress["normal"],
+                                                                               ant_progress["heroic"],
+                                                                               ant_progress["mythic"])
         # Gems
         return_string += "[Gems Equipped]: %s/%s\n" % (
             sockets["equipped_gems"], sockets["total_sockets"])
