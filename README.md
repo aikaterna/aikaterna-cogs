@@ -13,6 +13,8 @@ hunting - By Paddolicious#8880. It hunts birds... and things that fly.
 
 imgwelcome - Welcome users to your server with a customized image.
 
+otherbot - Have multiple Red instances and want to know when one goes offline? Edit this cog and load it on your watcher bot.
+
 pug - Warcraft pug checker. A port of PugBot's module: https://github.com/reznok/PugBot
 
 riot - an old Fredboat command, requested by Mewleficent.
