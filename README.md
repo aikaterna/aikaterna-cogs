@@ -28,3 +28,5 @@ The chatterbot cog that was previously on this repo has been removed in favor of
 
 Q: Why do you have some of Paddo's cogs on your repo?
 A: He recently made an announcement about finding a new home for a few cogs. I've picked up a couple and I welcome PRs or feature requests. I'm also intending to port these for Red v3 as I can.
+
+Feel free to join the server for these cogs if you'd like. https://discord.gg/th6eS3T
