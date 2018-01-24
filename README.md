@@ -19,6 +19,8 @@ otherbot - Have multiple Red instances and want to know when one goes offline? E
 
 pug - Warcraft pug checker. A port of PugBot's module: https://github.com/reznok/PugBot
 
+radio - A hidden unpublished gem from Paddo, with a couple edits. Plays http audio streams like icecast and mp3 streams.
+
 riot - an old Fredboat command, requested by Mewleficent.
 
 seen - By Paddolicious#8880. Check when the user was last active on a server.
