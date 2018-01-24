@@ -9,6 +9,8 @@ cah - Cards Against Humanity. A port of CorpBot's module: https://github.com/cor
 
 chatchart - Generates a pie chart to display chat activity over the last 5000 messages. Requested by violetnyte.
 
+forwarding - Forwards DMs sent to the bot to the owner of the bot. A port of the forwarding module from: https://github.com/jacobcheatley/dankbot
+
 hunting - By Paddolicious#8880. It hunts birds... and things that fly.
 
 imgwelcome - Welcome users to your server with a customized image.
