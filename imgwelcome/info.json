@@ -2,7 +2,7 @@
     "AUTHOR" : "aikaterna",
     "INSTALL_MSG" : "Use [p]imgwelcome to change settings.",
     "NAME" : "imgwelcome",
-    "SHORT" : "Image Welcome",
+    "SHORT" : "Welcome users to your server with an image.",
     "DESCRIPTION" : "Welcome users to your server with an image.",
     "REQUIREMENTS": ["Pillow"],
     "TAGS": ["welcome", "welcome image", "images"]
