@@ -1,7 +1,0 @@
-{
-    "AUTHOR" : "aikaterna",
-    "NAME" : "forwarding",
-    "SHORT" : "Forwards DMs sent to the bot to the owner.",
-    "DESCRIPTION" : "Forwards DMs sent to the bot to the owner.",
-    "TAGS": ["message", "dm"]
-}

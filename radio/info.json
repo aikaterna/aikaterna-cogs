@@ -1,7 +1,0 @@
-{
-    "AUTHOR" : "Paddo, with edits by aikaterna",
-    "NAME" : "radio",
-    "SHORT" : "Plays http streams like icecast or mp3 streams.",
-    "DESCRIPTION" : "This cog can only be used with audio unloaded. To play m3u or pls files, extract the http stream url they contain and use that - this cog can remember urls for later playback.",
-    "TAGS": ["radio", "stream", "icecast"]
-}

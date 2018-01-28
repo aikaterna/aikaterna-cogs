@@ -1,9 +1,0 @@
-{
-    "AUTHOR" : "aikaterna",
-    "INSTALL_MSG" : "Use [p]picwelcome to change settings.",
-    "NAME" : "picwelcome",
-    "SHORT" : "Welcome users to your server with a picture.",
-    "DESCRIPTION" : "Welcome users to your server with a picture.",
-    "REQUIREMENTS": ["Pillow"],
-    "TAGS": ["welcome", "welcome image", "images"]
-}

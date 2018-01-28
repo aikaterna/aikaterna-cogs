@@ -1,8 +1,0 @@
-{
-    "AUTHOR" : "aikaterna",
-    "INSTALL_MSG" : "No settings, when loaded the bot will leave servers with under 25 members on join.",
-    "NAME" : "serverlimit",
-    "SHORT" : "Serverlimit",
-    "DESCRIPTION" : "Limits the bot joining servers that have under 25 members.",
-    "TAGS": []
-}

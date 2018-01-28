@@ -1,8 +1,0 @@
-{
-    "AUTHOR" : "aikaterna",
-    "INSTALL_MSG" : "Use [p]autoeconomy to change settings.",
-    "NAME" : "autoeconomy",
-    "SHORT" : "Autoregister new users to the bot bank on server join.",
-    "DESCRIPTION" : "Auto-registers new users to the bot bank on server join. You must have the Economy cog loaded for this cog to work.",
-    "TAGS": ["bank", "economy", "register"]
-}
