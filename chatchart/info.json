@@ -1,0 +1,14 @@
+{
+	"author": [
+		"Redjumpman and aikaterna"
+	],
+	"description": "Generate a pie chart from the last 5000 messages in a channel to see who's been talking the most.",
+	"short": "Generate a pie chart from the last 5000 messages",
+	"tags": [
+		"data",
+        "chart",
+        "activity"
+	],
+    "requirements": ["matplotlib"],
+	"type": "COG"
+}
