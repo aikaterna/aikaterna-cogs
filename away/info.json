@@ -1,0 +1,11 @@
+{
+	"author": [
+		"Axas and aikaterna"
+	],
+	"description": "Set and unset a user as being away.",
+	"short": "Away message toggle for users",
+	"tags": [
+		"away"
+	],
+	"type": "COG"
+}
