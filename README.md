@@ -1,5 +1,6 @@
 # aikaterna-cogs
-Cogs for Red-DiscordBot by Twentysix26.
+Cogs for v2 Red-DiscordBot by Twentysix26.
+v3 cogs can be found on the v3 branch of this repo, including a link for the v3 Lavalink music cog.
 
 autoeconomy - New users that join the server will be automatically given a bank account.
 
