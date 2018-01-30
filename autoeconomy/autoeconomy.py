@@ -112,7 +112,7 @@ class AutoEconomy:
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
             await self.save_settings()
-        if not self.settings[server.id]["TOGGLE"]:
+        if not (self.settings[server.id]["TOGGLE"] or mass_register):
             return
         channel = self.settings[server.id]["CHANNEL"]
         channel_object = self.bot.get_channel(channel)
