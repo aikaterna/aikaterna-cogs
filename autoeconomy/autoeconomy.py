@@ -129,7 +129,7 @@ class AutoEconomy:
         if self.banksettings[server.id]["REGISTER_CREDITS"]:
             reg_credits = self.banksettings[server.id]["REGISTER_CREDITS"]
             bank.deposit_credits(member, reg_credits)
-            if self.settings[server.id]["DEBUG"]:
+            if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Bank account opened for {} and initial credits given.".format(member.name))
                 return True
 
