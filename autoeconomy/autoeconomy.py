@@ -95,20 +95,26 @@ class AutoEconomy:
         if not econ_cog:
             return await self.bot.say("This requires economy to be loaded.")
         server = ctx.message.server
-        exit_statuses = []
+        if server.id not in self.banksettings:
+            return await self.bot.say(
+                "I can't register people for a bank that doesn't exist yet."
+            )
+
+        count = 0
         for member in server.members:
             exit_status = await self.on_member_join(member, True)
-            exit_statuses.append(exit_status)
-
-        count_opened = len([x for x in exit_statuses if x])
+            if exit_status:
+                count += 1
 
         await self.bot.say(
             "I've opened up new economy entries for "
-            "{}/{} members.".format(count_opened, len(server.members))
+            "{}/{} members.".format(count, len(server.members))
         )
 
     async def on_member_join(self, member, mass_register=False):
         server = member.server
+        if server.id not in self.banksettings:
+            return
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
             await self.save_settings()
@@ -131,7 +137,7 @@ class AutoEconomy:
             bank.deposit_credits(member, reg_credits)
             if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Bank account opened for {} and initial credits given.".format(member.name))
-                return True
+        return True
 
 
 def check_folders():
