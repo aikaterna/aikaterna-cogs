@@ -85,7 +85,29 @@ class AutoEconomy:
         """Displays the autoeconomy version."""
         await self.bot.say("autoeconomy version {}.".format(self.version))
 
-    async def on_member_join(self, member):
+    @autoeconomy.command(name="massregister", pass_context=True)
+    async def massregister(self, ctx):
+        """
+        did you install autoeconomy after a bunch of people were
+        already in server? now you can fix that
+        """
+        econ_cog = self.bot.get_cog('Economy')
+        if not econ_cog:
+            return await self.bot.say("This requires economy to be loaded.")
+        server = ctx.message.server
+        exit_statuses = []
+        for member in server.members:
+            exit_status = await self.on_member_join(member, True)
+            exit_statuses.append(exit_status)
+
+        count_opened = len([x for x in exit_statuses if x])
+
+        await self.bot.say(
+            "I've opened up new economy entries for "
+            "{}/{} members.".format(count_opened, len(server.members))
+        )
+
+    async def on_member_join(self, member, mass_register=False):
         server = member.server
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
@@ -101,15 +123,15 @@ class AutoEconomy:
         try:
             bank.create_account(member)
         except Exception:
-            if self.settings[server.id]["DEBUG"]:
+            if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Economy account already exists for {}.".format(member.name))
-                return
+                return False
         if self.banksettings[server.id]["REGISTER_CREDITS"]:
             reg_credits = self.banksettings[server.id]["REGISTER_CREDITS"]
             bank.deposit_credits(member, reg_credits)
             if self.settings[server.id]["DEBUG"]:
                 await self.bot.send_message(channel_object, "Bank account opened for {} and initial credits given.".format(member.name))
-                return
+                return True
 
 
 def check_folders():
