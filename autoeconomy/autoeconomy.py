@@ -126,18 +126,17 @@ class AutoEconomy:
         if not econ_cog:
             return
         bank = self.bot.get_cog('Economy').bank
+        init_balance = self.banksettings[server.id].get("REGISTER_CREDITS", 0)
         try:
-            bank.create_account(member)
+            bank.create_account(member, initial_balance=init_balance)
         except Exception:
             if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Economy account already exists for {}.".format(member.name))
                 return False
-        if self.banksettings[server.id]["REGISTER_CREDITS"]:
-            reg_credits = self.banksettings[server.id]["REGISTER_CREDITS"]
-            bank.deposit_credits(member, reg_credits)
+        else:
             if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Bank account opened for {} and initial credits given.".format(member.name))
-        return True
+            return True
 
 
 def check_folders():
