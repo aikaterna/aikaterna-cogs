@@ -55,7 +55,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.6"
+        self.version = "0.1.7"
         self.session = aiohttp.ClientSession()
         
     def __unload(self):
