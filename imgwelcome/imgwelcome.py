@@ -55,7 +55,11 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.6"
+        self.version = "0.1.7"
+        self.session = aiohttp.ClientSession()
+        
+    def __unload(self):
+        self.session.close()
 
     async def save_settings(self):
         dataIO.save_json('data/imgwelcome/settings.json', self.settings)
@@ -220,7 +224,7 @@ class ImgWelcome:
             await self.save_settings()
 
     async def _get_profile(self, url):
-        async with aiohttp.get(url) as r:
+        async with self.session.get(url) as r:
             image = await r.content.read()
         with open('data/imgwelcome/profilepic.png', 'wb') as f:
             f.write(image)
@@ -407,7 +411,7 @@ class ImgWelcome:
 
         if success:
             try:
-                async with aiohttp.get(bg_url) as r:
+                async with self.session.get(bg_url) as r:
                     image = await r.content.read()
                     if not os.path.exists('data/imgwelcome/{}'.format(server.id)):
                         os.makedirs('data/imgwelcome/{}'.format(server.id))
