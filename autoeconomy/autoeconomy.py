@@ -19,7 +19,6 @@ class AutoEconomy:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/autoeconomy/settings.json')
-        self.banksettings = dataIO.load_json('data/economy/settings.json')
         self.version = "0.1.1b"
 
     async def save_settings(self):
@@ -95,7 +94,7 @@ class AutoEconomy:
         if not econ_cog:
             return await self.bot.say("This requires economy to be loaded.")
         server = ctx.message.server
-        if server.id not in self.banksettings:
+        if server.id not in econ_cog.settings:
             return await self.bot.say(
                 "I can't register people for a bank that doesn't exist yet."
             )
