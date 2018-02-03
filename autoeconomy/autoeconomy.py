@@ -19,7 +19,8 @@ class AutoEconomy:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/autoeconomy/settings.json')
-        self.version = "0.1.1b"
+        self.banksettings = dataIO.load_json('data/economy/settings.json')
+        self.version = "0.1.2"
 
     async def save_settings(self):
         dataIO.save_json('data/autoeconomy/settings.json', self.settings)
@@ -86,10 +87,7 @@ class AutoEconomy:
 
     @autoeconomy.command(name="massregister", pass_context=True)
     async def massregister(self, ctx):
-        """
-        did you install autoeconomy after a bunch of people were
-        already in server? now you can fix that
-        """
+        """Mass register existing users."""
         econ_cog = self.bot.get_cog('Economy')
         if not econ_cog:
             return await self.bot.say("This requires economy to be loaded.")
@@ -127,7 +125,7 @@ class AutoEconomy:
         bank = self.bot.get_cog('Economy').bank
         init_balance = self.banksettings[server.id].get("REGISTER_CREDITS", 0)
         try:
-            bank.create_account(member, init_balance)
+            bank.create_account(member, initial_balance=init_balance)
         except Exception:
             if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Economy account already exists for {}.".format(member.name))
