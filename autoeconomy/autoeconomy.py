@@ -20,7 +20,7 @@ class AutoEconomy:
         self.bot = bot
         self.settings = dataIO.load_json('data/autoeconomy/settings.json')
         self.banksettings = dataIO.load_json('data/economy/settings.json')
-        self.version = "0.1.1b"
+        self.version = "0.1.2"
 
     async def save_settings(self):
         dataIO.save_json('data/autoeconomy/settings.json', self.settings)
@@ -85,12 +85,37 @@ class AutoEconomy:
         """Displays the autoeconomy version."""
         await self.bot.say("autoeconomy version {}.".format(self.version))
 
-    async def on_member_join(self, member):
+    @autoeconomy.command(name="massregister", pass_context=True)
+    async def massregister(self, ctx):
+        """Mass register existing users."""
+        econ_cog = self.bot.get_cog('Economy')
+        if not econ_cog:
+            return await self.bot.say("This requires economy to be loaded.")
+        server = ctx.message.server
+        if server.id not in econ_cog.settings:
+            return await self.bot.say(
+                "I can't register people for a bank that doesn't exist yet."
+            )
+
+        count = 0
+        for member in server.members:
+            exit_status = await self.on_member_join(member, True)
+            if exit_status:
+                count += 1
+
+        await self.bot.say(
+            "I've opened up new economy entries for "
+            "{}/{} members.".format(count, len(server.members))
+        )
+
+    async def on_member_join(self, member, mass_register=False):
         server = member.server
+        if server.id not in self.banksettings:
+            return
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
             await self.save_settings()
-        if not self.settings[server.id]["TOGGLE"]:
+        if not (self.settings[server.id]["TOGGLE"] or mass_register):
             return
         channel = self.settings[server.id]["CHANNEL"]
         channel_object = self.bot.get_channel(channel)
@@ -98,18 +123,17 @@ class AutoEconomy:
         if not econ_cog:
             return
         bank = self.bot.get_cog('Economy').bank
+        init_balance = self.banksettings[server.id].get("REGISTER_CREDITS", 0)
         try:
-            bank.create_account(member)
+            bank.create_account(member, initial_balance=init_balance)
         except Exception:
-            if self.settings[server.id]["DEBUG"]:
+            if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Economy account already exists for {}.".format(member.name))
-                return
-        if self.banksettings[server.id]["REGISTER_CREDITS"]:
-            reg_credits = self.banksettings[server.id]["REGISTER_CREDITS"]
-            bank.deposit_credits(member, reg_credits)
-            if self.settings[server.id]["DEBUG"]:
+            return False
+        else:
+            if self.settings[server.id]["DEBUG"] and not mass_register:
                 await self.bot.send_message(channel_object, "Bank account opened for {} and initial credits given.".format(member.name))
-                return
+            return True
 
 
 def check_folders():
