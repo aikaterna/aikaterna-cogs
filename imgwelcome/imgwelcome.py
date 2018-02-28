@@ -55,7 +55,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.7"
+        self.version = "0.1.7a"
         self.session = aiohttp.ClientSession()
         
     def __unload(self):
@@ -156,7 +156,7 @@ class ImgWelcome:
                 drawtwo.text((152, 70), uname, font=name_font_small, fill=(fontcolor))
 
         if len(uname) >= 33:
-            drawtwo.text((152, 73), uname, 1,  name_font_smallest, (textoutline))
+            _outline((152, 73), uname, 1,  name_font_smallest, (textoutline))
             drawtwo.text((152, 73), uname, font=name_font_smallest, fill=(fontcolor))
 
         if test_member_number is None:
