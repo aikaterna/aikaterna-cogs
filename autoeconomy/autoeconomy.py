@@ -19,7 +19,6 @@ class AutoEconomy:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/autoeconomy/settings.json')
-        self.banksettings = dataIO.load_json('data/economy/settings.json')
         self.version = "0.1.2"
 
     async def save_settings(self):
@@ -92,15 +91,19 @@ class AutoEconomy:
         if not econ_cog:
             return await self.bot.say("This requires economy to be loaded.")
         server = ctx.message.server
-        if server.id not in econ_cog.settings:
+        if server.id not in econ_cog.bank.accounts:
             return await self.bot.say(
                 "I can't register people for a bank that doesn't exist yet."
             )
 
         count = 0
         for member in server.members:
-            exit_status = await self.on_member_join(member, True)
-            if exit_status:
+            init_balance = econ_cog.settings[server.id].get("REGISTER_CREDITS", 0)
+            try:
+                econ_cog.bank.create_account(member, initial_balance=init_balance)
+            except Exception:
+                continue
+            else:
                 count += 1
 
         await self.bot.say(
@@ -110,20 +113,25 @@ class AutoEconomy:
 
     async def on_member_join(self, member, mass_register=False):
         server = member.server
-        if server.id not in self.banksettings:
-            return
+
         if server.id not in self.settings:
             self.settings[server.id] = deepcopy(default_settings)
             await self.save_settings()
         if not (self.settings[server.id]["TOGGLE"] or mass_register):
             return
+
         channel = self.settings[server.id]["CHANNEL"]
         channel_object = self.bot.get_channel(channel)
         econ_cog = self.bot.get_cog('Economy')
+
+        if server.id not in econ_cog.bank.accounts:
+            return
         if not econ_cog:
             return
+
         bank = self.bot.get_cog('Economy').bank
-        init_balance = self.banksettings[server.id].get("REGISTER_CREDITS", 0)
+        init_balance = econ_cog.settings[server.id].get("REGISTER_CREDITS", 0)
+
         try:
             bank.create_account(member, initial_balance=init_balance)
         except Exception:
