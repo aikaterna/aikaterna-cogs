@@ -26,11 +26,15 @@ class ChatChart:
         if len(top) >= 20:
             sizes = sizes + [others]
             labels = labels + ["Others {:g}%".format(others)]
-        title = plt.title("Stats in #{}".format(channel.name), color="white")
+        if len(channel.name) >= 19:
+            channel_name = '{}...'.format(channel.name[:19])
+        else:
+            channel_name = channel.name
+        title = plt.title("Stats in #{}".format(channel_name), color="white")
         title.set_va("top")
-        title.set_ha("right")
+        title.set_ha("center")
         plt.gca().axis("equal")
-        colors = ['#7e1e9c', '#15b01a','#0343df','#ff81c0','#653700','#e50000','#95d0fc','#029386','#f97306','#96f97b','#c20078','#ffff14','#75bbfd','#929591','#89fe05','#bf77f6','#9a0eea','#033500','#06c2ac','#c79fef','#00035b','#d1b26f','#00ffff','#13eac9']
+        colors = ['r', 'darkorange', 'gold', 'y', 'olivedrab', 'green', 'darkcyan', 'mediumblue', 'darkblue', 'blueviolet', 'indigo', 'orchid', 'mediumvioletred', 'crimson', 'chocolate', 'yellow', 'limegreen','forestgreen','dodgerblue','slateblue','gray']
         pie = plt.pie(sizes, colors=colors, startangle=0)
         plt.legend(pie[0], labels, bbox_to_anchor=(0.7, 0.5), loc="center", fontsize=10,
                    bbox_transform=plt.gcf().transFigure, facecolor='#ffffff')
@@ -53,8 +57,15 @@ class ChatChart:
         if channel is None:
             channel = ctx.message.channel
         history = []
-        async for msg in self.bot.logs_from(channel, 5000):
-            history.append(msg)
+        if not channel.permissions_for(ctx.message.author).read_messages == True:
+            await self.bot.delete_message(em)
+            return await self.bot.say("You're not allowed to access that channel.")
+        try:
+            async for msg in self.bot.logs_from(channel, 5000):
+                history.append(msg)
+        except discord.errors.Forbidden:
+            await self.bot.delete_message(em)
+            return await self.bot.say("No permissions to read that channel.")
         msg_data = {'total count': 0, 'users': {}}
 
         for msg in history:
