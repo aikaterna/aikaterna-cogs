@@ -19,6 +19,7 @@ class ChatChart:
 
     def __init__(self, bot):
         self.bot = bot
+
     def create_chart(self, top, others, channel):
         plt.clf()
         sizes = [x[1] for x in top]
@@ -69,14 +70,19 @@ class ChatChart:
         msg_data = {'total count': 0, 'users': {}}
 
         for msg in history:
+            if len(msg.author.name) >= 20:
+                short_name = '{}...'.format(msg.author.name[:20])
+            else:
+                short_name = msg.author.name
+            whole_name = '{}#{}'.format(short_name, msg.author.discriminator)
             if msg.author.bot:
                 pass
-            elif msg.author.name in msg_data['users']:
-                msg_data['users'][msg.author.name]['msgcount'] += 1
+            elif whole_name in msg_data['users']:
+                msg_data['users'][whole_name]['msgcount'] += 1
                 msg_data['total count'] += 1
             else:
-                msg_data['users'][msg.author.name] = {}
-                msg_data['users'][msg.author.name]['msgcount'] = 1
+                msg_data['users'][whole_name] = {}
+                msg_data['users'][whole_name]['msgcount'] = 1
                 msg_data['total count'] += 1
 
         for usr in msg_data['users']:
