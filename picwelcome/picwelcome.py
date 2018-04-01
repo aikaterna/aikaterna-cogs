@@ -109,24 +109,24 @@ class PicWelcome:
             print(e)
 
         serverimage = Image
-
         if success:
             try:
                 async with aiohttp.get(bg_url) as r:
                     image = await r.content.read()
                     if not os.path.exists('data/picwelcome/{}'.format(server.id)):
                         os.makedirs('data/picwelcome/{}'.format(server.id))
-                serverbg = 'data/picwelcome/{}/serverpic.png'.format(server.id)
+                file_suffix = bg_url.rsplit('.', 1)[1]
+                serverbg = 'data/picwelcome/{}/serverpic.{}'.format(server.id, file_suffix)
                 with open(serverbg, 'wb') as f:
                     f.write(image)
                     serverimage = Image.open(serverbg).convert('RGBA')
                     success = True
-
             except Exception as e:
                 success = False
                 print(e)
+
             if success:
-                self.settings[server.id]['PICTURE'] = "data/picwelcome/" + ctx.message.server.id + "/serverpic.png"
+                self.settings[server.id]['PICTURE'] = "data/picwelcome/{}/serverpic.{}".format(ctx.message.server.id, file_suffix)
                 await self.save_settings()
                 await self.bot.say('Welcome image for this server set to uploaded file.')
             else:
@@ -152,11 +152,9 @@ class PicWelcome:
         serverpicture = self.settings[server.id]["PICTURE"]
         await self.bot.send_file(channel_object, serverpicture)
 
-
 def check_folders():
     if not os.path.exists('data/picwelcome/'):
         os.mkdir('data/picwelcome/')
-
 
 def check_files():
     if not dataIO.is_valid_json('data/picwelcome/settings.json'):
