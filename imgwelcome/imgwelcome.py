@@ -55,7 +55,7 @@ class ImgWelcome:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json('data/imgwelcome/settings.json')
-        self.version = "0.1.7a"
+        self.version = "0.1.8"
         self.session = aiohttp.ClientSession()
         
     def __unload(self):
@@ -591,14 +591,14 @@ class ImgWelcome:
         await self.bot.send_typing(channel_object)
         image_object = await self._create_welcome(member, member.avatar_url)
         await self.bot.send_file(channel_object, image_object, filename="welcome.png")
-        if (len(member.server.members) % 100) == 0 or (len(member.server.members) == 1337) and self.settings[server.id]["SPECIAL_USERS"]:
+        if ((len(member.server.members) % 100) == 0 or (len(member.server.members) == 1337)) and self.settings[server.id]["BONUSES"]["SPECIAL_USERS"]:
             msg = "\N{PARTY POPPER} Thanks <@" + member.id + ">, you're the ***" + str(len(member.server.members)) + "*** th user on this server! \N{PARTY POPPER}"
             await self.bot.send_message(channel_object, msg)
         date_join = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
         date_now = datetime.datetime.now(datetime.timezone.utc)
         date_now = date_now.replace(tzinfo=None)
         since_join = date_now - date_join
-        if since_join.days < 7 and self.settings[server.id]["ACCOUNT_WARNINGS"]:
+        if since_join.days < 7 and self.settings[server.id]["BONUSES"]["ACCOUNT_WARNINGS"]:
             await self.bot.send_message(channel_object, "\N{WARNING SIGN} This account was created less than a week ago (" + str(since_join.days) + " days ago)")
 
 
