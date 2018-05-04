@@ -1,5 +1,4 @@
 from discord.ext import commands
-import time
 
 
 class Pingtime:
@@ -7,7 +6,7 @@ class Pingtime:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def pingtime(self, ctx):
         """Ping pong."""
         latencies = self.bot.latencies
