@@ -10,8 +10,8 @@ class Pingtime:
     @commands.command(pass_context=True)
     async def pingtime(self, ctx):
         """Ping pong."""
-        channel = ctx.message.channel
-        t1 = time.perf_counter()
-        await channel.trigger_typing()
-        t2 = time.perf_counter()
-        await ctx.send("Pong: {}ms".format(round((t2-t1)*1000)))
+        latencies = self.bot.latencies
+        for shard, pingt in latencies:
+            msg = "Pong!\n"
+            msg += "Shard {}/{}: {}ms\n".format(shard + 1, len(latencies), round(pingt*1000))
+        await ctx.send(msg)
