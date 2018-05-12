@@ -349,7 +349,7 @@ class Blurplefy:
         if int(timeleft.total_seconds()) < 0:
             timeleft = datetime.datetime(2019, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
             embed.set_author(name='Time left until Discord\'s 4th Anniversary')
-        embed.add_field(name='Countdown to midnight, May 13, California time (UTC-7):', value=('{}'.format(self._dynamic_time(countdown_seconds))))
+        embed.add_field(name='Countdown to midnight, May 13, California time (UTC-7):', value=('{}'.format(self._dynamic_time(int(timeleft.total_seconds())))))
         await ctx.send(embed=embed)
 
     @staticmethod
