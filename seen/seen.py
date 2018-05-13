@@ -19,7 +19,7 @@ class Seen:
         self.config.register_member(**default_member)
 
     @commands.guild_only()
-    @commands.command(pass_context=True, name='seen')
+    @commands.command(name='seen')
     async def _seen(self, ctx, author: discord.Member):
         '''[p]seen <@username>'''
         member_seen = await self.config.member(author).member_seen()
