@@ -1,0 +1,11 @@
+{
+	"author": [
+		"aikaterna and Paddo"
+	],
+	"description": "Check when the user was last active on a server.",
+	"short": "Check when the user was last active on a server.",
+	"tags": [
+		"seen", "activity"
+	],
+	"type": "COG"
+}
