@@ -59,13 +59,13 @@ class Chatchart:
             channel = ctx.message.channel
         history = []
         if not channel.permissions_for(ctx.message.author).read_messages == True:
-            await self.bot.delete_message(em)
+            await em.delete()
             return await ctx.send("You're not allowed to access that channel.")
         try:
             async for msg in channel.history(limit=messages):
                 history.append(msg)
         except discord.errors.Forbidden:
-            await self.bot.delete_message(em)
+            await em.delete()
             return await ctx.send("No permissions to read that channel.")
         msg_data = {'total count': 0, 'users': {}}
 
