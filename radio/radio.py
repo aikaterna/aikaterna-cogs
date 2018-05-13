@@ -44,13 +44,18 @@ class Radio:
     async def _list(self, ctx):
         """List saved stream URLs."""
         server = ctx.message.server
-        message = '```\n'
-        message += '{:<30}{}\n\n'.format('NAME', 'URL')
+        message_list = []
         if server.id in self.memory:
             for stream in self.memory[server.id]:
-                message += '{:<30}{}\n'.format(stream, self.memory[server.id][stream])
-        message += '```'
-        await self.bot.say(message)
+                message = '{:<30}{}\n'.format(stream, self.memory[server.id][stream])
+                message_list.append(message)
+        sorted_list = sorted(message_list, key=str.lower)
+        msg = '```'
+        msg += '{:<30}{}\n\n'.format('NAME', 'URL')
+        for sorted_msg in sorted_list:
+            msg += sorted_msg
+        msg += '```'
+        await self.bot.say(msg)
 
     @_radio.command(no_pm=True, pass_context=True, name='add')
     async def _add(self, ctx, name: str, url: str):
