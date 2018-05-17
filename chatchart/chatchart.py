@@ -1,4 +1,4 @@
-#  Lines 54 through 68 are influenced heavily by cacobot's stats module:
+#  Lines 72 through 90 are influenced heavily by cacobot's stats module:
 #  https://github.com/Orangestar12/cacobot/blob/master/cacobot/stats.py
 #  Big thanks to Redjumpman for changing the beta version from 
 #  Imagemagick/cairosvg to matplotlib.
