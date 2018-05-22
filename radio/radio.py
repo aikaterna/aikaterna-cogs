@@ -80,6 +80,13 @@ class Radio:
         else:
             await self.bot.say('Nothing in memory yet')
 
+    @_radio.command(no_pm=True, pass_context=True, name='remove')
+    async def _remove(self, ctx, name: str):
+        """Remove a saved radio stream."""
+        server = ctx.message.server
+        await self.remove_from_memory(server, name)
+        await self.bot.say('Removed {} from memory.'.format(name))
+
     async def save_memory(self):
         dataIO.save_json(self.memory_path, self.memory)
 
@@ -87,6 +94,10 @@ class Radio:
         if server.id not in self.memory:
             self.memory[server.id] = {}
         self.memory[server.id][name.lower()] = url
+        await self.save_memory()
+
+    async def remove_from_memory(self, server, name):
+        del self.memory[server.id][name.lower()]
         await self.save_memory()
 
     async def join_voice_channel(self, channel):
