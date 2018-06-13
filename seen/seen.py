@@ -21,7 +21,7 @@ class Seen:
     @commands.guild_only()
     @commands.command(name='seen')
     async def _seen(self, ctx, author: discord.Member):
-        '''[p]seen <@username>'''
+        '''Shows last time a user was seen in chat'''
         member_seen = await self.config.member(author).member_seen()
         now = int(time.time())
         try:
