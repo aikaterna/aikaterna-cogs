@@ -1,0 +1,7 @@
+{
+    "AUTHOR" : "Paddolicious#8880",
+    "NAME" : "wolfram",
+    "SHORT" : "Query Wolfram|Alpha.",
+    "DESCRIPTION" : "A cog to query Wolfram|Alpha.",
+    "TAGS": ["wolfram"]
+}
