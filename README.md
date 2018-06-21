@@ -30,6 +30,7 @@ seen - By Paddolicious#8880. Check when the user was last active on a server.
 
 serverlimit - Limit the bot to joining servers with over 25 members.
 
+wolfram - Paddolicious#8880's old wolfram cog.
 
 The chatterbot cog that was previously on this repo has been removed in favor of: https://github.com/Nobleasskicker/GrandeCogs/tree/master/chat
 
