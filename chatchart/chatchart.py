@@ -45,7 +45,7 @@ class ChatChart:
         image_object.seek(0)
         return image_object
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, no_pm=True)
     @commands.cooldown(1, 10, commands.BucketType.channel)
     async def chatchart(self, ctx, channel: discord.Channel=None):
         """
