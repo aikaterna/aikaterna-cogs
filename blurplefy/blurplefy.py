@@ -35,6 +35,7 @@ class Blurplefy:
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
 
+    @commands.guild_only()
     @commands.command()
     @checks.admin_or_permissions(manage_roles=True)
     async def blurplerole(self, ctx):
@@ -63,6 +64,7 @@ class Blurplefy:
             word = 'disabled'
         await ctx.send('Blurple role awarding {}.'.format(word))
 
+    @commands.guild_only()
     @commands.command()
     @checks.admin_or_permissions(manage_roles=True)
     async def blurpleroleset(self, ctx, *, role_name: discord.Role):
@@ -96,6 +98,7 @@ class Blurplefy:
             await ctx.send('{}, please link a valid image URL.'.format(ctx.author.display_name))
             return
 
+    @commands.guild_only()
     @commands.command()
     @commands.cooldown(rate=1, per=30, type=BucketType.user)
     async def blurple(self, ctx, user: discord.Member=None):
@@ -169,6 +172,7 @@ class Blurplefy:
             elif picture == ctx.author.avatar_url and blurple_role_obj not in ctx.author.roles:
                 await ctx.send('{}, your profile pic does not have enough blurple (over 75% in total and over 5% blurple), therefore you are not eligible for the role {}.'.format(ctx.message.author.display_name, blurple_role_obj.name))
 
+    @commands.guild_only()
     @commands.command()
     @commands.cooldown(rate=1, per=30, type=BucketType.user)
     async def blurplefy(self, ctx, user: discord.Member=None):
@@ -342,10 +346,10 @@ class Blurplefy:
 
     @commands.command()
     async def countdown(self, ctx):
-        """Countdown to Discord's 3rd Anniversary."""
+        """Countdown to Discord's 4th Anniversary."""
         embed = discord.Embed(name="", colour=0x7289da)
         timeleft = datetime.datetime(2018, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
-        embed.set_author(name='Time left until Discord\'s 3rd Anniversary')
+        embed.set_author(name='Time left until Discord\'s 4th Anniversary')
         if int(timeleft.total_seconds()) < 0:
             timeleft = datetime.datetime(2019, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
             embed.set_author(name='Time left until Discord\'s 4th Anniversary')
