@@ -45,6 +45,7 @@ class Chatchart:
         image_object.seek(0)
         return image_object
 
+    @commands.guild_only()
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.channel)
     async def chatchart(self, ctx, channel: discord.TextChannel=None, messages=5000):
