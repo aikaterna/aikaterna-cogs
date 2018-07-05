@@ -84,7 +84,7 @@ class AutoEconomy:
         """Displays the autoeconomy version."""
         await self.bot.say("autoeconomy version {}.".format(self.version))
 
-    @autoeconomy.command(name="massregister", pass_context=True)
+    @autoeconomy.command(name="massregister", pass_context=True, no_pm=True)
     async def massregister(self, ctx):
         """Mass register existing users."""
         econ_cog = self.bot.get_cog('Economy')
