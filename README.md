@@ -7,6 +7,8 @@ blurplefy - Make an avatar or an image upload blurple for Discord's 3rd annivers
 
 chatchart - Generates a pie chart to display chat activity over the last 5000 messages. Requested by violetnyte.
 
+partycrash - A port of Will's partycrash command from the v2 Admin cog. This cog will not generate invites, but will show already-existing invites that the bot has access to view.
+
 pingtime - Show all shards' pingtimes.
 
 retrosign - A v3 port of Anismash's retrosign cog: https://github.com/Anismash/Ani-Cogs/tree/master/retrosign
