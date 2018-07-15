@@ -10,7 +10,6 @@ class Seen:
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2784481001, force_registration=True)
-        self.new_data = False
 
         default_member = {
             "member_seen": []
@@ -63,4 +62,7 @@ class Seen:
             if not any(message.content.startswith(n) for n in prefixes):
                 author = message.author
                 ts = int(time.time())
-                await self.config.member(author).member_seen.set(ts)
+                try:
+                    await self.config.member(author).member_seen.set(ts)
+                except AttributeError:
+                    pass
