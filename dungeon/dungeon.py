@@ -110,7 +110,7 @@ class Dungeon:
         for role in user.roles:
             if not dungeon_role_obj:
                 return await ctx.send("No dungeon role set.")
-            if role.name == dungeon_role_obj.name:
+            if role == dungeon_role_obj:
                 role_check = True
                 try:
                     await user.remove_roles(
