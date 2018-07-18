@@ -106,8 +106,12 @@ class Dungeon:
                 if user.id in blacklist_list:
                     blacklist_list.remove(user.id)
 
-        for role in user.roles:   ######## user obj has no roles prop
-            if role == dungeon_role_obj:
+        role_check = False
+        for role in user.roles:
+            if not dungeon_role_obj:
+                return await ctx.send("No dungeon role set.")
+            if role.name == dungeon_role_obj.name:
+                role_check = True
                 try:
                     await user.remove_roles(
                         dungeon_role_obj,
@@ -118,8 +122,9 @@ class Dungeon:
                     return await ctx.send(
                         "I need permissions to manage roles or the role hierarchy might not allow me to do this."
                     )
-            else:
-                return await ctx.send("User is not in the dungeon.")
+
+        if not role_check:
+            return await ctx.send("User is not in the dungeon.")
 
         if blacklist:
             blacklist_msg = " and the bot blacklist"
