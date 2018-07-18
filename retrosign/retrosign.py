@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup as bs
 import discord
 from redbot.core import commands
 from io import BytesIO
-import lxml
 import os
 from random import choice
 import re
@@ -35,7 +34,7 @@ class Retrosign:
             else:
                 return await ctx.send("\N{CROSS MARK} Your line is too long (14 character limit)")
         elif len(texts) == 3:
-            texts[0] = re.sub("[^a-zA-Z0-9]", "", texts[0])
+            texts[0] = re.sub("[^a-zA-Z0-9] ", "", texts[0])
             if len(texts[0]) >= 15:
                 return await ctx.send(
                     "\N{CROSS MARK} Your first line is too long (14 character limit)"
@@ -65,7 +64,7 @@ class Retrosign:
                 "http://photofunia.com/effects/retro-wave", data=data
             ) as response:
                 if response.status == 200:
-                    soup = bs(await response.text(), "lxml")
+                    soup = bs(await response.text(), "html.parser")
                     download_url = soup.find("div", class_="downloads-container").ul.li.a["href"]
                     async with self.session.request("GET", download_url) as image_response:
                         if image_response.status == 200:
