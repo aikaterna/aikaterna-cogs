@@ -168,7 +168,7 @@ class Dungeon:
             await self.config.guild(ctx.guild).announce_channel.set(ctx.channel.id)
             toggle = await self.config.guild(ctx.guild).toggle()
             if not toggle:
-                await ctx.invoke(self.toggle)
+                await ctx.invoke(self.usertoggle)
             await ctx.send(
                 f"Done.\nDungeon channel created: {dungeon_channel.mention}\nDungeon role created: {dungeon_role.name}\n\nPlease set these items manually:\n- The announce channel for reporting new users that are moved to the dungeon ([p]dungeon announce)\n- The role you wish to award regular members when they join the server ([p]dungeon userrole)\n- The toggle for enabling the regular user role awarding ([p]dungeon usertoggle)"
             )
