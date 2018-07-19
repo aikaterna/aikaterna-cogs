@@ -18,6 +18,7 @@ class Dungeon:
             "dungeon_channel": None,
             "dungeon_role": None,
             "join_days": 7,
+            "profile_toggle": False,
             "toggle": False,
             "user_role": None,
             "user_role_toggle": False,
@@ -71,11 +72,19 @@ class Dungeon:
         await ctx.send(f"Dungeon role set to: {dungeon_role_obj.name}.")
 
     @dungeon.command()
-    async def dungeontoggle(self, ctx):
+    async def toggle(self, ctx):
         """Toggle the dungeon on or off."""
         dungeon_enabled = await self.config.guild(ctx.guild).toggle()
         await self.config.guild(ctx.guild).toggle.set(not dungeon_enabled)
-        await ctx.send(f"New user dungeon role enabled: {not dungeon_enabled}.")
+        await ctx.send(f"Dungeon enabled: {not dungeon_enabled}.")
+
+    @dungeon.command()
+    async def profiletoggle(self, ctx):
+        """Toggles flagging accounts that have a default profile pic.
+        Accounts that are over the join days threshold will still be flagged if they have a default profile pic."""
+        profile_toggle = await self.config.guild(ctx.guild).profile_toggle()
+        await self.config.guild(ctx.guild).profile_toggle.set(not profile_toggle)
+        await ctx.send(f"Default profile pic flagging: {not profile_toggle}.")
 
     @dungeon.command()
     async def userrole(self, ctx, role_name: discord.Role):
@@ -201,6 +210,7 @@ class Dungeon:
         user_role_enabled = data["user_role_toggle"]
         join_days = data["join_days"]
         auto_blacklist = data["auto_blacklist"]
+        profile_toggle = data["profile_toggle"]
 
         msg = (
             "```ini\n----Dungeon Settings----\n"
@@ -210,7 +220,8 @@ class Dungeon:
             f"Announce Channel: [{achannel}]\n"
             f"Autorole Enabled: [{user_role_enabled}]\n"
             f"Autorole Role:    [{urole}]\n"
-            f"Auto-blacklist:   [{auto_blacklist}]\n```"
+            f"Auto-blacklist:   [{auto_blacklist}]\n"
+            f"Default PFP Flag: [{profile_toggle}]\n```"
         )
 
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
@@ -226,8 +237,11 @@ class Dungeon:
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         since_join = now - join_date
         join_days = await self.config.guild(member.guild).join_days()
+        profile_toggle = await self.config.guild(member.guild).profile_toggle()
+        announce_channel = await self.config.guild(member.guild).announce_channel()
+        channel_object = self.bot.get_channel(announce_channel)
 
-        if since_join.days < join_days:
+        if (since_join.days < join_days) or (profile_toggle and default_avatar):
             blacklist = await self.config.guild(member.guild).auto_blacklist()
             dungeon_role_id = await self.config.guild(member.guild).dungeon_role()
             dungeon_role_obj = discord.utils.get(member.guild.roles, id=dungeon_role_id)
@@ -236,15 +250,21 @@ class Dungeon:
                     if member.id not in blacklist_list:
                         blacklist_list.append(member.id)
             try:
-                await member.add_roles(
-                    dungeon_role_obj, reason="Adding dungeon role, new account."
-                )
+                if since_join.days < join_days:
+                    reason = "Adding dungeon role, new account."
+                else:
+                    reason = "Adding dungeon role, default profile pic."
+                await member.add_roles(dungeon_role_obj, reason=reason)
             except discord.Forbidden:
-                pass
+                if announce_channel:
+                    return await channel_object.send(
+                        "Someone suspicious joined but something went wrong. I need permissions to manage channels and manage roles."
+                    )
+                else:
+                    print("dungeon.py: I need permissions to manage channels and manage roles.")
+                    return
 
-            announce_channel = await self.config.guild(member.guild).announce_channel()
-            channel_object = self.bot.get_channel(announce_channel)
-            msg = f"Auto-banished new user: \n**{member.name}#{member.discriminator}** ({member.id})\n{self._dynamic_time(since_join.seconds)} old account"
+            msg = f"Auto-banished new user: \n**{member.name}#{member.discriminator}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
             if default_avatar:
                 msg += ", no profile picture set"
             await channel_object.send(msg)
