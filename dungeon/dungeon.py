@@ -228,6 +228,7 @@ class Dungeon:
         return await ctx.send(embed=embed)
 
     async def on_member_join(self, member):
+        default_avatar = False
         toggle = await self.config.guild(member.guild).toggle()
         if not toggle:
             return
