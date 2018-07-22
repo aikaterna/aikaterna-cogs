@@ -15,6 +15,8 @@ class Dungeon:
         default_guild = {
             "announce_channel": None,
             "auto_blacklist": False,
+            "dm_message": None,
+            "dm_toggle": False,
             "dungeon_channel": None,
             "dungeon_role": None,
             "join_days": 7,
@@ -25,6 +27,46 @@ class Dungeon:
         }
 
         self.config.register_guild(**default_guild)
+
+    @checks.mod_or_permissions(administrator=True)
+    @commands.command()
+    async def banish(self, ctx, user: discord.Member):
+        """Strip a user of their roles, apply the dungeon role, and blacklist them.
+		If the blacklist toggle is off, the user will not be blacklisted from the bot."""
+        data = await self.config.guild(ctx.guild).all()
+        blacklist = data["auto_blacklist"]
+        dungeon_role_id = data["dungeon_role"]
+        dungeon_role_obj = discord.utils.get(ctx.guild.roles, id=dungeon_role_id)
+
+        if blacklist:
+            async with self.bot.db.blacklist() as blacklist_list:
+                if user.id not in blacklist_list:
+                    blacklist_list.append(user.id)
+
+        if not dungeon_role_obj:
+            return await ctx.send("No dungeon role set.")
+
+        try:
+            await user.edit(
+                roles=[], reason=f"Removing all roles, {ctx.message.author} is banishing user"
+            )
+        except discord.Forbidden:
+            return await ctx.send(
+                "I need permission to manage roles or the role hierarchy might not allow me to do this. I need a role higher than the person you're trying to banish."
+            )
+
+        await user.add_roles(
+            dungeon_role_obj, reason=f"Adding dungeon role, {ctx.message.author} is banishing user"
+        )
+
+        if blacklist:
+            blacklist_msg = ", blacklisted from the bot, "
+        else:
+            blacklist_msg = ""
+        msg = (
+            f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
+        )
+        await ctx.send(msg)
 
     @commands.group(autohelp=True)
     @commands.guild_only()
@@ -54,6 +96,18 @@ class Dungeon:
         await self.config.guild(ctx.guild).dungeon_channel.set(channel.id)
         dungeon_channel_id = await self.config.guild(ctx.guild).dungeon_channel()
         await ctx.send(f"Dungeon channel set to: {self.bot.get_channel(dungeon_channel_id).name}.")
+
+    @dungeon.command()
+    async def dm(self, ctx, *, dm_message=None):
+        """Set the message to send on successful verification.
+        A blank message will turn off the DM setting."""
+        if not dm_message:
+            await self.config.guild(ctx.guild).dm_toggle.set(False)
+            await self.config.guild(ctx.guild).dm_message.set(None)
+            return await ctx.send("DM message on verification turned off.")
+        await self.config.guild(ctx.guild).dm_message.set(str(dm_message))
+        await self.config.guild(ctx.guild).dm_toggle.set(True)
+        await ctx.send(f"DM message on verification turned on.\nMessage to send:\n{dm_message}")
 
     @dungeon.command()
     async def joindays(self, ctx, days: int):
@@ -104,11 +158,15 @@ class Dungeon:
     @dungeon.command()
     async def verify(self, ctx, user: discord.Member):
         """Verify a user: remove the dungeon role and add initial user role."""
-        blacklist = await self.config.guild(ctx.guild).auto_blacklist()
-        dungeon_role_id = await self.config.guild(ctx.guild).dungeon_role()
+        data = await self.config.guild(ctx.guild).all()
+        announce_channel = data["announce_channel"]
+        blacklist = data["auto_blacklist"]
+        dungeon_role_id = data["dungeon_role"]
         dungeon_role_obj = discord.utils.get(ctx.guild.roles, id=dungeon_role_id)
-        user_role_id = await self.config.guild(ctx.guild).user_role()
+        user_role_id = data["user_role"]
         user_role_obj = discord.utils.get(ctx.guild.roles, id=user_role_id)
+        dm_toggle = data["dm_toggle"]
+        dm_message = data["dm_message"]
 
         if blacklist:
             async with self.bot.db.blacklist() as blacklist_list:
@@ -139,8 +197,18 @@ class Dungeon:
             blacklist_msg = " and the bot blacklist"
         else:
             blacklist_msg = ""
-        msg = f"{user.name} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
+        msg = (
+            f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
+        )
         await ctx.send(msg)
+
+        if dm_toggle:
+            try:
+                await user.send(dm_message)
+            except discord.Forbidden:
+                await ctx.send(
+                    f"I couldn't DM {user} to let them know they've been verified, they've blocked me."
+                )
 
     @dungeon.command()
     async def autosetup(self, ctx):
@@ -211,6 +279,7 @@ class Dungeon:
         join_days = data["join_days"]
         auto_blacklist = data["auto_blacklist"]
         profile_toggle = data["profile_toggle"]
+        dm_toggle = data["dm_toggle"]
 
         msg = (
             "```ini\n----Dungeon Settings----\n"
@@ -221,7 +290,8 @@ class Dungeon:
             f"Autorole Enabled: [{user_role_enabled}]\n"
             f"Autorole Role:    [{urole}]\n"
             f"Auto-blacklist:   [{auto_blacklist}]\n"
-            f"Default PFP Flag: [{profile_toggle}]\n```"
+            f"Default PFP Flag: [{profile_toggle}]\n"
+            f"Msg on Verify:    [{dm_toggle}]\n```"
         )
 
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
@@ -265,7 +335,9 @@ class Dungeon:
                     print("dungeon.py: I need permissions to manage channels and manage roles.")
                     return
 
-            msg = f"Auto-banished new user: \n**{member.name}#{member.discriminator}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+            msg = (
+                f"Auto-banished new user: \n**{member.name}#{member.discriminator}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+            )
             if default_avatar:
                 msg += ", no profile picture set"
             await channel_object.send(msg)
