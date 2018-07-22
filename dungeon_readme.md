@@ -36,6 +36,8 @@ Use [p]dungeon userrole rolename
 Use [p]dungeon blacklist
     This toggles the auto-blacklist on. Dungeoned users will be blacklisted from using the bot.
 
-If a user needs to be verified, use [p]dungeon verify id/username. This will remove the dungeon role from them and apply the initial autorole so they can proceed through the server’s verification or welcome process.
+If a user needs to be verified, use [p]dungeon verify id/username. This will remove the dungeon role from them and apply the initial autorole so they can proceed through the server’s verification or welcome process. If a custom message should be sent to the user when they are verified, use [p]dungeon dm message to set a message. The command with no message will turn the DM feature off.
+
+A user can be stripped of all their roles with [p]banish. This will apply the dungeon role to them and if the blacklist toggle is on, blacklist them from using the bot.
 
 Current settings can be seen with [p]dungeon settings.
