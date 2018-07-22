@@ -182,7 +182,7 @@ class Dungeon:
                 try:
                     await user.remove_roles(
                         dungeon_role_obj,
-                        reason=f"Removing dungeon role, verified by {ctx.message.author.name}.",
+                        reason=f"Removing dungeon role, verified by {ctx.message.author}.",
                     )
                     await user.add_roles(user_role_obj, reason="Adding member role.")
                 except discord.Forbidden:
@@ -336,7 +336,7 @@ class Dungeon:
                     return
 
             msg = (
-                f"Auto-banished new user: \n**{member.name}#{member.discriminator}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+                f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
             )
             if default_avatar:
                 msg += ", no profile picture set"
