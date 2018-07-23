@@ -18,6 +18,7 @@ If a user is over the new user days threshold:
 - A new user joins the server.
 - They are given the autorole.
 - They proceed as normal through the server’s verification/role awarding/welcome channels.
+- If autoban is on, they will be banned instead of sent to the dungeon.
 
 How to set it up:
 
@@ -39,5 +40,7 @@ Use [p]dungeon blacklist
 If a user needs to be verified, use [p]dungeon verify id/username. This will remove the dungeon role from them and apply the initial autorole so they can proceed through the server’s verification or welcome process. If a custom message should be sent to the user when they are verified, use [p]dungeon dm message to set a message. The command with no message will turn the DM feature off.
 
 A user can be stripped of all their roles with [p]banish. This will apply the dungeon role to them and if the blacklist toggle is on, blacklist them from using the bot.
+
+Autobanning can be done instead of sending the user to the dungeon channel. It will use the days and profile picture parameters to choose who to auto-ban. Turn autoban on with [p]dungeon autoban and set a message to DM the user: [p]dungeon banmessage. If [p]dungeon modlog is used, it will create a mod log entry if the bot is set up to report bans with the built-in Mod cog instead of reporting to the announce channel.
 
 Current settings can be seen with [p]dungeon settings.
