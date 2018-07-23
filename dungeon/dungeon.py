@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 import discord
-from redbot.core import Config, commands, checks
+from redbot.core import Config, commands, checks, modlog
 from redbot.core.data_manager import cog_data_path
 
 
@@ -14,12 +14,15 @@ class Dungeon:
 
         default_guild = {
             "announce_channel": None,
+            "auto_ban": False,
+            "auto_ban_message": None,
             "auto_blacklist": False,
             "dm_message": None,
             "dm_toggle": False,
             "dungeon_channel": None,
             "dungeon_role": None,
             "join_days": 7,
+            "mod_log": False,
             "profile_toggle": False,
             "toggle": False,
             "user_role": None,
@@ -82,6 +85,26 @@ class Dungeon:
         )
 
     @dungeon.command()
+    async def autoban(self, ctx):
+        """Toggle auto-banning users instead of sending them to the dungeon."""
+        auto_ban = await self.config.guild(ctx.guild).auto_ban()
+        await self.config.guild(ctx.guild).auto_ban.set(not auto_ban)
+        await ctx.send(f"Auto-ban instead of sending to the dungeon: {not auto_ban}.")
+
+    @dungeon.command()
+    async def banmessage(self, ctx, *, ban_message=None):
+        """Set the message to send on an autoban. If message is left blank, no message will be sent."""
+        auto_ban = await self.config.guild(ctx.guild).auto_ban()
+        if not ban_message:
+            await self.config.guild(ctx.guild).auto_ban_message.set(None)
+            return await ctx.send(
+                "Auto-ban message removed. No message will be sent on an auto-ban."
+            )
+        await self.config.guild(ctx.guild).auto_ban_message.set(str(ban_message))
+        await self.config.guild(ctx.guild).auto_ban.set(True)
+        await ctx.send(f"Auto-ban has been turned on.\nMessage to send on ban:\n{ban_message}")
+
+    @dungeon.command()
     async def blacklist(self, ctx):
         """Toggle auto-blacklisting for the bot for users moved to the dungeon."""
         auto_blacklist = await self.config.guild(ctx.guild).auto_blacklist()
@@ -114,6 +137,14 @@ class Dungeon:
         await ctx.send(
             f"Users must have accounts older than {days} day(s) to be awarded the member role instead of the dungeon role on join."
         )
+
+    @dungeon.command()
+    async def modlog(self, ctx):
+        """Toggle using the Red mod-log for auto-bans.
+        The mod-log has to be configured to display bans for this to work."""
+        mod_log = await self.config.guild(ctx.guild).mod_log()
+        await self.config.guild(ctx.guild).mod_log.set(not mod_log)
+        await ctx.send(f"Mod-log entry on auto-ban: {not mod_log}.")
 
     @dungeon.command()
     async def role(self, ctx, role_name: discord.Role):
@@ -283,6 +314,12 @@ class Dungeon:
         auto_blacklist = data["auto_blacklist"]
         profile_toggle = data["profile_toggle"]
         dm_toggle = data["dm_toggle"]
+        auto_ban = data["auto_ban"]
+        ban_msg = data["auto_ban_message"]
+        mod_log = data["mod_log"]
+
+        if ban_msg:
+            ban_msg = "True"
 
         msg = (
             "```ini\n----Dungeon Settings----\n"
@@ -294,7 +331,11 @@ class Dungeon:
             f"Autorole Role:    [{urole}]\n"
             f"Auto-blacklist:   [{auto_blacklist}]\n"
             f"Default PFP Flag: [{profile_toggle}]\n"
-            f"Msg on Verify:    [{dm_toggle}]\n```"
+            f"Day Threshold:    [{str(join_days)}]\n"
+            f"Msg on Verify:    [{dm_toggle}]\n"
+            f"Auto-ban:         [{auto_ban}]\n"
+            f"Ban Message:      [{ban_msg}]\n"
+            f"Mod-log on Ban:   [{mod_log}]\n```"
         )
 
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
@@ -314,11 +355,66 @@ class Dungeon:
         profile_toggle = await self.config.guild(member.guild).profile_toggle()
         announce_channel = await self.config.guild(member.guild).announce_channel()
         channel_object = self.bot.get_channel(announce_channel)
+        auto_ban = await self.config.guild(member.guild).auto_ban()
+        auto_ban_msg = await self.config.guild(member.guild).auto_ban_message()
+        mod_log = await self.config.guild(member.guild).mod_log()
 
         if (since_join.days < join_days) or (profile_toggle and default_avatar):
             blacklist = await self.config.guild(member.guild).auto_blacklist()
             dungeon_role_id = await self.config.guild(member.guild).dungeon_role()
             dungeon_role_obj = discord.utils.get(member.guild.roles, id=dungeon_role_id)
+            perm_msg = f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {member.guild.id}"
+
+            if auto_ban:
+                if auto_ban_msg:
+                    try:
+                        await member.send(auto_ban_msg)
+                    except discord.Forbidden:
+                        if announce_channel:
+                            return await channel_object.send(
+                                f"I couldn't DM {user} to let them know they've been banned, they've blocked me."
+                            )
+                        else:
+                            print(perm_msg)
+                            return
+                try:
+                    await member.guild.ban(
+                        member, reason="Dungeon auto-ban", delete_message_days=0
+                    )
+                except discord.Forbidden:
+                    if announce_channel:
+                        return await channel_object.send(
+                            "I tried to auto-ban someone ({member}, {member.id}) but I don't have ban permissions."
+                        )
+                    else:
+                        print(perm_msg)
+                        return
+
+                if not mod_log:
+                    if announce_channel:
+                        msg = f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+                        return await channel_object.send(msg)
+                    else:
+                        print(perm_msg)
+                        return
+                else:
+                    try:
+                        await modlog.create_case(
+                            self.bot,
+                            member.guild,
+                            now,
+                            "ban",
+                            member,
+                            member.guild.me,
+                            reason,
+                            until=None,
+                            channel=None,
+                        )
+                    except RuntimeError as e:
+                        print(
+                            f"dungeon.py error while autobanning user and attempting to create modlog entry: {e}\nIn guild: {member.guild.id}"
+                        )
+
             if blacklist:
                 async with self.bot.db.blacklist() as blacklist_list:
                     if member.id not in blacklist_list:
