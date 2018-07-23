@@ -60,12 +60,10 @@ class Dungeon:
         )
 
         if blacklist:
-            blacklist_msg = ", blacklisted from the bot, "
+            blacklist_msg = ", blacklisted from the bot,"
         else:
             blacklist_msg = ""
-        msg = (
-            f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
-        )
+        msg = f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
         await ctx.send(msg)
 
     @commands.group(autohelp=True)
@@ -141,8 +139,11 @@ class Dungeon:
         await ctx.send(f"Default profile pic flagging: {not profile_toggle}.")
 
     @dungeon.command()
-    async def userrole(self, ctx, role_name: discord.Role):
+    async def userrole(self, ctx, role_name: discord.Role = None):
         """Sets the role to give to new users that are not sent to the dungeon."""
+        if not role_name:
+            await self.config.guild(ctx.guild).user_role.set(None)
+            return await ctx.send("Member role cleared.")
         await self.config.guild(ctx.guild).user_role.set(role_name.id)
         user_role_id = await self.config.guild(ctx.guild).user_role()
         user_role_obj = discord.utils.get(ctx.guild.roles, id=user_role_id)
@@ -184,6 +185,10 @@ class Dungeon:
                         dungeon_role_obj,
                         reason=f"Removing dungeon role, verified by {ctx.message.author}.",
                     )
+                    if not user_role_obj:
+                        return await ctx.send(
+                            "Dungeon role removed, but no member role is set so I can't award one."
+                        )
                     await user.add_roles(user_role_obj, reason="Adding member role.")
                 except discord.Forbidden:
                     return await ctx.send(
@@ -197,9 +202,7 @@ class Dungeon:
             blacklist_msg = " and the bot blacklist"
         else:
             blacklist_msg = ""
-        msg = (
-            f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
-        )
+        msg = f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
         await ctx.send(msg)
 
         if dm_toggle:
@@ -335,9 +338,7 @@ class Dungeon:
                     print("dungeon.py: I need permissions to manage channels and manage roles.")
                     return
 
-            msg = (
-                f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
-            )
+            msg = f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
             if default_avatar:
                 msg += ", no profile picture set"
             await channel_object.send(msg)
