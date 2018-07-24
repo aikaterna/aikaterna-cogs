@@ -9,6 +9,8 @@ chatchart - Generates a pie chart to display chat activity over the last 5000 me
 
 dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
 
+inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme.
+
 partycrash - A port of Will's partycrash command from the v2 Admin cog. This cog will not generate invites, but will show already-existing invites that the bot has access to view.
 
 pingtime - Show all shards' pingtimes.
