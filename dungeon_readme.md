@@ -9,6 +9,7 @@ What this cog can do if the above guild restrictions are in place:
 - A new user joins the server.
 - The cog determines whether the user is new (under a settable threshold of days)
 - If the user is new, the dungeon role would be added to them instead of the autorole, restricting them to the dungeon channel where they can only see and not speak. 
+- If autoban is on, they will be banned instead of sent to the dungeon.
 - If the setting is on to do so, the bot will blacklist the user from using the bot.
 - A message is sent to the announce channel with the dungeoned user’s name, id, account age, and whether they have a default profile pic.
 - Admins can verify someone in the dungeon by using a command. This will remove the dungeon role, add the initial autorole, and then un-blacklist the user from using the bot.
@@ -18,7 +19,6 @@ If a user is over the new user days threshold:
 - A new user joins the server.
 - They are given the autorole.
 - They proceed as normal through the server’s verification/role awarding/welcome channels.
-- If autoban is on, they will be banned instead of sent to the dungeon.
 
 How to set it up:
 
