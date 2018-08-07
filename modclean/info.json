@@ -1,0 +1,8 @@
+{
+    "AUTHOR" : "aikaterna and sitryk",
+    "INSTALL_MSG" : "Use `[p]modclean #mod-log` to clean your mod log channel. Edits out Discord invite links from banned or kicked users.",
+    "NAME" : "modclean",
+    "SHORT" : "Clean your mod log channel of Discord invite names.",
+    "DESCRIPTION" : "Clean your mod log channel of Discord invite names.",
+    "TAGS": ["modlog"]
+}
