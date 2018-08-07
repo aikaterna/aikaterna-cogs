@@ -16,6 +16,8 @@ hunting - By Paddolicious#8880. It hunts birds... and things that fly.
 
 imgwelcome - Welcome users to your server with a customized image.
 
+modclean - Clean the last 100 entries in the mod-log of Discord invite names.
+
 otherbot - Have multiple Red instances and want to know when one goes offline? Edit this cog and load it on your watcher bot.
 
 post - Upload a saved audio playlist to the chat channel, or upload a cog. Owner only.
