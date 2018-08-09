@@ -1,0 +1,15 @@
+{
+	"author": [
+		"aikaterna"
+	],
+	"description": "Posts invites to servers, if the bot is allowed to view them. Does not generate new invites.",
+    "install_msg": "Thanks for installing, have fun.",
+    "permissions" : [
+		"manage_server"
+	],
+	"short": "Post server invites.",
+	"tags": [
+		"invite"
+	],
+	"type": "COG"
+}

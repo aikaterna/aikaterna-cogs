@@ -1,0 +1,19 @@
+{
+	"author": [
+		"aikaterna"
+	],
+	"description": "A port of Anismash's retrosign cog for v2: <https://github.com/Anismash/Ani-Cogs/tree/master/retrosign",
+    "install_msg": "Thanks for installing, have fun.",
+    "permissions" : [
+		"attach_files"
+	],
+	"requirements": [
+		"BeautifulSoup"
+	],
+	"short": "Posts an image of text",
+	"tags": [
+		"retro",
+        "80s"
+	],
+	"type": "COG"
+}

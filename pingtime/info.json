@@ -1,0 +1,13 @@
+{
+	"author": [
+		"aikaterna"
+	],
+	"description": "It's ping... with latency. Shows all shards.",
+    "install_msg": "Thanks for installing, have fun.",
+	"short": "Ping pong.",
+	"tags": [
+		"pingtime",
+        "latency"
+	],
+	"type": "COG"
+}

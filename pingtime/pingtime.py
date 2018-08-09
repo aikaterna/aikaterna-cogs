@@ -2,7 +2,6 @@ from discord.ext import commands
 
 
 class Pingtime:
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -12,5 +11,5 @@ class Pingtime:
         latencies = self.bot.latencies
         msg = "Pong!\n"
         for shard, pingt in latencies:
-            msg += "Shard {}/{}: {}ms\n".format(shard + 1, len(latencies), round(pingt*1000))
+            msg += "Shard {}/{}: {}ms\n".format(shard + 1, len(latencies), round(pingt * 1000))
         await ctx.send(msg)

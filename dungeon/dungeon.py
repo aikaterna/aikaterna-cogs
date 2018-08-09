@@ -66,13 +66,16 @@ class Dungeon:
             blacklist_msg = ", blacklisted from the bot,"
         else:
             blacklist_msg = ""
-        msg = f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
+        msg = (
+            f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
+        )
         await ctx.send(msg)
 
     @commands.group(autohelp=True)
     @commands.guild_only()
     @checks.admin_or_permissions(manage_server=True)
     async def dungeon(self, ctx):
+        """Main dungeon commands."""
         pass
 
     @dungeon.command()
@@ -233,7 +236,9 @@ class Dungeon:
             blacklist_msg = " and the bot blacklist"
         else:
             blacklist_msg = ""
-        msg = f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
+        msg = (
+            f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
+        )
         await ctx.send(msg)
 
         if dm_toggle:
@@ -363,7 +368,9 @@ class Dungeon:
             blacklist = await self.config.guild(member.guild).auto_blacklist()
             dungeon_role_id = await self.config.guild(member.guild).dungeon_role()
             dungeon_role_obj = discord.utils.get(member.guild.roles, id=dungeon_role_id)
-            perm_msg = f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {member.guild.id}"
+            perm_msg = (
+                f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {member.guild.id}"
+            )
 
             if auto_ban:
                 if auto_ban_msg:
@@ -392,7 +399,9 @@ class Dungeon:
 
                 if not mod_log:
                     if announce_channel:
-                        msg = f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+                        msg = (
+                            f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+                        )
                         return await channel_object.send(msg)
                     else:
                         print(perm_msg)
@@ -434,7 +443,9 @@ class Dungeon:
                     print("dungeon.py: I need permissions to manage channels and manage roles.")
                     return
 
-            msg = f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+            msg = (
+                f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+            )
             if default_avatar:
                 msg += ", no profile picture set"
             await channel_object.send(msg)

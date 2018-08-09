@@ -8,12 +8,8 @@ from redbot.core.bot import Red
 class Away:
     """Le away cog"""
 
-    default_global_settings = {
-        "ign_servers": []
-    }
-    default_user_settings = {
-        "MESSAGE": False
-    }
+    default_global_settings = {"ign_servers": []}
+    default_user_settings = {"MESSAGE": False}
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -36,20 +32,30 @@ class Away:
                     test = await self._away.user(author).MESSAGE()
                     if test:
                         try:
-                            avatar = author.avatar_url if author.avatar else author.default_avatar_url
+                            avatar = (
+                                author.avatar_url if author.avatar else author.default_avatar_url
+                            )
 
                             if test:
                                 em = discord.Embed(description=test, color=discord.Color.blue())
-                                em.set_author(name='{} is currently away'.format(author.display_name), icon_url=avatar)
+                                em.set_author(
+                                    name="{} is currently away".format(author.display_name),
+                                    icon_url=avatar,
+                                )
                             else:
                                 em = discord.Embed(color=discord.Color.blue())
-                                em.set_author(name='{} is currently away'.format(author.display_name), icon_url=avatar)
+                                em.set_author(
+                                    name="{} is currently away".format(author.display_name),
+                                    icon_url=avatar,
+                                )
                             await message.channel.send(embed=em)
                         except:
                             if test:
-                                msg = '{} is currently away and has set the following message: `{}`'.format(author.display_name, test)
+                                msg = "{} is currently away and has set the following message: `{}`".format(
+                                    author.display_name, test
+                                )
                             else:
-                                msg = '{} is currently away'.format(author.display_name)
+                                msg = "{} is currently away".format(author.display_name)
                             await message.channel.send(msg)
 
     @commands.command(name="away")
@@ -59,14 +65,16 @@ class Away:
         mess = await self._away.user(author).MESSAGE()
         if mess:
             await self._away.user(author).clear()
-            msg = 'You\'re now back.'
+            msg = "You're now back."
         else:
             length = len(str(message))
             if length < 256 and length > 2:
-                await self._away.user(author).MESSAGE.set(' '.join(ctx.message.clean_content.split()[1:]))
+                await self._away.user(author).MESSAGE.set(
+                    " ".join(ctx.message.clean_content.split()[1:])
+                )
             else:
-                await self._away.user(author).MESSAGE.set(' ')
-            msg = 'You\'re now set as away.'
+                await self._away.user(author).MESSAGE.set(" ")
+            msg = "You're now set as away."
         await ctx.send(msg)
 
     @commands.command(name="toggleaway")
@@ -78,10 +86,10 @@ class Away:
             guilds = await self._away.ign_servers()
             guilds.remove(guild.id)
             await self._away.ign_servers.set(guilds)
-            message = 'Not ignoring this guild anymore.'
+            message = "Not ignoring this guild anymore."
         else:
             guilds = await self._away.ign_servers()
             guilds.append(guild.id)
             await self._away.ign_servers.set(guilds)
-            message = 'Ignoring this guild.'
+            message = "Ignoring this guild."
         await ctx.send(message)

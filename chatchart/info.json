@@ -1,14 +1,18 @@
 {
 	"author": [
-		"Redjumpman and aikaterna"
+		"aikaterna",
+        "Redjumpman"
 	],
 	"description": "Generate a pie chart from the last 5000 messages in a channel to see who's been talking the most.",
+    "install_msg": "Thanks for installing, have fun.",
 	"short": "Generate a pie chart from the last 5000 messages",
 	"tags": [
 		"data",
         "chart",
         "activity"
 	],
-    "requirements": ["matplotlib"],
+	"requirements": [
+		"matplotlib"
+	],
 	"type": "COG"
 }

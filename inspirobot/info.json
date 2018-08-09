@@ -1,0 +1,16 @@
+{
+	"author": [
+		"aikaterna"
+	],
+	"description": "Fetch a random 'inspiring' message from http://inspirobot.me",
+    "install_msg": "Thanks for installing, have fun.",
+    "permissions" : [
+		"embed_links"
+	],
+	"short": "Fetch 'inspiring' messages.",
+	"tags": [
+		"inspire",
+        "inspirobot"
+	],
+	"type": "COG"
+}
