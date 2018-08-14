@@ -8,7 +8,7 @@
 		"attach_files"
 	],
 	"requirements": [
-		"BeautifulSoup"
+		"bs4"
 	],
 	"short": "Posts an image of text",
 	"tags": [
