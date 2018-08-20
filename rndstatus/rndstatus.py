@@ -35,6 +35,7 @@ class RndStatus:
     @commands.guild_only()
     @checks.is_owner()
     async def rndstatus(self, ctx):
+        """Rndstatus group commands."""
         pass
 
     @rndstatus.command(name="set")
@@ -63,7 +64,7 @@ class RndStatus:
         if not botstats == False:
             await self.bot.change_presence(activity=None)
 
-    @rndstatus.command(pass_context=True)
+    @rndstatus.command()
     async def delay(self, ctx, seconds: int):
         """Sets interval of random status switch.
 

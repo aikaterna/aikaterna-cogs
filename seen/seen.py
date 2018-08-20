@@ -1,12 +1,11 @@
 import asyncio
 import discord
 import time
-from discord.ext import commands
 from datetime import datetime
-from redbot.core import Config
-
+from redbot.core import Config, commands
 
 class Seen:
+    """Shows last time a user was seen in chat"""
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2784481001, force_registration=True)

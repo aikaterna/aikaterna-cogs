@@ -3,8 +3,6 @@
 #  pip install pillow
 
 import discord
-from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 from PIL import Image, ImageEnhance, ImageSequence
 from io import BytesIO
 import aiohttp
@@ -14,7 +12,7 @@ import datetime
 import io
 import math
 from resizeimage import resizeimage
-from redbot.core import Config, checks
+from redbot.core import Config, commands, checks
 
 blurple = (114, 137, 218)
 blurplehex = 0x7289da
@@ -24,6 +22,7 @@ white = (255, 255, 255)
 
 class Blurplefy:
     def __init__(self, bot):
+        """Blurplefy images and check content of images."""
         self.bot = bot
         self.config = Config.get_conf(self, 2778931480, force_registration=True)
 
@@ -100,7 +99,7 @@ class Blurplefy:
 
     @commands.guild_only()
     @commands.command()
-    @commands.cooldown(rate=1, per=30, type=BucketType.user)
+    @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
     async def blurple(self, ctx, user: discord.Member = None):
         """Check a user or uploaded image for blurple content."""
         picture = None
@@ -209,7 +208,7 @@ class Blurplefy:
 
     @commands.guild_only()
     @commands.command()
-    @commands.cooldown(rate=1, per=30, type=BucketType.user)
+    @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
     async def blurplefy(self, ctx, user: discord.Member = None):
         """Blurplefy a user or uploaded image."""
         picture = None

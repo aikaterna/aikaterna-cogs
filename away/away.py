@@ -1,8 +1,5 @@
 import discord
-from discord.ext import commands
-
-from redbot.core import Config
-from redbot.core.bot import Red
+from redbot.core import Config, commands, checks
 
 
 class Away:
@@ -11,7 +8,7 @@ class Away:
     default_global_settings = {"ign_servers": []}
     default_user_settings = {"MESSAGE": False}
 
-    def __init__(self, bot: Red):
+    def __init__(self, bot):
         self.bot = bot
         self._away = Config.get_conf(self, 8423491260, force_registration=True)
 
@@ -78,7 +75,7 @@ class Away:
         await ctx.send(msg)
 
     @commands.command(name="toggleaway")
-    @commands.has_permissions(administrator=True)
+    @checks.admin_or_permissions(administrator=True)
     async def _ignore(self, ctx):
         """Toggle away messages on the whole server."""
         guild = ctx.message.guild

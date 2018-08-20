@@ -10,7 +10,7 @@
 		"manage_channels",
 		"manage_roles"
 	],
-	"short": "",
+	"short": "Specialized raid protection.",
 	"tags": [
 		"dungeon",
         "autoban"

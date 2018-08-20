@@ -379,7 +379,7 @@ class Dungeon:
                     except discord.Forbidden:
                         if announce_channel:
                             return await channel_object.send(
-                                f"I couldn't DM {user} to let them know they've been banned, they've blocked me."
+                                f"I couldn't DM {member} ({member.id}) to let them know they've been banned, they've blocked me."
                             )
                         else:
                             print(perm_msg)
@@ -391,7 +391,7 @@ class Dungeon:
                 except discord.Forbidden:
                     if announce_channel:
                         return await channel_object.send(
-                            "I tried to auto-ban someone ({member}, {member.id}) but I don't have ban permissions."
+                            f"I tried to auto-ban someone ({member}, {member.id}) but I don't have ban permissions."
                         )
                     else:
                         print(perm_msg)

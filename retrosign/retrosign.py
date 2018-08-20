@@ -12,6 +12,7 @@ import re
 
 
 class Retrosign:
+    """Make an 80s retro sign. Originally by Anismash"""
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()

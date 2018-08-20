@@ -13,7 +13,7 @@ matplotlib.use("agg")
 import matplotlib.pyplot as plt
 
 plt.switch_backend("agg")
-from discord.ext import commands
+from redbot.core import commands
 
 
 class Chatchart:
