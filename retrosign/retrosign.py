@@ -9,6 +9,7 @@ from io import BytesIO
 import os
 from random import choice
 import re
+import unicodedata
 
 
 class Retrosign:
@@ -35,7 +36,9 @@ class Retrosign:
             else:
                 return await ctx.send("\N{CROSS MARK} Your line is too long (14 character limit)")
         elif len(texts) == 3:
-            texts[0] = re.sub("[^A-Za-z0-9 ]", "", texts[0])
+            texts[0] = unicodedata.normalize('NFD', texts[0]).encode('ascii', 'ignore')
+            texts[0] = texts[0].decode('UTF-8')
+            texts[0] = re.sub(r'[^A-Za-z0-9 ]', '', texts[0])
             if len(texts[0]) >= 15:
                 return await ctx.send(
                     "\N{CROSS MARK} Your first line is too long (14 character limit)"
@@ -75,4 +78,4 @@ class Retrosign:
                                 await ctx.channel.send(file=image)
 
     def __unload(self):
-        self.session.close()
+        self.session.detach()
