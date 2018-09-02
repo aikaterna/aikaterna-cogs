@@ -92,7 +92,7 @@ class RndStatus:
             current_game = None
         statuses = await self.config.statuses()
         botstats = await self.config.botstats()
-        prefix = await self.bot.command_prefix(self.bot, message)
+        prefix = await self.bot.db.prefix()
 
         if botstats:
             total_users = sum(len(s.members) for s in self.bot.guilds)
