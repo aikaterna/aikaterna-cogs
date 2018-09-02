@@ -28,7 +28,7 @@ class Otherbot:
     async def pingrole(self, ctx, role_name: discord.Role = None):
         """Sets the role to use for pinging. Leave blank to reset it."""
         if not role_name:
-            await self.config.guild(ctx.guild).ping()
+            await self.config.guild(ctx.guild).ping.set(None)
             return await ctx.send("Ping role cleared.")
         await self.config.guild(ctx.guild).ping.set(role_name.id)
         pingrole_id = await self.config.guild(ctx.guild).ping()
