@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "aikaterna, Sitryk, and Axas",
+    "INSTALL_MSG" : "Thanks for installing.",
+    "NAME" : "tools",
+    "SHORT" : "A collection of tools for mods.",
+    "DESCRIPTION" : "A collection of channel, user, and server tools for mods.",
+    "REQUIREMENTS": ["tabulate"],
+    "TAGS": ["tools"]
+}
