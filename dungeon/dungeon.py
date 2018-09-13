@@ -415,7 +415,6 @@ class Dungeon:
                             "ban",
                             member,
                             member.guild.me,
-                            reason,
                             until=None,
                             channel=None,
                         )
