@@ -11,6 +11,8 @@ dungeon - New users with new accounts will be shuffled off to a locked channel o
 
 inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme.
 
+nolinks - A very blunt hammer to remove anything that looks like a link. Roles can be whitelisted and it can watch multiple channels.
+
 otherbot - Alert a role when bot(s) go offline.
 
 partycrash - A port of Will's partycrash command from the v2 Admin cog. This cog will not generate invites, but will show already-existing invites that the bot has access to view.
