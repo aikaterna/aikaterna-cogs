@@ -23,6 +23,8 @@ retrosign - A v3 port of Anismash's retrosign cog: https://github.com/Anismash/A
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
+tools - A collection of mod and admin tools, ported from my v2 version. Sitryk is responsible for a lot of the code in tools... thanks for the help with this cog.
+
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
 Are you looking for the v3 lavalink music cog? It's been added to Red v3 as the audio module. Install from develop and ask in the Red support server for help if you need it, or join my server. https://discord.gg/th6eS3T

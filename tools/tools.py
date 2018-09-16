@@ -1,0 +1,731 @@
+import asyncio
+import datetime
+import discord
+import inspect
+import random
+import os
+import time
+from redbot.core import Config, checks, commands
+from redbot.core.utils import chat_formatting as cf
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+from tabulate import tabulate
+from contextlib import suppress as sps
+
+
+class Tools:
+    """Mod and Admin tools."""
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def _Tools__error(self, ctx, error):
+        if error.__cause__:
+            cause = error.__cause__
+            print(f"Tools Cog :: Error Occured ::\n{error}\n{cause}\n")
+        else:
+            cause = error
+            print(f"Tools Cog :: Error Occured :: \n{cause}\n")
+
+    @commands.guild_only()
+    @checks.mod_or_permissions(manage_channels=True)
+    @commands.group()
+    async def access(self, ctx):
+        """Check channel access"""
+        pass
+
+    @access.command()
+    async def compare(self, ctx, user: discord.Member, guild: int = None):
+        """Compare channel access with [user]."""
+        if user is None:
+            return
+        if guild is None:
+            guild = ctx.guild
+        else:
+            guild = self.bot.get_guild(guild)
+
+        try:
+            tcs = guild.text_channels
+            vcs = guild.voice_channels
+        except AttributeError:
+            return await ctx.send(
+                "User is not in that guild or I do not have access to that guild."
+            )
+
+        author_text_channels = [
+            c for c in tcs if c.permissions_for(ctx.author).read_messages is True
+        ]
+        author_voice_channels = [c for c in vcs if c.permissions_for(ctx.author).connect is True]
+
+        user_text_channels = [c for c in tcs if c.permissions_for(user).read_messages is True]
+        user_voice_channels = [c for c in vcs if c.permissions_for(user).connect is True]
+
+        author_only_t = set(author_text_channels) - set(
+            user_text_channels
+        )  # text channels only the author has access to
+        author_only_v = set(author_voice_channels) - set(
+            user_voice_channels
+        )  # voice channels only the author has access to
+
+        user_only_t = set(user_text_channels) - set(
+            author_text_channels
+        )  # text channels only the user has access to
+        user_only_v = set(user_voice_channels) - set(
+            author_voice_channels
+        )  # voice channels only the user has access to
+
+        common_t = list(
+            set([c for c in tcs]) - author_only_t - user_only_t
+        )  # text channels that author and user have in common
+        common_v = list(
+            set([c for c in vcs]) - author_only_v - user_only_v
+        )  # voice channels that author and user have in common
+
+        msg = "```ini\n"
+        msg += "{} [TEXT CHANNELS IN COMMON]:\n\n{}\n\n".format(
+            len(common_t), ", ".join([c.name for c in common_t])
+        )
+        msg += "{} [TEXT CHANNELS {} HAS EXCLUSIVE ACCESS TO]:\n\n{}\n\n".format(
+            len(user_only_t), user.name.upper(), ", ".join([c.name for c in user_only_t])
+        )
+        msg += "{} [TEXT CHANNELS YOU HAVE EXCLUSIVE ACCESS TO]:\n\n{}\n\n\n".format(
+            len(author_only_t), ", ".join([c.name for c in author_only_t])
+        )
+        msg += "{} [VOICE CHANNELS IN COMMON]:\n\n{}\n\n".format(
+            len(common_v), ", ".join([c.name for c in common_v])
+        )
+        msg += "{} [VOICE CHANNELS {} HAS EXCLUSIVE ACCESS TO]:\n\n{}\n\n".format(
+            len(user_only_v), user.name.upper(), ", ".join([c.name for c in user_only_v])
+        )
+        msg += "{} [VOICE CHANNELS YOU HAVE EXCLUSIVE ACCESS TO]:\n\n{}\n\n".format(
+            len(author_only_v), ", ".join([c.name for c in author_only_v])
+        )
+        msg += "```"
+        await ctx.send(msg)
+
+    @access.command()
+    async def text(self, ctx, user: discord.Member = None, guild: int = None):
+        """Check text channel access."""
+        if user is None:
+            user = ctx.author
+        if guild is None:
+            guild = ctx.guild
+        else:
+            guild = self.bot.get_guild(guild)
+
+        try:
+            can_access = [
+                c.name
+                for c in guild.text_channels
+                if c.permissions_for(user).read_messages == True
+            ]
+            text_channels = [c.name for c in guild.text_channels]
+        except AttributeError:
+            return await ctx.send(
+                "User is not in that guild or I do not have access to that guild."
+            )
+
+        prefix = "You have" if user.id == ctx.author.id else user.name + " has"
+        msg = "```ini\n[{} access to {} out of {} text channels]\n\n".format(
+            prefix, len(can_access), len(text_channels)
+        )
+
+        msg += "[ACCESS]:\n{}\n\n".format(", ".join(can_access))
+        msg += "[NO ACCESS]:\n{}\n```".format(
+            ", ".join(list(set(text_channels) - set(can_access)))
+        )
+        await ctx.send(msg)
+
+    @access.command()
+    async def voice(self, ctx, user: discord.Member = None, guild: int = None):
+        """Check voice channel access."""
+        if user is None:
+            user = ctx.author
+        if guild is None:
+            guild = ctx.guild
+        else:
+            guild = self.bot.get_guild(guild)
+
+        try:
+            can_access = [
+                c.name for c in guild.voice_channels if c.permissions_for(user).connect is True
+            ]
+            voice_channels = [c.name for c in guild.voice_channels]
+        except AttributeError:
+            return await ctx.send(
+                "User is not in that guild or I do not have access to that guild."
+            )
+
+        prefix = "You have" if user.id == ctx.author.id else user.name + " has"
+        msg = "```ini\n[{} access to {} out of {} voice channels]\n\n".format(
+            prefix, len(can_access), len(voice_channels)
+        )
+
+        msg += "[ACCESS]:\n{}\n\n".format(", ".join(can_access))
+        msg += "[NO ACCESS]:\n{}\n```".format(
+            ", ".join(list(set(voice_channels) - set(can_access)))
+        )
+        await ctx.send(msg)
+
+    @commands.command()
+    @checks.mod_or_permissions(manage_server=True)
+    async def banlist(self, ctx):
+        """Displays the server's banlist."""
+        try:
+            banlist = await ctx.guild.bans()
+        except discord.errors.Forbidden:
+            await ctx.send("I do not have the `Ban Members` permission.")
+            return
+        bancount = len(banlist)
+        ban_list = []
+        if bancount == 0:
+            banlist = "No users are banned from this server."
+        else:
+            msg = ""
+            for user_obj in banlist:
+                user_name = f"{user_obj.user.name}#{user_obj.user.discriminator}"
+                msg += f"`{user_obj.user.id} - {user_name}`\n"
+
+        banlist = sorted(msg)
+        embed_list = []
+        for page in cf.pagify(msg, shorten_by=1400):
+            embed = discord.Embed(
+                description="**Total bans:** {}\n\n{}".format(bancount, page),
+                colour=await ctx.embed_colour(),
+            )
+            embed_list.append(embed)
+        await menu(ctx, embed_list, DEFAULT_CONTROLS)
+
+    @commands.guild_only()
+    @commands.command()
+    async def cid(self, ctx):
+        """Shows the channel ID."""
+        await ctx.send("**#{0.name} ID:** {0.id}".format(ctx.channel))
+
+    @commands.command()
+    async def cinfo(self, ctx, channel: int = None):
+        """Shows channel information. Defaults to current text channel."""
+        if channel is None:
+            channel = ctx.channel
+        else:
+            channel = self.bot.get_channel(channel)
+        if channel:
+            guild = channel.guild
+
+        yesno = {True: "Yes", False: "No"}
+        typemap = {
+            discord.TextChannel: "Text Channel",
+            discord.VoiceChannel: "Voice Channel",
+            discord.CategoryChannel: "Category",
+        }
+
+        load = "```\nLoading channel info...```"
+        waiting = await ctx.send(load)
+
+        with sps(Exception):
+            caller = inspect.currentframe().f_back.f_code.co_name.strip()
+
+        data = "```ini\n"
+        if caller == "invoke" or channel.guild != ctx.guild:
+            data += "[Server]:     {}\n".format(channel.guild.name)
+        data += "[Name]:       {}\n".format(cf.escape(str(channel)))
+        data += "[ID]:         {}\n".format(channel.id)
+        data += "[Private]:    {}\n".format(yesno[isinstance(channel, discord.abc.PrivateChannel)])
+        if isinstance(channel, discord.TextChannel) and channel.topic != "":
+            data += "[Topic]:      {}\n".format(channel.topic)
+        data += "[Position]:   {}\n".format(channel.position)
+        data += "[Created]:    {}\n".format(self._dynamic_time(channel.created_at))
+        data += "[Type]:       {}\n".format(typemap[type(channel)])
+        if isinstance(channel, discord.VoiceChannel):
+            data += "[Users]:      {}\n".format(len(channel.members))
+            data += "[User limit]: {}\n".format(channel.user_limit)
+            data += "[Bitrate]:    {}kbps\n".format(int(channel.bitrate / 1000))
+        data += "```"
+        await asyncio.sleep(1)
+        await waiting.edit(content=data)
+
+    @commands.command()
+    async def eid(self, ctx, emoji: discord.Emoji):
+        """Get an id for an emoji."""
+        await ctx.send(f"**ID for {emoji}:**   {emoji.id}")
+
+    @commands.command()
+    async def einfo(self, ctx, emoji: discord.Emoji):
+        """Emoji information."""
+        e = emoji
+        m = (
+            f"{str(e)}\n"
+            f"```ini\n"
+            f"[NAME]:       {e.name}\n"
+            f"[GUILD]:      {e.guild}\n"
+            f"[URL]:        {e.url}\n"
+            f"[ANIMATED]:   {e.animated}"
+            "```"
+        )
+        await ctx.send(m)
+
+    @commands.command()
+    @checks.mod_or_permissions(manage_server=True)
+    async def inrole(self, ctx, *, rolename):
+        """Check members in the role specified."""
+        guild = ctx.guild
+        await ctx.trigger_typing()
+        role = discord.utils.find(lambda r: r.name.lower() == rolename.lower(), guild.roles)
+
+        if role is None:
+            roles = []
+            for r in guild.roles:
+                if rolename.lower() in r.name.lower():
+                    roles.append(r)
+
+            if len(roles) == 1:
+                role = roles[0]
+            elif len(roles) < 1:
+                await ctx.send("No roles were found")
+                return
+            else:
+                msg = "**Roles found with** {} **in the name.**\n\n".format(rolename)
+                tbul8 = []
+                for num, role in enumerate(roles):
+                    tbul8.append([num + 1, role.name])
+                m1 = await ctx.send(msg + tabulate(tbul8, tablefmt="plain"))
+
+                def check(m):
+                    if (m.author == author) and (m.channel == ctx.channel):
+                        return True
+
+                response = await self.bot.wait_for("message", check=check, timeout=25)
+                if response is None:
+                    await m1.delete()
+                    return
+                elif not response.content.isdigit():
+                    await m1.delete()
+                    return
+                else:
+                    response = int(response.content)
+
+                if response not in range(0, len(roles) + 1):
+                    return
+                elif response == 0:
+                    await ctx.send("Cancelled.")
+                    return
+                else:
+                    role = roles[response - 1]
+
+        if role is not None and len([m for m in guild.members if role in m.roles]) < 50:
+            awaiter = await ctx.send(
+                embed=discord.Embed(
+                    description="Getting member names...", colour=await ctx.embed_colour()
+                )
+            )
+            await asyncio.sleep(1.5)  # taking time to retrieve the names
+            member = discord.Embed(
+                description="**{1} users found in the {0} role.**\n".format(
+                    role.name, len([m for m in guild.members if role in m.roles])
+                ),
+                colour=await ctx.embed_colour(),
+            )
+            member.add_field(
+                name="Users",
+                value="\n".join(m.display_name for m in guild.members if role in m.roles),
+            )
+            await awaiter.edit(embed=member)
+
+        elif len([m for m in guild.members if role in m.roles]) > 50:
+            awaiter = await ctx.send(
+                embed=discord.Embed(
+                    description="Getting member names...", colour=await ctx.embed_colour()
+                )
+            )
+            await asyncio.sleep(1.5)
+            await awaiter.edit(
+                embed=discord.Embed(
+                    description="List is too long for **{0}** role, **{1}** members found.\n".format(
+                        role.name, len([m.mention for m in guild.members if role in m.roles])
+                    ),
+                    colour=await ctx.embed_colour(),
+                )
+            )
+        else:
+            embed = discord.Embed(
+                description="Role was not found.", colour=await ctx.embed_colour()
+            )
+            await awaiter.edit(embed=embed)
+
+    @commands.guild_only()
+    @commands.command()
+    @checks.mod_or_permissions(manage_server=True)
+    async def newusers(self, ctx, count: int = 5, fm: str = "py"):
+        """Lists the newest 5 members."""
+        guild = ctx.guild
+        count = max(min(count, 25), 5)
+        members = sorted(guild.members, key=lambda m: m.joined_at, reverse=True)[:count]
+
+        head1 = "{} newest members".format(count)
+        header = "{:>33}\n{}\n\n".format(head1, "-" * 57)
+
+        user_body = (
+            " {mem}\n"
+            " {spcs}Joined Guild:    {sp1}{join}\n"
+            " {spcs}Account Created: {sp2}{created}\n\n"
+        )
+
+        disp = header
+        spcs = [" " * (len(m.name) // 2) for m in members]
+        smspc = min(spcs, key=lambda it: len(it))
+
+        def calculate_diff(date1, date2):
+            date1str, date2str = self._dynamic_time(date1), self._dynamic_time(date2)
+            date1sta, date2sta = date1str.split(" ")[0], date2str.split(" ")[0]
+
+            if len(date1sta) == len(date2sta):
+                return (0, 0)
+            else:
+                ret = len(date2sta) - len(date1sta)
+                return (abs(ret), 0 if ret > 0 else 1)
+
+        for member in members:
+            req = calculate_diff(member.joined_at, member.created_at)
+            sp1 = req[0] if req[1] == 0 else 0
+            sp2 = req[0] if req[1] == 1 else 0
+
+            disp += user_body.format(
+                mem=member.display_name,
+                join=self._dynamic_time(member.joined_at),
+                created=self._dynamic_time(member.created_at),
+                spcs=smspc,
+                sp1="0" * sp1,
+                sp2="0" * sp2,
+            )
+
+        for page in cf.pagify(disp, delims=["\n\n"]):
+            await ctx.send(cf.box(page, lang=fm))
+
+    @commands.guild_only()
+    @commands.command()
+    @checks.mod_or_permissions(manage_server=True)
+    async def perms(self, ctx, user: discord.Member = None):
+        """Fetch a specific user's permissions."""
+        if user is None:
+            user = ctx.author
+
+        perms = iter(ctx.channel.permissions_for(user))
+        perms_we_have = ""
+        perms_we_dont = ""
+        for x in perms:
+            if "True" in str(x):
+                perms_we_have += "+\t{0}\n".format(str(x).split("'")[1])
+            else:
+                perms_we_dont += "-\t{0}\n".format(str(x).split("'")[1])
+        await ctx.send(cf.box("{0}{1}".format(perms_we_have, perms_we_dont), lang="diff"))
+
+    @commands.command()
+    async def rid(self, ctx, rolename):
+        """Shows the id of a role."""
+        await ctx.trigger_typing()
+        if rolename is discord.Role:
+            role = rolename
+        else:
+            role = self._role_from_string(ctx.guild, rolename)
+        if role is None:
+            await ctx.send(
+                embed=discord.Embed(
+                    description="Cannot find role.", colour=await ctx.embed_colour()
+                )
+            )
+            return
+        await ctx.send(f"**{rolename} ID:** {role.id}")
+
+    @commands.command()
+    async def rinfo(self, ctx, rolename):
+        """Shows role info."""
+        channel = ctx.channel
+        guild = ctx.guild
+        await ctx.trigger_typing()
+
+        try:
+            caller = inspect.currentframe().f_back.f_code.co_name
+        except:
+            pass
+
+        if not isinstance(rolename, discord.Role):
+            role = self._role_from_string(guild, rolename, guild.roles)
+        else:
+            role = rolename
+        if role is None:
+            await ctx.send("That role cannot be found.")
+            return
+        if role is not None:
+            perms = iter(role.permissions)
+            perms_we_have = ""
+            perms_we_dont = ""
+            for x in perms:
+                if "True" in str(x):
+                    perms_we_have += "{0}\n".format(str(x).split("'")[1])
+                else:
+                    perms_we_dont += "{0}\n".format(str(x).split("'")[1])
+            msg = discord.Embed(description="Gathering role stats...", colour=role.color)
+            if role.color is None:
+                role.color = discord.Colour(value=0x000000)
+            loadingmsg = await ctx.send(embed=msg)
+            em = discord.Embed(colour=role.colour)
+            if caller == "invoke":
+                em.add_field(name="Server", value=role.guild.name)
+            em.add_field(name="Role Name", value=role.name)
+            em.add_field(name="Created", value=self._dynamic_time(role.created_at))
+            em.add_field(
+                name="Users in Role", value=len([m for m in guild.members if role in m.roles])
+            )
+            em.add_field(name="ID", value=role.id)
+            em.add_field(name="Color", value=role.color)
+            em.add_field(name="Position", value=role.position)
+            em.add_field(name="Valid Permissons", value="{}".format(perms_we_have))
+            em.add_field(name="Invalid Permissons", value="{}".format(perms_we_dont))
+            em.set_thumbnail(url=role.guild.icon_url)
+        try:
+            await loadingmsg.edit(embed=em)
+        except discord.HTTPException:
+            permss = "```diff\n"
+            role = self._role_from_string(guild, rolename, guild.roles)
+            if role is None:
+                await ctx.send("That role cannot be found.")
+                return
+            if role is not None:
+                perms = iter(role.permissions)
+                perms_we_have2 = ""
+                perms_we_dont2 = ""
+                for x in perms:
+                    if "True" in str(x):
+                        perms_we_have2 += "+{0}\n".format(str(x).split("'")[1])
+                    else:
+                        perms_we_dont2 += "-{0}\n".format(str(x).split("'")[1])
+            await ctx.send(
+                "{}Name: {}\nCreated: {}\nUsers in Role : {}\nId : {}\nColor : {}\nPosition : {}\nValid Perms : \n{}\nInvalid Perms : \n{}```".format(
+                    permss,
+                    role.name,
+                    self._dynamic_time(role.created_at),
+                    len([m for m in guild.members if role in m.roles]),
+                    role.id,
+                    role.color,
+                    role.position,
+                    perms_we_have2,
+                    perms_we_dont2,
+                )
+            )
+
+    @commands.command(hidden=True)
+    async def sharedservers(self, ctx, user: discord.Member = None):
+        """Shows shared server info. Defaults to author."""
+        author = ctx.author
+        guild = ctx.guild
+        if not user:
+            user = author
+        seen = len(
+            set(
+                [
+                    member.guild.name
+                    for member in self.bot.get_all_members()
+                    if member.id == user.id
+                ]
+            )
+        )
+        sharedservers = str(
+            set(
+                [
+                    member.guild.name
+                    for member in self.bot.get_all_members()
+                    if member.id == user.id
+                ]
+            )
+        )
+        for shared in sharedservers:
+            shared = "".strip("'").join(sharedservers).strip("'")
+            shared = shared.strip("{").strip("}")
+
+        data = "[Guilds]:     {} shared\n".format(seen)
+        data += "[In Guilds]:  {}\n".format(shared)
+
+        for page in cf.pagify(data, ["\n"], shorten_by=13, page_length=2000):
+            await ctx.send(f"```ini\n{data}```")
+
+    @commands.guild_only()
+    @commands.command()
+    async def sid(self, ctx):
+        """Show the server ID."""
+        await ctx.send("**{0.name} ID:** {0.id}".format(ctx.guild))
+
+    @commands.command(aliases=["ginfo"])
+    async def sinfo(self, ctx, guild=None):
+        """Shows server information."""
+        if guild is None:
+            guild = ctx.guild
+        else:
+            try:
+                guild = self.bot.get_guild(int(guild))
+            except TypeError:
+                return await ctx.send("Not a valid guild id.")
+        online = str(
+            len(
+                [
+                    m.status
+                    for m in guild.members
+                    if str(m.status) == "online" or str(m.status) == "idle"
+                ]
+            )
+        )
+        total_users = str(len(guild.members))
+        text_channels = [x for x in guild.channels if isinstance(x, discord.TextChannel)]
+        voice_channels = [x for x in guild.channels if isinstance(x, discord.VoiceChannel)]
+
+        load = "```\nLoading guild info...```"
+        waiting = await ctx.send(load)
+
+        data = "```ini\n"
+        data += "[Name]:     {}\n".format(guild.name)
+        data += "[ID]:       {}\n".format(guild.id)
+        data += "[Region]:   {}\n".format(guild.region)
+        data += "[Owner]:    {}\n".format(guild.owner)
+        data += "[Users]:    {}/{}\n".format(online, total_users)
+        data += "[Text]:     {} channels\n".format(len(text_channels))
+        data += "[Voice]:    {} channels\n".format(len(voice_channels))
+        data += "[Emojis]:   {}\n".format(len(guild.emojis))
+        data += "[Roles]:    {} \n".format(len(guild.roles))
+        data += "[Created]:  {}\n```".format(self._dynamic_time(guild.created_at))
+        await asyncio.sleep(1)
+        await waiting.edit(content=data)
+
+    @commands.command()
+    async def uinfo(self, ctx, user: discord.Member = None):
+        """Shows user information. Defaults to author."""
+        with sps(discord.Forbidden):
+            await ctx.message.delete()
+
+        if user is None:
+            user = ctx.author
+
+        with sps(Exception):
+            caller = inspect.currentframe().f_back.f_code.co_name
+
+        roles = [x.name for x in user.roles if x.name != "@everyone"]
+        if not roles:
+            roles = ["None"]
+        seen = str(
+            len(
+                set(
+                    [
+                        member.guild.name
+                        for member in self.bot.get_all_members()
+                        if member.id == user.id
+                    ]
+                )
+            )
+        )
+
+        load = "```\nLoading user info...```"
+        waiting = await ctx.send(load)
+
+        data = "```ini\n"
+        data += "[Name]:      {}\n".format(cf.escape(str(user)))
+        data += "[Nickname]:  {}\n".format(cf.escape(str(user.nick)))
+        data += "[ID]:        {}\n".format(user.id)
+        data += "[Status]:    {}\n".format(user.status)
+        data += "[Servers]:   {} shared\n".format(seen)
+        if user.activity is None:
+            pass
+
+        elif user.activity.url is None:
+            if user.activity.type == discord.ActivityType.playing:
+                data += "[Playing]:   {}\n".format(cf.escape(str(user.activity.name)))
+            elif user.activity.type == discord.ActivityType.listening:
+                data += "[Listening]: {}\n".format(cf.escape(str(user.activity.name)))
+            elif user.activity.type == discord.ActivityType.listening:
+                data += "[Watching]:   {}\n".format(cf.escape(str(user.activity.name)))
+        else:
+            data += "[Streaming]: [{}]({})\n".format(
+                cf.escape(str(user.activity.name)), cf.escape(user.activity.url)
+            )
+        passed = (ctx.message.created_at - user.created_at).days
+        data += "[Created]:   {}\n".format(self._dynamic_time(user.created_at))
+        joined_at = self.fetch_joined_at(user, ctx.guild)
+        if caller != "invoke":
+            data += "[Joined]:    {}\n".format(self._dynamic_time(joined_at))
+            data += "[Roles]:     {}\n".format(", ".join(roles))
+            data += "[In Voice]:  {}\n".format(
+                user.voice.channel if user.voice is not None else None
+            )
+            data += "[AFK]:       {}\n".format(user.voice.afk if user.voice is not None else False)
+        data += "```"
+        await asyncio.sleep(1)
+        await waiting.edit(content=data)
+
+    @commands.command()
+    async def whatis(self, ctx, id: int):
+        """What is it?"""
+        it_is = False
+        msg = False
+        roles = []
+        rls = [s.roles for s in self.bot.guilds]
+        for rl in rls:
+            roles.extend(rl)
+
+        look_at = (
+            self.bot.guilds
+            + self.bot.emojis
+            + roles
+            + [m for m in self.bot.get_all_members()]
+            + [c for c in self.bot.get_all_channels()]
+        )
+
+        if ctx.guild.id == id:
+            it_is = ctx.guild
+        elif ctx.channel.id == id:
+            it_is = ctx.channel
+        elif ctx.author.id == id:
+            it_is = ctx.author
+
+        if not it_is:
+            it_is = discord.utils.get(look_at, id=id)
+
+        if isinstance(it_is, discord.Guild):
+            await ctx.invoke(self.sinfo, id)
+        elif isinstance(it_is, discord.abc.GuildChannel):
+            await ctx.invoke(self.cinfo, id)
+        elif isinstance(it_is, (discord.User, discord.Member)):
+            await ctx.invoke(self.uinfo, it_is)
+        elif isinstance(it_is, discord.Role):
+            await ctx.invoke(self.rinfo, it_is)
+        elif isinstance(it_is, discord.Emoji):
+            await ctx.invoke(self.einfo, it_is)
+        else:
+            await ctx.send("I could not find anything for this ID.")
+
+    @staticmethod
+    def _dynamic_time(time):
+        date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
+        date_now = datetime.datetime.now(datetime.timezone.utc)
+        date_now = date_now.replace(tzinfo=None)
+        since_join = date_now - date_join
+
+        m, s = divmod(int(since_join.total_seconds()), 60)
+        h, m = divmod(m, 60)
+        d, h = divmod(h, 24)
+
+        if d > 0:
+            msg = "{0}d {1}h ago"
+        elif d == 0 and h > 0:
+            msg = "{1}h {2}m ago"
+        elif d == 0 and h == 0 and m > 0:
+            msg = "{2}m {3}s ago"
+        elif d == 0 and h == 0 and m == 0 and s > 0:
+            msg = "{3}s ago"
+        else:
+            msg = ""
+        return msg.format(d, h, m, s)
+
+    def fetch_joined_at(self, user, guild):
+        return user.joined_at
+
+    def _role_from_string(self, guild, rolename, roles=None):
+        if roles is None:
+            roles = guild.roles
+        role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
+        return role
