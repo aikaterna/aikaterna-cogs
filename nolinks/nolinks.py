@@ -43,7 +43,7 @@ class NoLinks:
         await ctx.send(role_msg)
 
     @nolinks.command()
-    async def removerole(self, ctx, role_name: discord.Role):
+    async def removerole(self, ctx, *, role_name: discord.Role):
         """Remove a whitelisted role."""
         role_list = await self.config.guild(ctx.guild).role()
         if role_name.id in role_list:
@@ -52,17 +52,17 @@ class NoLinks:
             return await ctx.send("Role not in whitelist.")
         await self.config.guild(ctx.guild).role.set(role_list)
         role_obj = discord.utils.get(ctx.guild.roles, id=role_name.id)
-        await ctx.send(f'{role_obj.na} removed from the link whitelist.')
+        await ctx.send(f'{role_obj.name} removed from the link whitelist.')
 
     @nolinks.command()
-    async def role(self, ctx, role_name: discord.Role):
+    async def role(self, ctx, *, role_name: discord.Role):
         """Add a whitelisted role."""
         role_list = await self.config.guild(ctx.guild).role()
         if role_name.id not in role_list:
             role_list.append(role_name.id)
         await self.config.guild(ctx.guild).role.set(role_list)
         role_obj = discord.utils.get(ctx.guild.roles, id=role_name.id)
-        await ctx.send(f'{role_obj.name} appended to the link whitelist.')
+        await ctx.send(f'{role_obj.name} appended to the role whitelist.')
 
     @nolinks.command()
     async def watch(self, ctx, channel: discord.TextChannel):
