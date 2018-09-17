@@ -419,7 +419,7 @@ class Tools:
         await ctx.send(cf.box("{0}{1}".format(perms_we_have, perms_we_dont), lang="diff"))
 
     @commands.command()
-    async def rid(self, ctx, rolename):
+    async def rid(self, ctx, *, rolename):
         """Shows the id of a role."""
         await ctx.trigger_typing()
         if rolename is discord.Role:
@@ -436,7 +436,7 @@ class Tools:
         await ctx.send(f"**{rolename} ID:** {role.id}")
 
     @commands.command()
-    async def rinfo(self, ctx, rolename):
+    async def rinfo(self, ctx,  *, rolename):
         """Shows role info."""
         channel = ctx.channel
         guild = ctx.guild
