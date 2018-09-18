@@ -692,7 +692,7 @@ class Tools:
         elif isinstance(it_is, (discord.User, discord.Member)):
             await ctx.invoke(self.uinfo, it_is)
         elif isinstance(it_is, discord.Role):
-            await ctx.invoke(self.rinfo, it_is)
+            await ctx.invoke(self.rinfo, rolename=it_is)
         elif isinstance(it_is, discord.Emoji):
             await ctx.invoke(self.einfo, it_is)
         else:
