@@ -1,6 +1,6 @@
 import discord
+import re
 from redbot.core import Config, commands, checks
-from urllib.parse import urlparse
 
 
 class NoLinks:
@@ -8,11 +8,7 @@ class NoLinks:
         self.bot = bot
         self.config = Config.get_conf(self, 2740131001, force_registration=True)
 
-        default_guild = {
-            "report_channel": None,
-            "role": [],
-            "watching": [],
-        }
+        default_guild = {"report_channel": None, "role": [], "watching": []}
 
         self.config.register_guild(**default_guild)
 
@@ -24,13 +20,13 @@ class NoLinks:
         pass
 
     @nolinks.command()
-    async def channel(self, ctx, channel: discord.TextChannel=None):
+    async def channel(self, ctx, channel: discord.TextChannel = None):
         """Set the message transfer channel. Leave the channel blank to turn it off."""
         if not channel:
             await self.config.guild(ctx.guild).report_channel.clear()
             return await ctx.send("Message transfer channel turned off.")
         await self.config.guild(ctx.guild).report_channel.set(channel.id)
-        await ctx.send(f'Message transfer channel set to: {channel.mention}.')
+        await ctx.send(f"Message transfer channel set to: {channel.mention}.")
 
     @nolinks.command()
     async def rolelist(self, ctx):
@@ -39,7 +35,7 @@ class NoLinks:
         role_msg = "Whitelisted Roles:\n"
         for role in role_list:
             role_obj = discord.utils.get(ctx.guild.roles, id=role)
-            role_msg += f'{role_obj.name}\n'
+            role_msg += f"{role_obj.name}\n"
         await ctx.send(role_msg)
 
     @nolinks.command()
@@ -52,7 +48,7 @@ class NoLinks:
             return await ctx.send("Role not in whitelist.")
         await self.config.guild(ctx.guild).role.set(role_list)
         role_obj = discord.utils.get(ctx.guild.roles, id=role_name.id)
-        await ctx.send(f'{role_obj.name} removed from the link whitelist.')
+        await ctx.send(f"{role_obj.name} removed from the link whitelist.")
 
     @nolinks.command()
     async def role(self, ctx, *, role_name: discord.Role):
@@ -62,7 +58,7 @@ class NoLinks:
             role_list.append(role_name.id)
         await self.config.guild(ctx.guild).role.set(role_list)
         role_obj = discord.utils.get(ctx.guild.roles, id=role_name.id)
-        await ctx.send(f'{role_obj.name} appended to the role whitelist.')
+        await ctx.send(f"{role_obj.name} appended to the role whitelist.")
 
     @nolinks.command()
     async def watch(self, ctx, channel: discord.TextChannel):
@@ -71,7 +67,7 @@ class NoLinks:
         if channel.id not in channel_list:
             channel_list.append(channel.id)
         await self.config.guild(ctx.guild).watching.set(channel_list)
-        await ctx.send(f'{self.bot.get_channel(channel.id).mention} will have links removed.')
+        await ctx.send(f"{self.bot.get_channel(channel.id).mention} will have links removed.")
 
     @nolinks.command()
     async def watchlist(self, ctx):
@@ -80,7 +76,7 @@ class NoLinks:
         msg = "Links will be removed in:\n"
         for channel in channel_list:
             channel_obj = self.bot.get_channel(channel)
-            msg += f'{channel_obj.mention}\n'
+            msg += f"{channel_obj.mention}\n"
         await ctx.send(msg)
 
     @nolinks.command()
@@ -92,7 +88,7 @@ class NoLinks:
         else:
             return await ctx.send("Channel is not being watched.")
         await self.config.guild(ctx.guild).watching.set(channel_list)
-        await ctx.send(f'{self.bot.get_channel(channel.id).mention} will not have links removed.')
+        await ctx.send(f"{self.bot.get_channel(channel.id).mention} will not have links removed.")
 
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
@@ -116,8 +112,12 @@ class NoLinks:
                 sentence = message.content.split()
                 for word in sentence:
                     if self._match_url(word):
-                        msg = "**Message Removed in** {} ({})\n".format(message.channel.mention, message.channel.id)
-                        msg += "**Message sent by**: {} ({})\n".format(message.author.name, message.author.id)
+                        msg = "**Message Removed in** {} ({})\n".format(
+                            message.channel.mention, message.channel.id
+                        )
+                        msg += "**Message sent by**: {} ({})\n".format(
+                            message.author.name, message.author.id
+                        )
                         msg += "**Message content**:\n{}".format(message.content)
                         if message_channel:
                             await message_channel.send(msg)
@@ -128,9 +128,11 @@ class NoLinks:
                 pass
 
     @staticmethod
-    def _match_url(word):
-        try:
-            query_url = urlparse(word)
-            return any([query_url.scheme, query_url.netloc, query_url.path])
-        except:
+    def _match_url(url):
+        regex = re.compile(
+            "(([\w]+:)?//)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?"
+        )
+        if regex.match(url):
+            return True
+        else:
             return False
