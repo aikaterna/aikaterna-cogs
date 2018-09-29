@@ -117,17 +117,17 @@ class Timezone:
 
         if place_json["data"]["addresses_found"] != "0":
             execution_time = place_json["meta"]["execution_time"]
-            city_state_country = place_json["data"]["addresses"][0]["formatted_address"]
-            twelve_hour_first = place_json["data"]["addresses"][0]["datetime"]["hour_12_wolz"]
-            twelve_hour_second = place_json["data"]["addresses"][0]["datetime"]["minutes"]
-            date_month_name = place_json["data"]["addresses"][0]["datetime"]["month_full"]
-            date_day_number = place_json["data"]["addresses"][0]["datetime"]["day"]
-            am_pm = place_json["data"]["addresses"][0]["datetime"]["hour_am_pm"]
-            day_name = place_json["data"]["addresses"][0]["datetime"]["day_full"]
-            part_of_day = place_json["data"]["addresses"][0]["datetime"]["timeday_spe"]
-            timezone = place_json["data"]["addresses"][0]["datetime"]["offset_tzid"]
-            timezone_short = place_json["data"]["addresses"][0]["datetime"]["offset_tzab"]
-            gmt = place_json["data"]["addresses"][0]["datetime"]["offset_gmt"]
+            city_state_country = place_json["data"]["addresses"]["formatted_address"]
+            twelve_hour_first = place_json["data"]["addresses"]["datetime"]["hour_12_wolz"]
+            twelve_hour_second = place_json["data"]["addresses"]["datetime"]["minutes"]
+            date_month_name = place_json["data"]["addresses"]["datetime"]["month_full"]
+            date_day_number = place_json["data"]["addresses"]["datetime"]["day"]
+            am_pm = place_json["data"]["addresses"]["datetime"]["hour_am_pm"]
+            day_name = place_json["data"]["addresses"]["datetime"]["day_full"]
+            part_of_day = place_json["data"]["addresses"]["datetime"]["timeday_spe"]
+            timezone = place_json["data"]["addresses"]["datetime"]["offset_tzid"]
+            timezone_short = place_json["data"]["addresses"]["datetime"]["offset_tzab"]
+            gmt = place_json["data"]["addresses"]["datetime"]["offset_gmt"]
 
             part_of_day = part_of_day.replace("_", " ")
             part_of_day = part_of_day.capitalize()
