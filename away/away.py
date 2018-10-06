@@ -2,7 +2,9 @@ import discord
 from redbot.core import Config, commands, checks
 
 
-class Away:
+BaseCog = getattr(commands, "Cog", object)
+
+class Away(BaseCog):
     """Le away cog"""
 
     default_global_settings = {"ign_servers": []}

@@ -4,7 +4,9 @@ from random import choice as rndchoice
 import time
 
 
-class RndStatus:
+BaseCog = getattr(commands, "Cog", object)
+
+class RndStatus(BaseCog):
     """Cycles random statuses or displays bot stats.
 
     If a custom status is already set, it won't change it until

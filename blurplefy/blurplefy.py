@@ -20,7 +20,9 @@ darkblurple = (78, 93, 148)
 white = (255, 255, 255)
 
 
-class Blurplefy:
+BaseCog = getattr(commands, "Cog", object)
+
+class Blurplefy(BaseCog):
     def __init__(self, bot):
         """Blurplefy images and check content of images."""
         self.bot = bot

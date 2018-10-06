@@ -12,7 +12,9 @@ from tabulate import tabulate
 from contextlib import suppress as sps
 
 
-class Tools:
+BaseCog = getattr(commands, "Cog", object)
+
+class Tools(BaseCog):
     """Mod and Admin tools."""
 
     def __init__(self, bot):
@@ -324,10 +326,11 @@ class Tools:
                 ),
                 colour=await ctx.embed_colour(),
             )
-            member.add_field(
-                name="Users",
-                value="\n".join(m.display_name for m in guild.members if role in m.roles),
-            )
+            if len([m for m in guild.members if role in m.roles]) != 0:
+                member.add_field(
+                    name="Users",
+                    value="\n".join(m.display_name for m in guild.members if role in m.roles),
+                )
             await awaiter.edit(embed=member)
 
         elif len([m for m in guild.members if role in m.roles]) > 50:
@@ -436,7 +439,7 @@ class Tools:
         await ctx.send(f"**{rolename} ID:** {role.id}")
 
     @commands.command()
-    async def rinfo(self, ctx,  *, rolename):
+    async def rinfo(self, ctx, *, rolename):
         """Shows role info."""
         channel = ctx.channel
         guild = ctx.guild

@@ -4,7 +4,9 @@ from redbot.core import Config, commands, checks
 import xml.etree.ElementTree as ET
 
 
-class Wolfram:
+BaseCog = getattr(commands, "Cog", object)
+
+class Wolfram(BaseCog):
     """Ask Wolfram Alpha a question."""
 
     def __init__(self, bot):

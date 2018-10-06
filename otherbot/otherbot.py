@@ -2,7 +2,9 @@ import discord
 from redbot.core import commands, checks, Config
 
 
-class Otherbot:
+BaseCog = getattr(commands, "Cog", object)
+
+class Otherbot(BaseCog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2730321001, force_registration=True)

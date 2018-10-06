@@ -3,7 +3,9 @@ import re
 from redbot.core import Config, commands, checks
 
 
-class NoLinks:
+BaseCog = getattr(commands, "Cog", object)
+
+class NoLinks(BaseCog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2740131001, force_registration=True)

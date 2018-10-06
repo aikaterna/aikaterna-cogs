@@ -16,7 +16,9 @@ plt.switch_backend("agg")
 from redbot.core import commands
 
 
-class Chatchart:
+BaseCog = getattr(commands, "Cog", object)
+
+class Chatchart(BaseCog):
     """Show activity."""
 
     def __init__(self, bot):

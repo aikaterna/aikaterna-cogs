@@ -8,7 +8,9 @@ from pytz import country_timezones
 from redbot.core import Config, commands, checks
 
 
-class Timezone:
+BaseCog = getattr(commands, "Cog", object)
+
+class Timezone(BaseCog):
     """Gets times across the world..."""
 
     def __init__(self, bot):
@@ -106,42 +108,6 @@ class Timezone:
             await ctx.send(
                 "**Error:** Unrecognized timezone. Try `[p]time me Continent/City`: see <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
             )
-
-    @time.command()
-    async def place(self, ctx, *, city):
-        """Shows what time it is in other places."""
-        city = city.replace(" ", "%20")
-
-        async with self.session.request("GET", f"https://timezoneapi.io/api/address/?{city}") as r:
-            place_json = await r.json()
-
-        if place_json["data"]["addresses_found"] != "0":
-            execution_time = place_json["meta"]["execution_time"]
-            city_state_country = place_json["data"]["addresses"]["formatted_address"]
-            twelve_hour_first = place_json["data"]["addresses"]["datetime"]["hour_12_wolz"]
-            twelve_hour_second = place_json["data"]["addresses"]["datetime"]["minutes"]
-            date_month_name = place_json["data"]["addresses"]["datetime"]["month_full"]
-            date_day_number = place_json["data"]["addresses"]["datetime"]["day"]
-            am_pm = place_json["data"]["addresses"]["datetime"]["hour_am_pm"]
-            day_name = place_json["data"]["addresses"]["datetime"]["day_full"]
-            part_of_day = place_json["data"]["addresses"]["datetime"]["timeday_spe"]
-            timezone = place_json["data"]["addresses"]["datetime"]["offset_tzid"]
-            timezone_short = place_json["data"]["addresses"]["datetime"]["offset_tzab"]
-            gmt = place_json["data"]["addresses"]["datetime"]["offset_gmt"]
-
-            part_of_day = part_of_day.replace("_", " ")
-            part_of_day = part_of_day.capitalize()
-            timezone = timezone.replace("_", " ").replace("/", " - ")
-
-            embed = discord.Embed()
-            embed = discord.Embed(
-                colour=await ctx.embed_colour(), title=f"{city_state_country} - {part_of_day}"
-            )
-            embed.description = f"{day_name}, {date_month_name} {date_day_number},  {twelve_hour_first}:{twelve_hour_second} {am_pm}\n{timezone} ({timezone_short}) {gmt} UTC"
-            await ctx.send(embed=embed)
-
-        if place_json["data"]["addresses_found"] == "0":
-            ctx.send("No result")
 
     @time.command()
     @checks.admin_or_permissions(manage_server=True)

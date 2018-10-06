@@ -5,7 +5,9 @@ from redbot.core import Config, commands, checks, modlog
 from redbot.core.data_manager import cog_data_path
 
 
-class Dungeon:
+BaseCog = getattr(commands, "Cog", object)
+
+class Dungeon(BaseCog):
     """Auto-quarantine suspicious users."""
 
     def __init__(self, bot):

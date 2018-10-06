@@ -4,7 +4,10 @@ import time
 from datetime import datetime
 from redbot.core import Config, commands
 
-class Seen:
+
+BaseCog = getattr(commands, "Cog", object)
+
+class Seen(BaseCog):
     """Shows last time a user was seen in chat"""
     def __init__(self, bot):
         self.bot = bot
