@@ -168,6 +168,7 @@ class Tools(BaseCog):
         )
         await ctx.send(msg)
 
+    @commands.guild_only()
     @commands.command()
     @checks.mod_or_permissions(manage_server=True)
     async def banlist(self, ctx):
@@ -203,6 +204,7 @@ class Tools(BaseCog):
         """Shows the channel ID."""
         await ctx.send("**#{0.name} ID:** {0.id}".format(ctx.channel))
 
+    @commands.guild_only()
     @commands.command()
     async def cinfo(self, ctx, channel: int = None):
         """Shows channel information. Defaults to current text channel."""
@@ -245,11 +247,13 @@ class Tools(BaseCog):
         await asyncio.sleep(1)
         await waiting.edit(content=data)
 
+    @commands.guild_only()
     @commands.command()
     async def eid(self, ctx, emoji: discord.Emoji):
         """Get an id for an emoji."""
         await ctx.send(f"**ID for {emoji}:**   {emoji.id}")
 
+    @commands.guild_only()
     @commands.command()
     async def einfo(self, ctx, emoji: discord.Emoji):
         """Emoji information."""
@@ -265,6 +269,7 @@ class Tools(BaseCog):
         )
         await ctx.send(m)
 
+    @commands.guild_only()
     @commands.command()
     @checks.mod_or_permissions(manage_server=True)
     async def inrole(self, ctx, *, rolename):
@@ -421,6 +426,7 @@ class Tools(BaseCog):
                 perms_we_dont += "-\t{0}\n".format(str(x).split("'")[1])
         await ctx.send(cf.box("{0}{1}".format(perms_we_have, perms_we_dont), lang="diff"))
 
+    @commands.guild_only()
     @commands.command()
     async def rid(self, ctx, *, rolename):
         """Shows the id of a role."""
@@ -438,6 +444,7 @@ class Tools(BaseCog):
             return
         await ctx.send(f"**{rolename} ID:** {role.id}")
 
+    @commands.guild_only()
     @commands.command()
     async def rinfo(self, ctx, *, rolename):
         """Shows role info."""
@@ -556,6 +563,7 @@ class Tools(BaseCog):
         """Show the server ID."""
         await ctx.send("**{0.name} ID:** {0.id}".format(ctx.guild))
 
+    @commands.guild_only()
     @commands.command(aliases=["ginfo"])
     async def sinfo(self, ctx, guild=None):
         """Shows server information."""
@@ -596,6 +604,7 @@ class Tools(BaseCog):
         await asyncio.sleep(1)
         await waiting.edit(content=data)
 
+    @commands.guild_only()
     @commands.command()
     async def uinfo(self, ctx, user: discord.Member = None):
         """Shows user information. Defaults to author."""
@@ -660,6 +669,7 @@ class Tools(BaseCog):
         await asyncio.sleep(1)
         await waiting.edit(content=data)
 
+    @commands.guild_only()
     @commands.command()
     async def whatis(self, ctx, id: int):
         """What is it?"""
