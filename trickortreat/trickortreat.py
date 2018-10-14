@@ -93,7 +93,7 @@ class TrickOrTreat(BaseCog):
                     )
                     await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
 
-                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
+                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
 
                 return await ctx.send(
                     f"You begin to think you don't need all this candy, maybe...\n*{lost_candy} candies are left behind*"
@@ -108,7 +108,7 @@ class TrickOrTreat(BaseCog):
                 lost_candy = userdata["candies"] - random.randint(1, 5)
                 await self.config.guild(ctx.guild).pick.set(pick + lost_candy)
                 await self.config.user(ctx.author).candies.set(0)
-                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
+                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
                 return await message.edit(
                     content=f"You toss your candies on the ground in disgust.\n*{lost_candy} candies are left behind*"
                 )
