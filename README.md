@@ -25,6 +25,8 @@ rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
 timezone - A v3 port of Fishyfing's timezone cog with a few improvements.
 
+trickortreat - A trick or treat-based competitive candy eating game with a leaderboard and other fun commands like stealing candy from guildmates.
+
 tools - A collection of mod and admin tools, ported from my v2 version. Sitryk is responsible for a lot of the code in tools... thanks for the help with this cog.
 
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
