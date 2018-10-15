@@ -218,7 +218,7 @@ class TrickOrTreat(BaseCog):
             msg += f"\n{userdata['stars']} \N{WHITE MEDIUM STAR}"
         if userdata["sickness"] in range(40, 54):
             msg += "\n\n**Sickness is over 40/100**\n*You don't feel so good...*"
-        if userdata["sickness"] in range(55, 65):
+        if userdata["sickness"] in range(55, 70):
             msg += "\n\n**Sickness is over 55/100**\n*You don't feel so good...*"
         if userdata["sickness"] in range(71, 84):
             msg += "\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
@@ -365,6 +365,7 @@ class TrickOrTreat(BaseCog):
             await ctx.send(f"{channel.mention} is already in the list of Trick or Treat channels.")
 
     @commands.guild_only()
+    @checks.mod_or_permissions(administrator=True)
     @totchannel.command()
     async def remove(self, ctx, channel: discord.TextChannel):
         """Remove a text channel from Trick or Treating."""
@@ -377,6 +378,7 @@ class TrickOrTreat(BaseCog):
         await ctx.send(f"{channel.mention} removed from the list of Trick or Treat channels.")
 
     @commands.guild_only()
+    @checks.mod_or_permissions(administrator=True)
     @commands.command()
     async def tottoggle(self, ctx):
         """Toggle trick or treating on the whole server."""
