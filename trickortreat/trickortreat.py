@@ -338,6 +338,7 @@ class TrickOrTreat(BaseCog):
             )
 
     @commands.guild_only()
+    @checks.mod_or_permissions(administrator=True)
     @commands.group()
     async def totchannel(self, ctx):
         """Channel management for Trick or Treat."""
@@ -365,7 +366,6 @@ class TrickOrTreat(BaseCog):
             await ctx.send(f"{channel.mention} is already in the list of Trick or Treat channels.")
 
     @commands.guild_only()
-    @checks.mod_or_permissions(administrator=True)
     @totchannel.command()
     async def remove(self, ctx, channel: discord.TextChannel):
         """Remove a text channel from Trick or Treating."""
