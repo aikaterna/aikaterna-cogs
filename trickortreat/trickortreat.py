@@ -268,7 +268,7 @@ class TrickOrTreat(BaseCog):
             picked_user = self.bot.get_user(random.choice(valid_user))
         elif user == ctx.author or user == user.bot:
             picked_user = self.bot.get_user(random.choice(valid_user))
-        elif user:
+        elif user != ctx.author or user != user.bot:
             picked_user = user
         else:
             picked_user = self.bot.get_user(random.choice(valid_user))
