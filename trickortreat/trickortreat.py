@@ -325,12 +325,15 @@ class TrickOrTreat(BaseCog):
         if chance > 18:
             await self.config.user(picked_user).candies.set(picked_candy_now - pieces)
             await self.config.user(ctx.author).candies.set(user_candy_now + pieces)
+            return await message.edit(
+                content=f"You stole {pieces} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
+            )
         if chance in range(11, 17):
             await self.config.user(picked_user).candies.set(picked_candy_now - round(pieces / 2))
             await self.config.user(ctx.author).candies.set(user_candy_now + round(pieces / 2))
-        await message.edit(
-            content=f"You stole {pieces} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
-        )
+            return await message.edit(
+                content=f"You stole {round(pieces/2)} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
+            )
 
     @commands.guild_only()
     @commands.group()
