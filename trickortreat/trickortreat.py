@@ -6,7 +6,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-
+__version__ = "0.0.3"
 BaseCog = getattr(commands, "Cog", object)
 
 
@@ -93,7 +93,9 @@ class TrickOrTreat(BaseCog):
                     )
                     await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
 
-                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
+                await self.config.user(ctx.author).eaten.set(
+                    userdata["eaten"] + (userdata["candies"] - lost_candy)
+                )
 
                 return await ctx.send(
                     f"You begin to think you don't need all this candy, maybe...\n*{lost_candy} candies are left behind*"
@@ -106,9 +108,16 @@ class TrickOrTreat(BaseCog):
                 await asyncio.sleep(2)
                 await self.config.user(ctx.author).sickness.set(userdata["sickness"] + 30)
                 lost_candy = userdata["candies"] - random.randint(1, 5)
+                if lost_candy <= 0:
+                    await self.config.user(ctx.author).candies.set(0)
+                    return await message.edit(
+                        content="You feel absolutely disgusted. At least you don't have any candies left."
+                    )
                 await self.config.guild(ctx.guild).pick.set(pick + lost_candy)
                 await self.config.user(ctx.author).candies.set(0)
-                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
+                await self.config.user(ctx.author).eaten.set(
+                    userdata["eaten"] + (userdata["candies"] - lost_candy)
+                )
                 return await message.edit(
                     content=f"You toss your candies on the ground in disgust.\n*{lost_candy} candies are left behind*"
                 )
@@ -175,7 +184,7 @@ class TrickOrTreat(BaseCog):
         sorted_acc = sorted(userinfo.items(), key=lambda x: x[1]["eaten"], reverse=True)
         msg = "{name:33}{score:19}\n".format(name="Name", score="Candies Eaten")
         for i, account in enumerate(sorted_acc):
-            if account[1]['eaten'] == 0:
+            if account[1]["eaten"] == 0:
                 continue
             user_idx = i + 1
             user_obj = await self.bot.get_user_info(account[0])
@@ -207,8 +216,16 @@ class TrickOrTreat(BaseCog):
             msg += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
         if userdata["stars"]:
             msg += f"\n{userdata['stars']} \N{WHITE MEDIUM STAR}"
-        if userdata["sickness"] > 80:
-            msg += "\n\n*You don't feel so good...*"
+        if userdata["sickness"] in range(40, 54):
+            msg += "\n\n**Sickness is over 40/100**\n*You don't feel so good...*"
+        if userdata["sickness"] in range(55, 65):
+            msg += "\n\n**Sickness is over 55/100**\n*You don't feel so good...*"
+        if userdata["sickness"] in range(71, 84):
+            msg += "\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
+        if userdata["sickness"] in range(85, 100):
+            msg += "\n\n**Sickness is over 85/100**\n*The thought of more sugar makes you feel awful...*"
+        if userdata["sickness"] > 100:
+            msg += "\n\n**Sickness is over 100/100**\n*Better wait a while for more candy...*"
         await ctx.send(msg)
 
     @commands.guild_only()
@@ -242,27 +259,78 @@ class TrickOrTreat(BaseCog):
     @commands.guild_only()
     @commands.cooldown(1, 600, discord.ext.commands.BucketType.user)
     @commands.command()
-    async def steal(self, ctx):
+    async def steal(self, ctx, user: discord.Member=None):
         """Steal some candy."""
-        users = [m for m in ctx.guild.members if m is not m.bot]
-        picked_user = random.choice(users)
+        guild_users = [m.id for m in ctx.guild.members if m is not m.bot and not m == ctx.author]
+        candy_users = await self.config._all_from_scope(scope="USER")
+        valid_user = list(set(guild_users) & set(candy_users))
+        if user == ctx.author or user == user.bot:
+            picked_user = self.bot.get_user(random.choice(valid_user))
+        elif user:
+            picked_user = user
+        else:
+            picked_user = self.bot.get_user(random.choice(valid_user))
         picked_candy_now = await self.config.user(picked_user).candies()
+        if picked_candy_now == 0:
+            chance = random.randint(1, 25)
+            if chance in range(21, 25):
+                message = await ctx.send("You see an unsuspecting guildmate...")
+                await asyncio.sleep(random.randint(3, 6))
+                new_picked_user = self.bot.get_user(random.choice(valid_user))
+                new_picked_candy_now = await self.config.user(new_picked_user).candies()
+                if chance in range(24, 25):
+                    if new_picked_candy_now == 0:
+                        return await message.edit(
+                            content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you picked {new_picked_user.name}#{new_picked_user.discriminator}'s pockets but they had no candy either!"
+                        )
+                else:
+                    return await message.edit(
+                        content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you looked around again... you saw {new_picked_user}#{new_picked_user.discriminator} in the distance, but you didn't think you could catch up..."
+                    )
+            if chance in range(10, 20):
+                message = await ctx.send("You start sneaking around in the shadows...")
+                await asyncio.sleep(random.randint(3, 6))
+                return await message.edit(
+                    content=f"You snuck up on {picked_user.name}#{picked_user.discriminator} and tried picking their pockets but there was nothing there!"
+                )
+            else:
+                message = await ctx.send("You start looking around for a target...")
+                await asyncio.sleep(random.randint(3, 6))
+                return await message.edit(
+                    content="You snuck around for a while but didn't find anything."
+                )
         user_candy_now = await self.config.user(ctx.author).candies()
         multip = random.randint(1, 100) / 100
-        pieces = picked_candy_now * multip
-        if picked_candy_now == 0:
-            msg = await ctx.send("You creep over to an unsuspecting guildmate...")
-            await asyncio.sleep(random.randint(2, 5))
-            return await msg.edit(content="You snuck around for a while but didn't find anything.")
-        if pieces < 10:
-            pieces = picked_candy_now
-        message = await ctx.send("You look around furtively...")
-        await asyncio.sleep(2)
+        if multip > 0.7:
+            multip = 0.7
+        pieces = round(picked_candy_now * multip)
+        if pieces <= 0:
+            message = await ctx.send("You stealthily move over to an unsuspecting person...")
+            await asyncio.sleep(4)
+            return await message.edit(content="You found someone to pickpocket, but they had nothing but pocket lint.")
+        chance = random.randint(1, 25)
+        sneak_phrases = [
+            "You look around furtively...",
+            "You glance around slowly, looking for your target...",
+            "You see someone with a full candy bag...",
+        ]
+        if chance <= 10:
+            message = await ctx.send("You creep closer to the target...")
+            await asyncio.sleep(random.randint(3,5))
+            return await message.edit(content="You snuck around for a while but didn't find anything.")
+        message = await ctx.send(random.choice(sneak_phrases))
+        await asyncio.sleep(4)
         await message.edit(content="There seems to be an unsuspecting victim in the corner...")
-        await asyncio.sleep(2)
-        await self.config.user(picked_user).candies.set(picked_candy_now - pieces)
-        await self.config.user(ctx.author).candies.set(user_candy_now + pieces)
-        await message.edit(content=f"You stole {pieces} \N{CANDY} from {picked_user}!")
+        await asyncio.sleep(4)
+        if chance > 18:
+            await self.config.user(picked_user).candies.set(picked_candy_now - pieces)
+            await self.config.user(ctx.author).candies.set(user_candy_now + pieces)
+        if chance in range(11, 17):
+            await self.config.user(picked_user).candies.set(picked_candy_now - round(pieces / 2))
+            await self.config.user(ctx.author).candies.set(user_candy_now + round(pieces / 2))
+        await message.edit(
+            content=f"You stole {pieces} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
+        )
 
     @commands.guild_only()
     @commands.group()
@@ -316,6 +384,12 @@ class TrickOrTreat(BaseCog):
             msg += f"Trick or Treating channel added: {ctx.message.channel.mention}"
         await self.config.guild(ctx.guild).toggle.set(not toggle)
         await ctx.send(msg)
+
+    @commands.guild_only()
+    @commands.command(hidden=True)
+    async def totversion(self, ctx):
+        """Trick or Treat version."""
+        await ctx.send(f"Trick or Treat, version {__version__}")
 
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
@@ -390,16 +464,16 @@ class TrickOrTreat(BaseCog):
         await bot_talking.edit(content=random.choice(greet_messages))
 
         await self.config.user(message.author).candies.set(userdata["candies"] + candy)
-        if lollipop > 85:
+        if lollipop > 80:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
-        if star > 98:
+        if star > 96:
             await self.config.user(message.author).stars.set(userdata["stars"] + 1)
 
         await asyncio.sleep(2)
         win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
-        if lollipop > 85:
+        if lollipop > 80:
             win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
-        if star > 98:
+        if star > 96:
             win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
 
         await message.channel.send(win_message)
