@@ -6,7 +6,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 BaseCog = getattr(commands, "Cog", object)
 
 
@@ -102,14 +102,14 @@ class TrickOrTreat(BaseCog):
                 )
 
             if (userdata["sickness"] + number) > 96:
-                message = await ctx.send("...")
-                await asyncio.sleep(2)
-                await message.edit(content="..........")
-                await asyncio.sleep(2)
                 await self.config.user(ctx.author).sickness.set(userdata["sickness"] + 30)
                 lost_candy = userdata["candies"] - random.randint(1, 5)
                 if lost_candy <= 0:
                     await self.config.user(ctx.author).candies.set(0)
+                    message = await ctx.send("...")
+                    await asyncio.sleep(2)
+                    await message.edit(content="..........")
+                    await asyncio.sleep(2)
                     return await message.edit(
                         content="You feel absolutely disgusted. At least you don't have any candies left."
                     )
@@ -118,6 +118,10 @@ class TrickOrTreat(BaseCog):
                 await self.config.user(ctx.author).eaten.set(
                     userdata["eaten"] + (userdata["candies"] - lost_candy)
                 )
+                message = await ctx.send("...")
+                await asyncio.sleep(2)
+                await message.edit(content="..........")
+                await asyncio.sleep(2)
                 return await message.edit(
                     content=f"You toss your candies on the ground in disgust.\n*{lost_candy} candies are left behind*"
                 )
@@ -248,13 +252,13 @@ class TrickOrTreat(BaseCog):
         """Pick up some candy, if there is any."""
         candies = await self.config.user(ctx.author).candies()
         to_pick = await self.config.guild(ctx.guild).pick()
-        message = await ctx.send("You start searching the area for candy...")
-        await asyncio.sleep(3)
         chance = random.randint(1, 100)
         found = round((chance / 100) * to_pick)
-        await message.edit(content=f"You found {found} \N{CANDY}!")
         await self.config.user(ctx.author).candies.set(candies + found)
         await self.config.guild(ctx.guild).pick.set(to_pick - found)
+        message = await ctx.send("You start searching the area for candy...")
+        await asyncio.sleep(3)
+        await message.edit(content=f"You found {found} \N{CANDY}!")
 
     @commands.guild_only()
     @commands.cooldown(1, 600, discord.ext.commands.BucketType.user)
@@ -276,18 +280,20 @@ class TrickOrTreat(BaseCog):
         if picked_candy_now == 0:
             chance = random.randint(1, 25)
             if chance in range(21, 25):
-                message = await ctx.send("You see an unsuspecting guildmate...")
-                await asyncio.sleep(random.randint(3, 6))
                 new_picked_user = self.bot.get_user(random.choice(valid_user))
                 new_picked_candy_now = await self.config.user(new_picked_user).candies()
                 if chance in range(24, 25):
                     if new_picked_candy_now == 0:
+                        message = await ctx.send("You see an unsuspecting guildmate...")
+                        await asyncio.sleep(random.randint(3, 6))
                         return await message.edit(
                             content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you picked {new_picked_user.name}#{new_picked_user.discriminator}'s pockets but they had no candy either!"
                         )
                 else:
+                    message = await ctx.send("You see an unsuspecting guildmate...")
+                    await asyncio.sleep(random.randint(3, 6))
                     return await message.edit(
-                        content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you looked around again... you saw {new_picked_user}#{new_picked_user.discriminator} in the distance, but you didn't think you could catch up..."
+                        content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you looked around again... you saw {new_picked_user.name}#{new_picked_user.discriminator} in the distance, but you didn't think you could catch up..."
                     )
             if chance in range(10, 20):
                 message = await ctx.send("You start sneaking around in the shadows...")
@@ -324,23 +330,29 @@ class TrickOrTreat(BaseCog):
             return await message.edit(
                 content="You snuck around for a while but didn't find anything."
             )
-        message = await ctx.send(random.choice(sneak_phrases))
-        await asyncio.sleep(4)
-        await message.edit(content="There seems to be an unsuspecting victim in the corner...")
-        await asyncio.sleep(4)
         if chance > 18:
             await self.config.user(picked_user).candies.set(picked_candy_now - pieces)
             await self.config.user(ctx.author).candies.set(user_candy_now + pieces)
+            message = await ctx.send(random.choice(sneak_phrases))
+            await asyncio.sleep(4)
+            await message.edit(content="There seems to be an unsuspecting victim in the corner...")
+            await asyncio.sleep(4)
             return await message.edit(
                 content=f"You stole {pieces} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
             )
         if chance in range(11, 17):
             await self.config.user(picked_user).candies.set(picked_candy_now - round(pieces / 2))
             await self.config.user(ctx.author).candies.set(user_candy_now + round(pieces / 2))
+            message = await ctx.send(random.choice(sneak_phrases))
+            await asyncio.sleep(4)
+            await message.edit(content="There seems to be an unsuspecting victim in the corner...")
+            await asyncio.sleep(4)
             return await message.edit(
                 content=f"You stole {round(pieces/2)} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
             )
         else:
+            message = await ctx.send(random.choice(sneak_phrases))
+            await asyncio.sleep(4)
             noise_msg = [
                 "You hear a sound behind you! When you turn back, your target is gone.",
                 "You look away for a moment and your target has vanished.",
@@ -408,7 +420,7 @@ class TrickOrTreat(BaseCog):
     async def totversion(self, ctx):
         """Trick or Treat version."""
         await ctx.send(
-            f"Trick or Treat, version {__version__}\n**+2% star chance on trick or treat (6% total)\n+5% lollipop chance on trick or treat (25% total)\nMore RP messages\nFix for steal mechanic freezing\n**"
+            f"Trick or Treat, version {__version__}\n\n*0.0.5 updates:*\n**Save values before waiting on messages:\nQuick commands will not overwrite other values**\n\n*0.0.4 updates:*\n**+2% star chance on trick or treat (6% total)\n+5% lollipop chance on trick or treat (25% total)\nMore RP messages\nFix for steal mechanic freezing\n**"
         )
 
     async def on_message(self, message):
@@ -461,6 +473,12 @@ class TrickOrTreat(BaseCog):
         lollipop = random.randint(0, 100)
         star = random.randint(0, 100)
 
+        await self.config.user(message.author).candies.set(userdata["candies"] + candy)
+        if lollipop > 75:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
+        if star > 94:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 1)
+
         walking_messages = [
             "*You hear footsteps...*",
             "*You're left alone with your thoughts as you wait for the door to open...*",
@@ -500,13 +518,6 @@ class TrickOrTreat(BaseCog):
             "*I hear the next door neighbors have some pretty good candy too, this year.*",
         ]
         await bot_talking.edit(content=random.choice(greet_messages))
-
-        await self.config.user(message.author).candies.set(userdata["candies"] + candy)
-        if lollipop > 75:
-            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
-        if star > 94:
-            await self.config.user(message.author).stars.set(userdata["stars"] + 1)
-
         await asyncio.sleep(2)
         win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
         if lollipop > 75:
