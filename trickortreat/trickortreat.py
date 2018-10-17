@@ -6,7 +6,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 BaseCog = getattr(commands, "Cog", object)
 
 
@@ -259,7 +259,7 @@ class TrickOrTreat(BaseCog):
     @commands.guild_only()
     @commands.cooldown(1, 600, discord.ext.commands.BucketType.user)
     @commands.command()
-    async def steal(self, ctx, user: discord.Member=None):
+    async def steal(self, ctx, user: discord.Member = None):
         """Steal some candy."""
         guild_users = [m.id for m in ctx.guild.members if m is not m.bot and not m == ctx.author]
         candy_users = await self.config._all_from_scope(scope="USER")
@@ -309,7 +309,9 @@ class TrickOrTreat(BaseCog):
         if pieces <= 0:
             message = await ctx.send("You stealthily move over to an unsuspecting person...")
             await asyncio.sleep(4)
-            return await message.edit(content="You found someone to pickpocket, but they had nothing but pocket lint.")
+            return await message.edit(
+                content="You found someone to pickpocket, but they had nothing but pocket lint."
+            )
         chance = random.randint(1, 25)
         sneak_phrases = [
             "You look around furtively...",
@@ -318,8 +320,10 @@ class TrickOrTreat(BaseCog):
         ]
         if chance <= 10:
             message = await ctx.send("You creep closer to the target...")
-            await asyncio.sleep(random.randint(3,5))
-            return await message.edit(content="You snuck around for a while but didn't find anything.")
+            await asyncio.sleep(random.randint(3, 5))
+            return await message.edit(
+                content="You snuck around for a while but didn't find anything."
+            )
         message = await ctx.send(random.choice(sneak_phrases))
         await asyncio.sleep(4)
         await message.edit(content="There seems to be an unsuspecting victim in the corner...")
@@ -336,6 +340,13 @@ class TrickOrTreat(BaseCog):
             return await message.edit(
                 content=f"You stole {round(pieces/2)} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
             )
+        else:
+            noise_msg = [
+                "You hear a sound behind you! When you turn back, your target is gone.",
+                "You look away for a moment and your target has vanished.",
+                "Something flashes in your peripheral vision, and as you turn to look, your target gets away...",
+            ]
+            await message.edit(content=random.choice(noise_msg))
 
     @commands.guild_only()
     @checks.mod_or_permissions(administrator=True)
@@ -393,10 +404,12 @@ class TrickOrTreat(BaseCog):
         await ctx.send(msg)
 
     @commands.guild_only()
-    @commands.command(hidden=True)
+    @commands.command()
     async def totversion(self, ctx):
         """Trick or Treat version."""
-        await ctx.send(f"Trick or Treat, version {__version__}")
+        await ctx.send(
+            f"Trick or Treat, version {__version__}\n**+2% star chance on trick or treat (6% total)\n+5% lollipop chance on trick or treat (25% total)\nMore RP messages\nFix for steal mechanic freezing\n**"
+        )
 
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
@@ -436,6 +449,11 @@ class TrickOrTreat(BaseCog):
                 "The thought of candy right now doesn't really sound like a good idea.",
                 "All the lights on this street are dark...",
                 "It's starting to get late.",
+                "The wind howls through the trees. Does it seem darker all of a sudden?",
+                "You start to walk the long distance to the next house...",
+                "You take a moment to count your candy before moving on.",
+                "The house you were approaching just turned the light off.",
+                "The wind starts to pick up as you look for the next house...",
             ]
             return await message.channel.send(random.choice(messages))
 
@@ -449,6 +467,9 @@ class TrickOrTreat(BaseCog):
             "*The wind howls through the trees...*",
             "*Does it feel colder out here all of a sudden?*",
             "*Somewhere inside the house, you hear wood creaking...*",
+            "*You walk up the path to the door and knock...*",
+            "*You knock on the door...*",
+            "*There's a movement in the shadows by the side of the house...*",
         ]
         bot_talking = await message.channel.send(random.choice(walking_messages))
         await asyncio.sleep(random.randint(5, 8))
@@ -457,6 +478,10 @@ class TrickOrTreat(BaseCog):
             "*The ancient wooden door starts to open...*",
             "*A light turns on overhead...*",
             "*You hear a scuffling noise...*",
+            "*There's someone talking inside...*",
+            "*The wind whips around your feet...*",
+            "*A crow caws ominously...*",
+            "*You hear an owl hooting in the distance...*",
         ]
         await bot_talking.edit(content=random.choice(door_messages))
         await asyncio.sleep(random.randint(5, 8))
@@ -467,20 +492,26 @@ class TrickOrTreat(BaseCog):
             "Here's a little something for you.",
             "The peppermint ones are my favorite.",
             "Come back again later if you see the light on still.",
+            "Go ahead, take a few.",
+            "Here you go.",
+            "Aww, look at you. Here, take this.",
+            "Don't eat all those at once!",
+            "Well, I think this is the last of it. Go ahead and take it.",
+            "*I hear the next door neighbors have some pretty good candy too, this year.*",
         ]
         await bot_talking.edit(content=random.choice(greet_messages))
 
         await self.config.user(message.author).candies.set(userdata["candies"] + candy)
-        if lollipop > 80:
+        if lollipop > 75:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
-        if star > 96:
+        if star > 94:
             await self.config.user(message.author).stars.set(userdata["stars"] + 1)
 
         await asyncio.sleep(2)
         win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
-        if lollipop > 80:
+        if lollipop > 75:
             win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
-        if star > 96:
+        if star > 94:
             win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
 
         await message.channel.send(win_message)
