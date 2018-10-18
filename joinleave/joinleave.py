@@ -54,7 +54,7 @@ class JoinLeave(BaseCog):
         else:
             await self.config.cooldown.set(cooldown_time)
             await ctx.send(
-                f"Join/leave time window set to {self._dynamic_time(intcooldown_time)}."
+                f"Join/leave time window set to {self._dynamic_time(int(cooldown_time))}."
             )
 
     @joinleave.command()
@@ -86,10 +86,12 @@ class JoinLeave(BaseCog):
             achannel = None
         joinleave_enabled = data["toggle"]
         join_days = data["join_days"]
+        cooldown = data["cooldown"]
 
         msg = (
-            "```ini\n---JoinLeave Settings---       \n"
+            "```ini\n---JoinLeave Settings---           \n"
             f"Announce Channel: [{achannel}]\n"
+            f"Join/Leave Span:  [{self._dynamic_time(int(cooldown))}]\n"
             f"Day Threshold:    [{str(join_days)}]\n"
             f"JoinLeave Active: [{joinleave_enabled}]\n```"
         )
