@@ -380,7 +380,7 @@ class Dungeon(BaseCog):
                         await member.send(auto_ban_msg)
                     except discord.Forbidden:
                         if announce_channel:
-                            return await channel_object.send(
+                            await channel_object.send(
                                 f"I couldn't DM {member} ({member.id}) to let them know they've been banned, they've blocked me."
                             )
                         else:
