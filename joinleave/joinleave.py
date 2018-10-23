@@ -159,8 +159,6 @@ class JoinLeave(BaseCog):
                     role_obj = discord.utils.get(
                         member.guild.roles, id=await self.config.pingrole()
                     )
-                    print(role_obj)
-                    print(role_obj.name)
                     try:
                         await role_obj.edit(mentionable=True)
                         await channel_obj.send(
