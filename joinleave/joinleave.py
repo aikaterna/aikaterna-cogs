@@ -18,6 +18,7 @@ class JoinLeave(BaseCog):
             "toggle": False,
             "cooldown": 120,
             "pingrole": None,
+            "pingserver": None,
         }
 
         default_user = {"last_join": "2018-01-01 00:00:00.000001", "new": True}
@@ -67,10 +68,12 @@ class JoinLeave(BaseCog):
         """Set the role to ping on a first sighting. Leave blank to turn off."""
         if not role_name:
             await self.config.pingrole.set(None)
+            await self.config.pingserver.set(None)
             return await ctx.send(
                 "Role has been removed. No pinging will occur on a first sighting."
             )
 
+        await self.config.pingserver.set(ctx.guild.id)
         await self.config.pingrole.set(role_name.id)
         role_obj = discord.utils.get(ctx.guild.roles, id=await self.config.pingrole())
         await ctx.send(f"Pingable role set to: {role_obj.name}.")
@@ -88,10 +91,11 @@ class JoinLeave(BaseCog):
         join_days = data["join_days"]
         cooldown = data["cooldown"]
         pingrole_id = data["pingrole"]
+        ping_guild = self.bot.get_guild(data["pingserver"])
         if not pingrole_id:
             pingrole = "None"
         else:
-            pingrole_obj = discord.utils.get(ctx.guild.roles, id=pingrole_id)
+            pingrole_obj = discord.utils.get(ping_guild.roles, id=pingrole_id)
             pingrole = pingrole_obj.name
 
         msg = (
@@ -156,9 +160,8 @@ class JoinLeave(BaseCog):
                 if not global_data["pingrole"]:
                     return await channel_obj.send(f"\N{WARNING SIGN} First sighting\n{msg}")
                 else:
-                    role_obj = discord.utils.get(
-                        member.guild.roles, id=await self.config.pingrole()
-                    )
+                    ping_guild = self.bot.get_guild(await self.config.pingserver())
+                    role_obj = discord.utils.get(ping_guild.roles, id=global_data["pingrole"])
                     try:
                         await role_obj.edit(mentionable=True)
                         await channel_obj.send(
