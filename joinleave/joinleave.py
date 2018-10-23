@@ -3,13 +3,11 @@ import datetime
 import discord
 from redbot.core import Config, commands, checks
 
-
 BaseCog = getattr(commands, "Cog", object)
 
 
 class JoinLeave(BaseCog):
     """Report users that join and leave quickly, with new accounts."""
-
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2713731002, force_registration=True)
@@ -19,9 +17,10 @@ class JoinLeave(BaseCog):
             "join_days": 7,
             "toggle": False,
             "cooldown": 120,
+            "pingrole": None,
         }
 
-        default_user = {"last_join": "2018-01-01 00:00:00.000001"}
+        default_user = {"last_join": "2018-01-01 00:00:00.000001", "new": True}
 
         self.config.register_user(**default_user)
         self.config.register_global(**default_global)
@@ -64,16 +63,17 @@ class JoinLeave(BaseCog):
         await ctx.send(f"Users must have accounts older than {days} day(s) to be ignored.")
 
     @joinleave.command()
-    async def toggle(self, ctx):
-        """Toggle the joinleave on or off. This is global."""
-        joinleave_enabled = await self.config.toggle()
-        announce_channel = await self.config.announce_channel()
-        if not announce_channel:
-            await self.config.announce_channel.set(ctx.message.channel.id)
-        await self.config.toggle.set(not joinleave_enabled)
-        await ctx.send(f"JoinLeave enabled: {not joinleave_enabled}.")
-        if not announce_channel:
-            await ctx.send(f"JoinLeave report channel set to: {ctx.message.channel.mention}.")
+    async def role(self, ctx, *, role_name: discord.Role = None):
+        """Set the role to ping on a first sighting. Leave blank to turn off."""
+        if not role_name:
+            await self.config.pingrole.set(None)
+            return await ctx.send(
+                "Role has been removed. No pinging will occur on a first sighting."
+            )
+
+        await self.config.pingrole.set(role_name.id)
+        role_obj = discord.utils.get(ctx.guild.roles, id=await self.config.pingrole())
+        await ctx.send(f"Pingable role set to: {role_obj.name}.")
 
     @joinleave.command()
     async def settings(self, ctx):
@@ -87,56 +87,97 @@ class JoinLeave(BaseCog):
         joinleave_enabled = data["toggle"]
         join_days = data["join_days"]
         cooldown = data["cooldown"]
+        pingrole_id = data["pingrole"]
+        if not pingrole_id:
+            pingrole = "None"
+        else:
+            pingrole_obj = discord.utils.get(ctx.guild.roles, id=pingrole_id)
+            pingrole = pingrole_obj.name
 
         msg = (
-            "```ini\n---JoinLeave Settings---           \n"
+            "```ini\n---JoinLeave Settings---               \n"
             f"Announce Channel: [{achannel}]\n"
             f"Join/Leave Span:  [{self._dynamic_time(int(cooldown))}]\n"
             f"Day Threshold:    [{str(join_days)}]\n"
+            f"Ping role:        [{pingrole}]\n"
             f"JoinLeave Active: [{joinleave_enabled}]\n```"
         )
 
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
         return await ctx.send(embed=embed)
 
+    @joinleave.command()
+    async def toggle(self, ctx):
+        """Toggle the joinleave on or off. This is global."""
+        joinleave_enabled = await self.config.toggle()
+        announce_channel = await self.config.announce_channel()
+        if not announce_channel:
+            await self.config.announce_channel.set(ctx.message.channel.id)
+        await self.config.toggle.set(not joinleave_enabled)
+        await ctx.send(f"JoinLeave enabled: {not joinleave_enabled}.")
+        if not announce_channel:
+            await ctx.send(f"JoinLeave report channel set to: {ctx.message.channel.mention}.")
+
     async def on_member_join(self, member):
-        toggle = await self.config.toggle()
-        if not toggle:
+        global_data = await self.config.all()
+        if not global_data["toggle"]:
             return
 
         join_date = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         since_join = now - join_date
-        join_days = await self.config.join_days()
 
-        if since_join.days < join_days:
+        if since_join.days < global_data["join_days"]:
             await self.config.user(member).last_join.set(str(now))
 
     async def on_member_remove(self, member):
-        toggle = await self.config.toggle()
-        if not toggle:
+        user_data = await self.config.user(member).all()
+        global_data = await self.config.all()
+        if not global_data["toggle"]:
             return
 
-        announce_channel = await self.config.announce_channel()
-        channel_obj = self.bot.get_channel(announce_channel)
+        channel_obj = self.bot.get_channel(global_data["announce_channel"])
 
         if not channel_obj:
             print("joinleave.py: toggled on but no announce channel")
             return
 
-        last_time = datetime.datetime.strptime(
-            str(await self.config.user(member).last_join()), "%Y-%m-%d %H:%M:%S.%f"
-        )
+        last_time = datetime.datetime.strptime(str(user_data["last_join"]), "%Y-%m-%d %H:%M:%S.%f")
 
         join_date = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         since_join = now - join_date
 
-        if int((now - last_time).total_seconds()) < await self.config.cooldown():
+        if int((now - last_time).total_seconds()) < global_data["cooldown"]:
             await channel_obj.send(f"**{member.id}**")
-            await channel_obj.send(
-                f"{member}: Quick join/leave on {member.guild.name} ({member.guild.id})\nAccount is {self._dynamic_time(int(since_join.total_seconds()))} old"
-            )
+            msg = f"User: {member} ({member.id})\nServer: {member.guild.name} ({member.guild.id})\nAccount is {self._dynamic_time(int(since_join.total_seconds()))} old"
+            if user_data["new"]:
+                await self.config.user(member).new.set(False)
+                if not global_data["pingrole"]:
+                    return await channel_obj.send(f"\N{WARNING SIGN} First sighting\n{msg}")
+                else:
+                    role_obj = discord.utils.get(
+                        member.guild.roles, id=await self.config.pingrole()
+                    )
+                    print(role_obj)
+                    print(role_obj.name)
+                    try:
+                        await role_obj.edit(mentionable=True)
+                        await channel_obj.send(
+                            f"{role_obj.mention}\n\N{WARNING SIGN} First sighting\n{msg}"
+                        )
+                        return await role_obj.edit(mentionable=False)
+                    except AttributeError:
+                        return await channel_obj.send(
+                            f"I can't find the role that's set to ping (is it on another server?)\n\N{WARNING SIGN} First sighting\n{msg}"
+                        )
+                    except discord.errors.Forbidden:
+                        return await channel_obj.send(
+                            f"I tried to ping for this alert but I don't have permissons to manage roles!\n\N{WARNING SIGN} First sighting\n{msg}"
+                        )
+            else:
+                print("not new")
+                await channel_obj.send(msg)
 
     @staticmethod
     def _dynamic_time(time):
