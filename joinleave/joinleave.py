@@ -176,7 +176,6 @@ class JoinLeave(BaseCog):
                             f"I tried to ping for this alert but I don't have permissons to manage roles!\n\N{WARNING SIGN} First sighting\n{msg}"
                         )
             else:
-                print("not new")
                 await channel_obj.send(msg)
 
     @staticmethod
