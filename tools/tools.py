@@ -360,6 +360,7 @@ class Tools(BaseCog):
             await awaiter.edit(embed=embed)
 
     @commands.command(name='listguilds', aliases=['listservers', 'guildlist', 'serverlist'])
+    @checks.mod_or_permissions()
     async def listguilds(self, ctx):
         """
         List the guilds|servers the bot is in
@@ -380,7 +381,8 @@ class Tools(BaseCog):
         for page in cf.pagify(final, delims=['\n'], shorten_by=16):
             await ctx.send(asciidoc(page))
 
-
+    @commands.guild_only()
+    @checks.mod_or_permissions(manage_channels=True)
     @commands.command(name='listchannels', aliases=['channellist'])
     async def listchannels(self, ctx):
         """
