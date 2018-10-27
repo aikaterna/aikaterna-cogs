@@ -113,31 +113,31 @@ class Away(BaseCog):
                     else:
                         msg = await self.make_text_message(author, away_msg, "away")
                         await message.channel.send(msg)
-                idle_msg = await self._away.user(author).IDLE_MESSAGE()
-                if idle_msg and author.status == discord.Status.idle:
-                    if message.channel.permissions_for(guild.me).embed_links:                            
-                        em = await self.make_embed_message(author, idle_msg, "idle")
-                        await message.channel.send(embed=em)
-                    else:
-                        msg = await self.make_text_message(author, idle_msg, "idle")
-                        await message.channel.send(msg)
-                dnd_msg = await self._away.user(author).DND_MESSAGE()
-                if dnd_msg and author.status == discord.Status.dnd:
-                    if message.channel.permissions_for(guild.me).embed_links:                            
-                        em = await self.make_embed_message(author, dnd_msg, "dnd")
-                        await message.channel.send(embed=em)
-                    else:
-                        msg = await self.make_text_message(author, dnd_msg, "dnd")
-                        await message.channel.send(msg)
-                offline_msg = await self._away.user(author).OFFLINE_MESSAGE()
-                if offline_msg and author.status == discord.Status.offline:
-                    if message.channel.permissions_for(guild.me).embed_links:                            
-                        em = await self.make_embed_message(author, offline_msg, "offline")
-                        await message.channel.send(embed=em)
-                    else:
-                        msg = await self.make_text_message(author, offline_msg, "offline")
-                        await message.channel.send(msg)
-
+                else:
+                    idle_msg = await self._away.user(author).IDLE_MESSAGE()
+                    if idle_msg and author.status == discord.Status.idle:
+                        if message.channel.permissions_for(guild.me).embed_links:                            
+                            em = await self.make_embed_message(author, idle_msg, "idle")
+                            await message.channel.send(embed=em)
+                        else:
+                            msg = await self.make_text_message(author, idle_msg, "idle")
+                            await message.channel.send(msg)
+                    dnd_msg = await self._away.user(author).DND_MESSAGE()
+                    if dnd_msg and author.status == discord.Status.dnd:
+                        if message.channel.permissions_for(guild.me).embed_links:                            
+                            em = await self.make_embed_message(author, dnd_msg, "dnd")
+                            await message.channel.send(embed=em)
+                        else:
+                            msg = await self.make_text_message(author, dnd_msg, "dnd")
+                            await message.channel.send(msg)
+                    offline_msg = await self._away.user(author).OFFLINE_MESSAGE()
+                    if offline_msg and author.status == discord.Status.offline:
+                        if message.channel.permissions_for(guild.me).embed_links:                            
+                            em = await self.make_embed_message(author, offline_msg, "offline")
+                            await message.channel.send(embed=em)
+                        else:
+                            msg = await self.make_text_message(author, offline_msg, "offline")
+                            await message.channel.send(msg)
 
     @commands.command(name="away")
     async def away_(self, ctx, *, message:str=None):
