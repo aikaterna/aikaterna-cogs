@@ -359,7 +359,7 @@ class Tools(BaseCog):
             )
             await awaiter.edit(embed=embed)
 
-    @commands.command(name='listguilds', aliases=['listservers', 'guildlist', 'serverlist'])
+    @commands.command(name="listguilds", aliases=["listservers", "guildlist", "serverlist"])
     @checks.mod_or_permissions()
     async def listguilds(self, ctx):
         """
@@ -367,23 +367,25 @@ class Tools(BaseCog):
         """
         asciidoc = lambda m: "```asciidoc\n{}\n```".format(m)
         guilds = sorted(self.bot.guilds, key=lambda g: -g.member_count)
-        header = ("```\n"
-                  "The bot is in the following {} server{}\n"
-                  "```").format(len(guilds), 's' if len(guilds) > 1 else '')
+        header = ("```\n" "The bot is in the following {} server{}:\n" "```").format(
+            len(guilds), "s" if len(guilds) > 1 else ""
+        )
 
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
-        all_forms = [form.format(gid=g.id, mems=g.member_count, name=g.name, zpadding=max_zpadding) for g in guilds]
-        final = '\n'.join(all_forms)
+        all_forms = [
+            form.format(gid=g.id, mems=g.member_count, name=g.name, zpadding=max_zpadding)
+            for g in guilds
+        ]
+        final = "\n".join(all_forms)
 
         await ctx.send(header)
-        print('FINAL', final)
-        for page in cf.pagify(final, delims=['\n'], shorten_by=16):
+        for page in cf.pagify(final, delims=["\n"], shorten_by=16):
             await ctx.send(asciidoc(page))
 
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    @commands.command(name='listchannels', aliases=['channellist'])
+    @commands.command(name="listchannels", aliases=["channellist"])
     async def listchannels(self, ctx):
         """
         List the channels of the current server
@@ -392,19 +394,17 @@ class Tools(BaseCog):
         channels = ctx.guild.channels
         top_channels, category_channels = self.sort_channels(ctx.guild.channels)
 
-        topChannels_formed = '\n'.join(self.channels_format(top_channels))
-        categories_formed = '\n\n'.join([self.category_format(tup) for tup in category_channels])
+        topChannels_formed = "\n".join(self.channels_format(top_channels))
+        categories_formed = "\n\n".join([self.category_format(tup) for tup in category_channels])
 
-        ###
-        print(topChannels_formed)
-        print(categories_formed)
+        await ctx.send(
+            f"{ctx.guild.name} has {len(channels)} channel{'s' if len(channels) > 1 else ''}."
+        )
 
-        await ctx.send(f"{ctx.guild.name} has {len(channels)} channel{'s' if len(channels) > 1 else ''}.")
-
-        for page in cf.pagify(topChannels_formed, delims=['\n'], shorten_by=16):
+        for page in cf.pagify(topChannels_formed, delims=["\n"], shorten_by=16):
             await ctx.send(asciidoc(page))
 
-        for page in cf.pagify(categories_formed, delims=['\n\n'], shorten_by=16):
+        for page in cf.pagify(categories_formed, delims=["\n\n"], shorten_by=16):
             await ctx.send(asciidoc(page))
 
     @commands.guild_only()
@@ -791,7 +791,6 @@ class Tools(BaseCog):
         role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
         return role
 
-
     def sort_channels(self, channels):
         temp = dict()
 
@@ -807,11 +806,13 @@ class Tools(BaseCog):
                 channels.pop(channels.index(c))
                 temp[c.category].append(c)
 
-        category_channels = sorted([(cat, sorted(chans, key=lambda c: c.position)) for cat, chans in temp.items()], key=lambda t: t[0].position)
+        category_channels = sorted(
+            [(cat, sorted(chans, key=lambda c: c.position)) for cat, chans in temp.items()],
+            key=lambda t: t[0].position,
+        )
         return channels, category_channels
 
     def channels_format(self, channels: list):
-        print('\nCHANNELS FORM :: ', channels)
 
         if channels == []:
             return []
@@ -824,8 +825,14 @@ class Tools(BaseCog):
         name_justify = max([len(c.name[:24]) for c in channels])
         type_justify = max([len(type_name(c)) for c in channels])
 
-        return [channel_form.format(name=c.name[:24].ljust(name_justify), ctype=type_name(c).ljust(type_justify), cid=c.id) for c in channels]
-
+        return [
+            channel_form.format(
+                name=c.name[:24].ljust(name_justify),
+                ctype=type_name(c).ljust(type_justify),
+                cid=c.id,
+            )
+            for c in channels
+        ]
 
     def category_format(self, cat_chan_tuple: tuple):
 
@@ -834,7 +841,7 @@ class Tools(BaseCog):
 
         chfs = self.channels_format(chs)
         if chfs != []:
-            ch_forms = ['\t' + f for f in chfs]
-            return '\n'.join([f'{cat.name} :: {cat.id}'] + ch_forms)
+            ch_forms = ["\t" + f for f in chfs]
+            return "\n".join([f"{cat.name} :: {cat.id}"] + ch_forms)
         else:
-            return '\n'.join([f'{cat.name} :: {cat.id}'] + ['\tNo Channels'])
+            return "\n".join([f"{cat.name} :: {cat.id}"] + ["\tNo Channels"])
