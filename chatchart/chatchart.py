@@ -103,7 +103,6 @@ class Chatchart(BaseCog):
             return await ctx.send("No permissions to read that channel.")
         msg_data = {"total count": 0, "users": {}}
 
-
         for msg in history:
             if len(msg.author.name) >= 20:
                 short_name = "{}...".format(msg.author.name[:20])
@@ -119,10 +118,6 @@ class Chatchart(BaseCog):
                 msg_data["users"][whole_name] = {}
                 msg_data["users"][whole_name]["msgcount"] = 1
                 msg_data["total count"] += 1
-
-        if msg_data['users'] == {}:
-            await em.delete()
-            return await ctx.message.channel.send(f'Only bots have sent messages in {channel.mention}')
 
         for usr in msg_data["users"]:
             pd = float(msg_data["users"][usr]["msgcount"]) / float(msg_data["total count"])
