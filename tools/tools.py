@@ -385,8 +385,8 @@ class Tools(BaseCog):
 
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    @commands.command(name="listchannels", aliases=["channellist"])
-    async def listchannels(self, ctx):
+    @commands.command(name="listchannel", aliases=["channellist"])
+    async def listchannel(self, ctx):
         """
         List the channels of the current server
         """
