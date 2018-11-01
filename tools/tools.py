@@ -21,7 +21,6 @@ class Tools(BaseCog):
         self.bot = bot
 
     async def _Tools__error(self, ctx, error):
-        return
         if error.__cause__:
             cause = error.__cause__
             print(f"Tools Cog :: Error Occured ::\n{error}\n{cause}\n")
@@ -384,7 +383,7 @@ class Tools(BaseCog):
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     @commands.command(name='listchannel', aliases=['channellist'])
-    async def listchannels(self, ctx):
+    async def listchannel(self, ctx):
         """
         List the channels of the current server
         """
@@ -790,7 +789,6 @@ class Tools(BaseCog):
             roles = guild.roles
         role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
         return role
-
 
     def sort_channels(self, channels):
         temp = dict()
