@@ -691,18 +691,8 @@ class Tools(BaseCog):
         data += "[Servers]:   {} shared\n".format(seen)
         if user.activity is None:
             pass
-
-        elif user.activity.url is None:
-            if user.activity.type == discord.ActivityType.playing:
-                data += "[Playing]:   {}\n".format(cf.escape(str(user.activity.name)))
-            elif user.activity.type == discord.ActivityType.listening:
-                data += "[Listening]: {}\n".format(cf.escape(str(user.activity.name)))
-            elif user.activity.type == discord.ActivityType.listening:
-                data += "[Watching]:   {}\n".format(cf.escape(str(user.activity.name)))
         else:
-            data += "[Streaming]: [{}]({})\n".format(
-                cf.escape(str(user.activity.name)), cf.escape(user.activity.url)
-            )
+        	data += "[Playing]:   {}".format(cf.escape(str(user.activity.name)))
         passed = (ctx.message.created_at - user.created_at).days
         data += "[Created]:   {}\n".format(self._dynamic_time(user.created_at))
         joined_at = self.fetch_joined_at(user, ctx.guild)
