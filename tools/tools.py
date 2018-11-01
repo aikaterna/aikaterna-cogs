@@ -692,7 +692,7 @@ class Tools(BaseCog):
         if user.activity is None:
             pass
         else:
-        	data += "[Playing]:   {}".format(cf.escape(str(user.activity.name)))
+        	data += "[Playing]:   {}\n".format(cf.escape(str(user.activity.name)))
         passed = (ctx.message.created_at - user.created_at).days
         data += "[Created]:   {}\n".format(self._dynamic_time(user.created_at))
         joined_at = self.fetch_joined_at(user, ctx.guild)
