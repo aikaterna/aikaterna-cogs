@@ -5,7 +5,7 @@
 	"description": "Posts invites to servers, if the bot is allowed to view them. Does not generate new invites.",
     "install_msg": "Thanks for installing, have fun.",
     "permissions" : [
-		"manage_server"
+		"manage_guild"
 	],
 	"short": "Post server invites.",
 	"tags": [
