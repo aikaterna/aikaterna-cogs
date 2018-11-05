@@ -170,7 +170,7 @@ class Tools(BaseCog):
 
     @commands.guild_only()
     @commands.command()
-    @checks.mod_or_permissions(manage_server=True)
+    @checks.mod_or_permissions(manage_guild=True)
     async def banlist(self, ctx):
         """Displays the server's banlist."""
         try:
@@ -271,7 +271,7 @@ class Tools(BaseCog):
 
     @commands.guild_only()
     @commands.command()
-    @checks.mod_or_permissions(manage_server=True)
+    @checks.mod_or_permissions(manage_guild=True)
     async def inrole(self, ctx, *, rolename):
         """Check members in the role specified."""
         guild = ctx.guild
@@ -404,7 +404,7 @@ class Tools(BaseCog):
 
     @commands.guild_only()
     @commands.command()
-    @checks.mod_or_permissions(manage_server=True)
+    @checks.mod_or_permissions(manage_guild=True)
     async def newusers(self, ctx, count: int = 5, fm: str = "py"):
         """Lists the newest 5 members."""
         guild = ctx.guild
@@ -453,7 +453,7 @@ class Tools(BaseCog):
 
     @commands.guild_only()
     @commands.command()
-    @checks.mod_or_permissions(manage_server=True)
+    @checks.mod_or_permissions(manage_guild=True)
     async def perms(self, ctx, user: discord.Member = None):
         """Fetch a specific user's permissions."""
         if user is None:
