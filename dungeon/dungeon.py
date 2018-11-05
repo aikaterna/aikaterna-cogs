@@ -75,7 +75,7 @@ class Dungeon(BaseCog):
 
     @commands.group(autohelp=True)
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_server=True)
+    @checks.admin_or_permissions(manage_guild=True)
     async def dungeon(self, ctx):
         """Main dungeon commands."""
         pass
