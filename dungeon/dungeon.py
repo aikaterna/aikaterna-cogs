@@ -460,6 +460,8 @@ class Dungeon(BaseCog):
                 await member.add_roles(user_role_obj, reason="Adding member role to new user.")
             except discord.Forbidden:
                 pass
+            except AttributeError:
+                pass
 
     @staticmethod
     def _dynamic_time(time):
