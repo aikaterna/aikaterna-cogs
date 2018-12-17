@@ -13,7 +13,7 @@ BaseCog = getattr(commands, "Cog", object)
 
 
 class CardsAgainstHumanity(BaseCog):
-    def __init__(self, bot, file=None):
+    def __init__(self, bot):
         self.bot = bot
         self.games = []
         self.maxBots = 5  # Max number of bots that can be added to a game - don't count toward max players
@@ -29,12 +29,6 @@ class CardsAgainstHumanity(BaseCog):
         self.charset = "1234567890"
         self.botName = "Rando Cardrissian"
         self.minMembers = 3
-
-        file_path = bundled_data_path(self) / "deck.json"
-        f = open(file_path, "r")
-        filedata = f.read()
-        f.close()
-        self.deck = json.loads(filedata)
 
         self.bot.loop.create_task(self.checkDead())
         self.bot.loop.create_task(self.checkUserTimeout())
@@ -708,11 +702,13 @@ class CardsAgainstHumanity(BaseCog):
         await user.send(msg)
 
     async def drawCard(self, game):
+        with open(str(bundled_data_path(self)) + "/deck.json", 'r') as deck_file:
+            deck = json.load(deck_file)
         # Draws a random unused card and shuffles the deck if needed
         totalDiscard = len(game["Discard"])
         for member in game["Members"]:
             totalDiscard += len(member["Hand"])
-        if totalDiscard >= len(self.deck["whiteCards"]):
+        if totalDiscard >= len(deck["whiteCards"]):
             # Tell everyone the cards were shuffled
             for member in game["Members"]:
                 if member["IsBot"]:
@@ -723,10 +719,10 @@ class CardsAgainstHumanity(BaseCog):
             self.shuffle(game)
         while True:
             # Random grab a unique card
-            index = random.randint(0, len(self.deck["whiteCards"]) - 1)
+            index = random.randint(0, len(deck["whiteCards"]) - 1)
             if not index in game["Discard"]:
                 game["Discard"].append(index)
-                text = self.deck["whiteCards"][index]
+                text = deck["whiteCards"][index]
                 text = self.cleanJson(text)
                 card = {"Index": index, "Text": text}
                 return card
@@ -755,9 +751,11 @@ class CardsAgainstHumanity(BaseCog):
                     i += 1
 
     async def drawBCard(self, game):
+        with open(str(bundled_data_path(self)) + "/deck.json", 'r') as deck_file:
+            deck = json.load(deck_file)
         # Draws a random black card
         totalDiscard = len(game["BDiscard"])
-        if totalDiscard >= len(self.deck["blackCards"]):
+        if totalDiscard >= len(deck["blackCards"]):
             # Tell everyone the cards were shuffled
             for member in game["Members"]:
                 if member["IsBot"]:
@@ -768,12 +766,12 @@ class CardsAgainstHumanity(BaseCog):
             game["BDiscard"] = []
         while True:
             # Random grab a unique card
-            index = random.randint(0, len(self.deck["blackCards"]) - 1)
+            index = random.randint(0, len(deck["blackCards"]) - 1)
             if not index in game["BDiscard"]:
                 game["BDiscard"].append(index)
-                text = self.deck["blackCards"][index]["text"]
+                text = deck["blackCards"][index]["text"]
                 text = self.cleanJson(text)
-                game["BlackCard"] = {"Text": text, "Pick": self.deck["blackCards"][index]["pick"]}
+                game["BlackCard"] = {"Text": text, "Pick": deck["blackCards"][index]["pick"]}
                 return game["BlackCard"]
 
     async def nextPlay(self, ctx, game):
