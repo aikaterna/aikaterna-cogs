@@ -6,7 +6,7 @@ import random
 import time
 from random import shuffle
 from redbot.core import commands
-from redbot.core.data_manager import cog_data_path
+from redbot.core.data_manager import bundled_data_path
 
 
 BaseCog = getattr(commands, "Cog", object)
@@ -30,7 +30,7 @@ class CardsAgainstHumanity(BaseCog):
         self.botName = "Rando Cardrissian"
         self.minMembers = 3
 
-        file_path = str(cog_data_path(self)) + "/deck.json"
+        file_path = bundled_data_path(self) / "deck.json"
         f = open(file_path, "r")
         filedata = f.read()
         f.close()
