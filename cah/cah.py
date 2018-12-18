@@ -234,9 +234,10 @@ class CardsAgainstHumanity(BaseCog):
 
     async def userGame(self, user):
         # Returns the game the user is currently in
-        if not type(user) is int:
-            # Assume it's a discord.Member/User
-            user = user.id
+        if not len(str(user)) == 4:
+            if not type(user) is int:
+                # Assume it's a discord.Member/User
+                user = user.id
 
         for game in self.games:
             for member in game["Members"]:
@@ -253,9 +254,10 @@ class CardsAgainstHumanity(BaseCog):
         return None
 
     async def removeMember(self, user, game=None):
-        if not type(user) is int:
-            # Assume it's a discord.Member/User
-            user = user.id
+        if not len(str(user)) == 4:
+            if not type(user) is int:
+                # Assume it's a discord.Member/User
+                user = user.id
         outcome = False
         removed = None
         if not game:
@@ -735,9 +737,10 @@ class CardsAgainstHumanity(BaseCog):
                 game["Discard"].append(card["Index"])
 
     async def drawCards(self, user, cards=10):
-        if not type(user) is int:
-            # Assume it's a discord.Member/User
-            user = user.id
+        if not len(str(user)) == 4:
+            if not type(user) is int:
+                # Assume it's a discord.Member/User
+                user = user.id
         # fills the user's hand up to number of cards
         game = await self.userGame(user)
         for member in game["Members"]:
