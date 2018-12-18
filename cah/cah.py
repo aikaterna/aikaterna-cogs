@@ -381,16 +381,12 @@ class CardsAgainstHumanity(BaseCog):
             for member in game["Members"]:
                 if member["IsBot"]:
                     continue
-                # Show that we're typing
-                await self.bot.send_typing(member["User"])
                 await asyncio.sleep(0.1)
             await asyncio.sleep(typeTime)
         else:
             for member in game["Members"]:
                 if member["IsBot"]:
                     continue
-                # Show that we're typing
-                await self.bot.send_typing(member["User"])
                 await asyncio.sleep(0.1)
             await asyncio.sleep(waitTime)
 
