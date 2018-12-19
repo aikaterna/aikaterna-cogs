@@ -248,7 +248,7 @@ class TrickOrTreat(BaseCog):
     @commands.guild_only()
     @commands.cooldown(1, 600, discord.ext.commands.BucketType.user)
     @commands.command()
-    async def pick(self, ctx):
+    async def pickup(self, ctx):
         """Pick up some candy, if there is any."""
         candies = await self.config.user(ctx.author).candies()
         to_pick = await self.config.guild(ctx.guild).pick()
