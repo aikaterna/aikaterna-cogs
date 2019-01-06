@@ -1,16 +1,19 @@
-import os
 import aiohttp
+import os
 from redbot.core import Config, commands, checks
+from redbot.core.utils.chat_formatting import box
 import xml.etree.ElementTree as ET
 
 
 BaseCog = getattr(commands, "Cog", object)
 
+
 class Wolfram(BaseCog):
-    """Ask Wolfram Alpha a question."""
+    """Ask Wolfram Alpha any question."""
 
     def __init__(self, bot):
         self.bot = bot
+        self.session = aiohttp.ClientSession()
 
         default_global = {"WOLFRAM_API_KEY": None}
 
@@ -18,21 +21,18 @@ class Wolfram(BaseCog):
         self.config.register_guild(**default_global)
 
     @commands.command(name="wolfram", aliases=["ask"])
-    async def _wolfram(self, ctx, *arguments: str):
-        """
-        Ask Wolfram Alpha any question.
-        """
+    async def _wolfram(self, ctx, *question: str):
+        """Ask Wolfram Alpha any question."""
+
         api_key = await self.config.WOLFRAM_API_KEY()
+
         if api_key:
             url = "http://api.wolframalpha.com/v2/query?"
-            query = " ".join(arguments)
+            query = " ".join(question)
             payload = {"input": query, "appid": api_key}
             headers = {"user-agent": "Red-cog/2.0.0"}
-            conn = aiohttp.TCPConnector(verify_ssl=False)
-            session = aiohttp.ClientSession(connector=conn)
-            async with session.get(url, params=payload, headers=headers) as r:
+            async with self.session.get(url, params=payload, headers=headers) as r:
                 result = await r.text()
-            session.close()
             root = ET.fromstring(result)
             a = []
             for pt in root.findall(".//plaintext"):
@@ -43,17 +43,17 @@ class Wolfram(BaseCog):
             else:
                 message = "\n".join(a[0:3])
         else:
-            message = (
-                "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
-            )
-        await ctx.send("```{0}```".format(message))
+            message = "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
+        await ctx.send(box(message))
 
-    @commands.command(name="setwolframapi", aliases=["setwolfram"])
     @checks.is_owner()
+    @commands.command(name="setwolframapi", aliases=["setwolfram"])
     async def _setwolframapi(self, ctx, key: str):
-        """
-        Set the api-key.
-        """
+        """Set the api-key."""
+
         if key:
             await self.config.WOLFRAM_API_KEY.set(key)
             await ctx.send("Key set.")
+
+    def __unload(self):
+        self.bot.loop.create_task(self.session.close())
