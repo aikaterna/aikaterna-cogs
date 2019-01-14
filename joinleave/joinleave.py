@@ -1,7 +1,9 @@
 import asyncio
 import datetime
 import discord
+import re
 from redbot.core import Config, commands, checks
+from redbot.core.utils.chat_formatting import bold
 
 BaseCog = getattr(commands, "Cog", object)
 
@@ -95,8 +97,11 @@ class JoinLeave(BaseCog):
         if not pingrole_id:
             pingrole = "None"
         else:
-            pingrole_obj = discord.utils.get(ping_guild.roles, id=pingrole_id)
-            pingrole = pingrole_obj.name
+            try:
+                pingrole_obj = discord.utils.get(ping_guild.roles, id=pingrole_id)
+                pingrole = pingrole_obj.name
+            except AttributeError:
+                pingrole = "None"
 
         msg = (
             "```ini\n---JoinLeave Settings---               \n"
@@ -174,10 +179,53 @@ class JoinLeave(BaseCog):
                         )
                     except discord.errors.Forbidden:
                         return await channel_obj.send(
-                            f"I tried to ping for this alert but I don't have permissons to manage roles!\n\N{WARNING SIGN} First sighting\n{msg}"
+                            f"I tried to ping for this alert but I don't have permissions to manage roles!\n\N{WARNING SIGN} First sighting\n{msg}"
                         )
             else:
                 await channel_obj.send(msg)
+
+    async def on_message(self, message):
+        global_data = await self.config.all()
+        if not global_data["toggle"]:
+            return
+
+        channel_obj = self.bot.get_channel(global_data["announce_channel"])
+        if not channel_obj:
+            return
+
+        date_join = datetime.datetime.strptime(str(message.author.created_at), "%Y-%m-%d %H:%M:%S.%f")
+        date_now = datetime.datetime.now(datetime.timezone.utc)
+        date_now = date_now.replace(tzinfo=None)
+        since_join = date_now - date_join
+        if since_join.days < global_data["join_days"]:
+            sentence = message.content.split()
+            for word in sentence:
+                if self._match_url(word):
+                    await channel_obj.send(bold(f"{message.author.id}"))
+                    msg = "**Message posted in** {} ({})\n".format(message.guild.name, message.guild.id)
+                    msg += "**Message posted in** {} ({})\n".format(message.channel.mention, message.channel.id)
+                    msg += "**Message sent by**: {} ({})\n".format(message.author.name, message.author.id)
+                    msg += "**Message content**:\n{}".format(message.content)
+
+                    if not global_data["pingrole"]:
+                        return await channel_obj.send(f"\N{WARNING SIGN} \N{LINK SYMBOL} New user link post\n{msg}")
+                    else:
+                        ping_guild = self.bot.get_guild(await self.config.pingserver())
+                        try:
+                            role_obj = discord.utils.get(ping_guild.roles, id=global_data["pingrole"])
+                            await role_obj.edit(mentionable=True)
+                            await channel_obj.send(
+                                f"{role_obj.mention}\n\N{WARNING SIGN} \N{LINK SYMBOL} New user link post\n{msg}"
+                            )
+                            return await role_obj.edit(mentionable=False)
+                        except AttributeError:
+                            return await channel_obj.send(
+                                f"I can't find the role that's set to ping (is it on another server?)\n\N{WARNING SIGN} \N{LINK SYMBOL} New user link post\n{msg}"
+                            )
+                        except discord.errors.Forbidden:
+                            return await channel_obj.send(
+                                f"I tried to ping for this alert but I don't have permissions to manage roles!\n\N{WARNING SIGN} \N{LINK SYMBOL} New user link post\n{msg}"
+                            )
 
     @staticmethod
     def _dynamic_time(time):
@@ -196,3 +244,13 @@ class JoinLeave(BaseCog):
         else:
             msg = ""
         return msg.format(d, h, m, s)
+
+    @staticmethod
+    def _match_url(url):
+        regex = re.compile(
+            "(([\w]+:)?//)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?"
+        )
+        if regex.match(url):
+            return True
+        else:
+            return False
