@@ -188,11 +188,11 @@ class JoinLeave(BaseCog):
         global_data = await self.config.all()
         if not global_data["toggle"]:
             return
-
         channel_obj = self.bot.get_channel(global_data["announce_channel"])
         if not channel_obj:
             return
-
+        if message.author.bot:
+            return
         date_join = datetime.datetime.strptime(str(message.author.created_at), "%Y-%m-%d %H:%M:%S.%f")
         date_now = datetime.datetime.now(datetime.timezone.utc)
         date_now = date_now.replace(tzinfo=None)
