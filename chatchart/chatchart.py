@@ -119,6 +119,10 @@ class Chatchart(BaseCog):
                 msg_data["users"][whole_name]["msgcount"] = 1
                 msg_data["total count"] += 1
 
+        if msg_data['users'] == {}:
+            await em.delete()
+            return await ctx.message.channel.send(f'Only bots have sent messages in {channel.mention}')
+
         for usr in msg_data["users"]:
             pd = float(msg_data["users"][usr]["msgcount"]) / float(msg_data["total count"])
             msg_data["users"][usr]["percent"] = round(pd * 100, 1)

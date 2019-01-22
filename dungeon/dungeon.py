@@ -75,7 +75,7 @@ class Dungeon(BaseCog):
 
     @commands.group(autohelp=True)
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_server=True)
+    @checks.admin_or_permissions(manage_guild=True)
     async def dungeon(self, ctx):
         """Main dungeon commands."""
         pass
@@ -380,7 +380,7 @@ class Dungeon(BaseCog):
                         await member.send(auto_ban_msg)
                     except discord.Forbidden:
                         if announce_channel:
-                            return await channel_object.send(
+                            await channel_object.send(
                                 f"I couldn't DM {member} ({member.id}) to let them know they've been banned, they've blocked me."
                             )
                         else:
@@ -459,6 +459,8 @@ class Dungeon(BaseCog):
             try:
                 await member.add_roles(user_role_obj, reason="Adding member role to new user.")
             except discord.Forbidden:
+                pass
+            except AttributeError:
                 pass
 
     @staticmethod
