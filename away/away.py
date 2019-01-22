@@ -1,5 +1,6 @@
 import discord
 from redbot.core import Config, commands, checks
+from typing import Optional
 
 
 BaseCog = getattr(commands, "Cog", object)
@@ -9,7 +10,9 @@ class Away(BaseCog):
 
     default_global_settings = {"ign_servers": []}
     default_user_settings = {"MESSAGE": False, "IDLE_MESSAGE": False,
-                             "DND_MESSAGE": False, "OFFLINE_MESSAGE": False}
+                             "DND_MESSAGE": False, "OFFLINE_MESSAGE": False,
+                             "GAME_MESSAGE":{}, "STREAMING_MESSAGE":False,
+                             "LISTENING_MESSAGE":False}
 
     def __init__(self, bot):
         self.bot = bot
@@ -47,6 +50,28 @@ class Away(BaseCog):
             em = discord.Embed(description=message, color=color)
             em.set_author(
                 name="{} is currently offline".format(author.display_name),
+                icon_url=avatar
+            )
+        elif state == "gaming":
+            em = discord.Embed(description=message, color=color)
+            em.set_author(
+                name=f"{author.display_name} is currently playing {author.activity.name}",
+                icon_url=avatar
+            )
+        elif state == "listening":
+            em = discord.Embed(description=message, color=author.activity.color)
+            artist_title = f"{author.activity.title} by " + ", ".join(a for a in author.activity.artists)
+            limit = 256 - (len(author.display_name) + 27) # incase we go over the max allowable size 
+            em.set_author(
+                name=f"{author.display_name} is currently listening to {artist_title[:limit]}",
+                icon_url=avatar
+            )
+        elif state == "streaming":
+            color = int("6441A4", 16)
+            em = discord.Embed(color=color)
+            em.description = message + "\n" + author.activity.url
+            em.set_author(
+                name=f"{author.display_name} is currently streaming {author.activity.name}",
                 icon_url=avatar
             )
         else:
@@ -89,9 +114,34 @@ class Away(BaseCog):
             msg = "{} is currently away and has set the following message: `{}`".format(
                 author.display_name, message
             )
+        elif state == "gaming":
+            msg = "{} is currently playing {} and has set the following message: `{}`".format(
+                author.display_name, author.activity.name, message
+            )
+        elif state == "listening":
+            artist_title = f"{author.activity.title} by " + ", ".join(a for a in author.activity.artists)
+            msg = "{} is currently listening to {} and has set the following message: `{}`".format(
+                author.display_name, artist_title, message
+            )
+        elif state == "streaming":
+            msg = "{} is currently streaming at {} and has set the following message: `{}`".format(
+                author.display_name, author.activity.url, message
+            )
         else:
             msg = "{} is currently away".format(author.display_name)
         return msg
+
+    async def is_mod_or_admin(self, member:discord.Member):
+        guild = member.guild
+        if member == guild.owner:
+            return True
+        if await self.bot.is_owner(member):
+            return True
+        if await self.bot.is_admin(member):
+            return True
+        if await self.bot.is_mod(member):
+            return True
+        return False
 
     async def on_message(self, message):
         tmp = {}
@@ -101,64 +151,130 @@ class Away(BaseCog):
             return
         if not message.channel.permissions_for(guild.me).send_messages:
             return
-        if guild.id not in list_of_guilds_ign:
-            for mention in message.mentions:
-                tmp[mention] = True
-            for author in tmp:
-                away_msg = await self._away.user(author).MESSAGE()
-                if away_msg:
-                    if message.channel.permissions_for(guild.me).embed_links:                            
-                        em = await self.make_embed_message(author, away_msg, "away")
-                        await message.channel.send(embed=em)
-                    else:
-                        msg = await self.make_text_message(author, away_msg, "away")
-                        await message.channel.send(msg)
+        if not message.mentions:
+            return
+        if message.author.bot:
+            return
+
+        for author in message.mentions:
+            if guild.id in list_of_guilds_ign and not await self.is_mod_or_admin(author):
+                continue
+            away_msg = await self._away.user(author).MESSAGE()
+            if away_msg:
+                if type(away_msg) is tuple:
+                    # This is just to keep backwards compatibility
+                    away_msg, delete_after = away_msg
                 else:
-                    idle_msg = await self._away.user(author).IDLE_MESSAGE()
-                    if idle_msg and author.status == discord.Status.idle:
+                    delete_after = None
+                if message.channel.permissions_for(guild.me).embed_links:
+                    em = await self.make_embed_message(author, away_msg, "away")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                else:
+                    msg = await self.make_text_message(author, away_msg, "away")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            idle_msg = await self._away.user(author).IDLE_MESSAGE()
+            if idle_msg and author.status == discord.Status.idle:
+                if type(idle_msg) is tuple:
+                    idle_msg, delete_after = idle_msg
+                else:
+                    delete_after = None
+                if message.channel.permissions_for(guild.me).embed_links:                            
+                    em = await self.make_embed_message(author, idle_msg, "idle")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                else:
+                    msg = await self.make_text_message(author, idle_msg, "idle")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            dnd_msg = await self._away.user(author).DND_MESSAGE()
+            if dnd_msg and author.status == discord.Status.dnd:
+                if type(dnd_msg) is tuple:
+                    dnd_msg, delete_after = dnd_msg
+                else:
+                    delete_after = None
+                if message.channel.permissions_for(guild.me).embed_links:                            
+                    em = await self.make_embed_message(author, dnd_msg, "dnd")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                else:
+                    msg = await self.make_text_message(author, dnd_msg, "dnd")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            offline_msg = await self._away.user(author).OFFLINE_MESSAGE()
+            if offline_msg and author.status == discord.Status.offline:
+                if type(offline_msg) is tuple:
+                    offline_msg, delete_after = offline_msg
+                else:
+                    delete_after = None
+                if message.channel.permissions_for(guild.me).embed_links:                            
+                    em = await self.make_embed_message(author, offline_msg, "offline")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                else:
+                    msg = await self.make_text_message(author, offline_msg, "offline")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            streaming_msg = await self._away.user(author).STREAMING_MESSAGE()
+            if streaming_msg and type(author.activity) is discord.Streaming:
+                streaming_msg, delete_after = streaming_msg
+                if message.channel.permissions_for(guild.me).embed_links:                            
+                    em = await self.make_embed_message(author, streaming_msg, "streaming")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                else:
+                    msg = await self.make_text_message(author, streaming_msg, "streaming")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            listening_msg = await self._away.user(author).LISTENING_MESSAGE()
+            if listening_msg and type(author.activity) is discord.Spotify:
+                listening_msg, delete_after = listening_msg
+                if message.channel.permissions_for(guild.me).embed_links:                            
+                    em = await self.make_embed_message(author, listening_msg, "listening")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                else:
+                    msg = await self.make_text_message(author, offline_msg, "listening")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            gaming_msgs = await self._away.user(author).GAME_MESSAGE()
+            if gaming_msgs and type(author.activity) in [discord.Game, discord.Activity]:
+                for game in gaming_msgs:
+                    if game in author.activity.name.lower():
+                        game_msg, delete_after = gaming_msgs[game]
                         if message.channel.permissions_for(guild.me).embed_links:                            
-                            em = await self.make_embed_message(author, idle_msg, "idle")
-                            await message.channel.send(embed=em)
+                            em = await self.make_embed_message(author, game_msg, "gaming")
+                            await message.channel.send(embed=em, delete_after=delete_after)
+                            break # Let's not accidentally post more than one
                         else:
-                            msg = await self.make_text_message(author, idle_msg, "idle")
-                            await message.channel.send(msg)
-                    dnd_msg = await self._away.user(author).DND_MESSAGE()
-                    if dnd_msg and author.status == discord.Status.dnd:
-                        if message.channel.permissions_for(guild.me).embed_links:                            
-                            em = await self.make_embed_message(author, dnd_msg, "dnd")
-                            await message.channel.send(embed=em)
-                        else:
-                            msg = await self.make_text_message(author, dnd_msg, "dnd")
-                            await message.channel.send(msg)
-                    offline_msg = await self._away.user(author).OFFLINE_MESSAGE()
-                    if offline_msg and author.status == discord.Status.offline:
-                        if message.channel.permissions_for(guild.me).embed_links:                            
-                            em = await self.make_embed_message(author, offline_msg, "offline")
-                            await message.channel.send(embed=em)
-                        else:
-                            msg = await self.make_text_message(author, offline_msg, "offline")
-                            await message.channel.send(msg)
+                            msg = await self.make_text_message(author, game_msg, "gaming")
+                            await message.channel.send(msg, delete_after=delete_after)
+                            break 
 
     @commands.command(name="away")
-    async def away_(self, ctx, *, message:str=None):
-        """Tell the bot you're away or back."""
+    async def away_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+        """
+        Tell the bot you're away or back.
+
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
         author = ctx.message.author
-        print(message)
         mess = await self._away.user(author).MESSAGE()
         if mess:
             await self._away.user(author).MESSAGE.set(False)
             msg = "You're now back."
         else:
             if message is None:
-                await self._away.user(author).MESSAGE.set(" ")
+                await self._away.user(author).MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).MESSAGE.set(message)
+                await self._away.user(author).MESSAGE.set((message, delete_after))
             msg = "You're now set as away."
         await ctx.send(msg)
 
     @commands.command(name="idle")
-    async def idle_(self, ctx, *, message:str=None):
-        """Set an automatic reply when you're idle"""
+    async def idle_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+        """
+        Set an automatic reply when you're idle.
+        
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
         author = ctx.message.author
         mess = await self._away.user(author).IDLE_MESSAGE()
         if mess:
@@ -166,15 +282,20 @@ class Away(BaseCog):
             msg = "The bot will no longer reply for you when you're idle."
         else:
             if message is None:
-                await self._away.user(author).IDLE_MESSAGE.set(" ")
+                await self._away.user(author).IDLE_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).IDLE_MESSAGE.set(message)
+                await self._away.user(author).IDLE_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're idle."
         await ctx.send(msg)
 
     @commands.command(name="offline")
-    async def offline_(self, ctx, *, message:str=None):
-        """Set an automatic reply when you're offline"""
+    async def offline_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+        """
+        Set an automatic reply when you're offline.
+        
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
         author = ctx.message.author
         mess = await self._away.user(author).OFFLINE_MESSAGE()
         if mess:
@@ -182,15 +303,20 @@ class Away(BaseCog):
             msg = "The bot will no longer reply for you when you're offline."
         else:
             if message is None:
-                await self._away.user(author).OFFLINE_MESSAGE.set(" ")
+                await self._away.user(author).OFFLINE_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).OFFLINE_MESSAGE.set(message)
+                await self._away.user(author).OFFLINE_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're offline."
         await ctx.send(msg)
 
     @commands.command(name="dnd", aliases=["donotdisturb"])
-    async def donotdisturb_(self, ctx, *, message:str=None):
-        """Set an automatic reply when you're dnd"""
+    async def donotdisturb_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+        """
+        Set an automatic reply when you're dnd.
+
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
         author = ctx.message.author
         mess = await self._away.user(author).DND_MESSAGE()
         if mess:
@@ -198,16 +324,83 @@ class Away(BaseCog):
             msg = "The bot will no longer reply for you when you're set to do not disturb."
         else:
             if message is None:
-                await self._away.user(author).DND_MESSAGE.set(" ")
+                await self._away.user(author).DND_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).DND_MESSAGE.set(message)
+                await self._away.user(author).DND_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're set to do not disturb."
+        await ctx.send(msg)
+
+    @commands.command(name="streaming")
+    async def streaming_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+        """
+        Set an automatic reply when you're streaming.
+
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
+        author = ctx.message.author
+        mess = await self._away.user(author).STREAMING_MESSAGE()
+        if mess:
+            await self._away.user(author).STREAMING_MESSAGE.set(False)
+            msg = "The bot will no longer reply for you when you're mentioned while streaming."
+        else:
+            if message is None:
+                await self._away.user(author).STREAMING_MESSAGE.set((" ", delete_after))
+            else:
+                await self._away.user(author).STREAMING_MESSAGE.set((message, delete_after))
+            msg = "The bot will now reply for you when you're mentioned while streaming."
+        await ctx.send(msg)
+
+    @commands.command(name="listening")
+    async def listening_(self, ctx, delete_after:Optional[int]=None, *, message:str=" "):
+        """
+        Set an automatic reply when you're listening to Spotify.
+
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
+        author = ctx.message.author
+        mess = await self._away.user(author).LISTENING_MESSAGE()
+        if mess:
+            await self._away.user(author).LISTENING_MESSAGE.set(False)
+            msg = "The bot will no longer reply for you when you're mentioned while streaming."
+        else:
+            await self._away.user(author).LISTENING_MESSAGE.set((message, delete_after))
+            msg = "The bot will now reply for you when you're mentioned while streaming."
+        await ctx.send(msg)
+
+    @commands.command(name="gaming")
+    async def gaming_(self, ctx, game:str, delete_after:Optional[int]=None, *, message:str=None):
+        """
+        Set an automatic reply when you're playing a specified game.
+        
+        `game` The game you would like automatic responses for
+        `delete_after` Optional seconds to delete the automatic reply
+        `message` The custom message to display when you're mentioned
+        """
+        author = ctx.message.author
+        mess = await self._away.user(author).GAME_MESSAGE()
+        if game.lower() in mess:
+            del mess[game.lower()]
+            await self._away.user(author).GAME_MESSAGE.set(mess)
+            msg = "The bot will no longer reply for you when you're playing {}.".format(game)
+        else:
+            if message is None:
+                mess[game.lower()] = (" ", delete_after)
+            else:
+                mess[game.lower()] = (message, delete_after)
+            await self._away.user(author).GAME_MESSAGE.set(mess)
+            msg = "The bot will now reply for you when you're playing {}.".format(game)
         await ctx.send(msg)
 
     @commands.command(name="toggleaway")
     @checks.admin_or_permissions(administrator=True)
     async def _ignore(self, ctx):
-        """Toggle away messages on the whole server."""
+        """
+        Toggle away messages on the whole server.
+        
+        Mods, Admins and Bot Owner are immune to this.
+        """
         guild = ctx.message.guild
         if guild.id in (await self._away.ign_servers()):
             guilds = await self._away.ign_servers()
