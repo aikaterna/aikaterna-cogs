@@ -437,6 +437,15 @@ class Away(BaseCog):
                 msg += f"{name}: {status_msg[:20]} deleted after {delete_after}s\n"
             else:
                 msg += f"{name}: {status_msg}\n"
+        if "GAME_MESSAGE" in settings:
+            msg += "Games:\n"
+            for game in settings["GAME_MESSAGE"]:
+                status_msg, delete_after = settings["GAME_MESSAGE"][game]
+                if delete_after:
+                    msg += f"{game}: {status_msg[:20]} deleted after {delete_after}s\n"
+                else:
+                    msg += f"{game}: {status_msg}\n"
+
         if ctx.channel.permissions_for(ctx.me).embed_links:
             em = discord.Embed(description = msg, color = author.color)
             em.set_author(name=f"{author.display_name}'s away settings", icon_url=author.avatar_url)
