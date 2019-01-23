@@ -413,3 +413,34 @@ class Away(BaseCog):
             await self._away.ign_servers.set(guilds)
             message = "Ignoring this guild."
         await ctx.send(message)
+
+    @commands.command(name="awaysettings", aliases=["awayset"])
+    async def away_settings(self, ctx):
+        """View your current away settings"""
+        author = ctx.author
+        msg = ""
+        data = {"MESSAGE":"Away",
+                "IDLE_MESSAGE":"Idle",
+                "DND_MESSAGE":"Do not disturb",
+                "OFFLINE_MESSAGE": "Offline",
+                "LISTENING_MESSAGE":"Listening",
+                "STREAMING_MESSAGE": "Streaming"}
+        settings = await self._away.user(author).get_raw()
+        for attr, name in data.items():
+            if type(settings[attr]) is tuple:
+                # This is just to keep backwards compatibility
+                status_msg, delete_after = settings[attr]
+            else:
+                status_msg = settings[attr]
+                delete_after = None
+            if delete_after:
+                msg += f"{name}: {status_msg[:20]} deleted after {delete_after}s\n"
+            else:
+                msg += f"{name}: {status_msg}\n"
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            em = discord.Embed(description = msg, color = author.color)
+            em.set_author(name=f"{author.display_name}'s away settings", icon_url=author.avatar_url)
+            await ctx.send(embed=em)
+        else:
+            await ctx.send(f"{author.display_name} away settings\n" + msg)
+        
