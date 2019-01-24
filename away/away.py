@@ -427,27 +427,39 @@ class Away(BaseCog):
                 "STREAMING_MESSAGE": "Streaming"}
         settings = await self._away.user(author).get_raw()
         for attr, name in data.items():
-            if type(settings[attr]) is tuple:
+            if type(settings[attr]) in [tuple, list]:
                 # This is just to keep backwards compatibility
                 status_msg, delete_after = settings[attr]
             else:
                 status_msg = settings[attr]
                 delete_after = None
+            if settings[attr] and len(status_msg) > 20:
+                status_msg = status_msg[:20] + "..."
+            if settings[attr] and len(status_msg) <= 1:
+                status_msg = "True"
             if delete_after:
-                msg += f"{name}: {status_msg[:20]} deleted after {delete_after}s\n"
+                msg += f"{name}: {status_msg} deleted after {delete_after}s\n"
             else:
                 msg += f"{name}: {status_msg}\n"
         if "GAME_MESSAGE" in settings:
-            msg += "Games:\n"
+            if not settings["GAME_MESSAGE"]:
+                games = "False"
+            else:
+                games = "True"
+            msg += f"Games: {games}\n"
             for game in settings["GAME_MESSAGE"]:
                 status_msg, delete_after = settings["GAME_MESSAGE"][game]
+                if len(status_msg) > 20:
+                    status_msg = status_msg[:-20] + "..."
+                if len(status_msg) <= 1:
+                    status_msg = "True"
                 if delete_after:
-                    msg += f"{game}: {status_msg[:20]} deleted after {delete_after}s\n"
+                    msg += f"{game}: {status_msg} deleted after {delete_after}s\n"
                 else:
                     msg += f"{game}: {status_msg}\n"
 
         if ctx.channel.permissions_for(ctx.me).embed_links:
-            em = discord.Embed(description = msg, color = author.color)
+            em = discord.Embed(description = msg[:2048], color = author.color)
             em.set_author(name=f"{author.display_name}'s away settings", icon_url=author.avatar_url)
             await ctx.send(embed=em)
         else:
