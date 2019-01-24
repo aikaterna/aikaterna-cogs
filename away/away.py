@@ -363,10 +363,10 @@ class Away(BaseCog):
         mess = await self._away.user(author).LISTENING_MESSAGE()
         if mess:
             await self._away.user(author).LISTENING_MESSAGE.set(False)
-            msg = "The bot will no longer reply for you when you're mentioned while streaming."
+            msg = "The bot will no longer reply for you when you're mentioned while listening to Spotify."
         else:
             await self._away.user(author).LISTENING_MESSAGE.set((message, delete_after))
-            msg = "The bot will now reply for you when you're mentioned while streaming."
+            msg = "The bot will now reply for you when you're mentioned while listening to Spotify."
         await ctx.send(msg)
 
     @commands.command(name="gaming")
