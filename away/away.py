@@ -1,96 +1,133 @@
 import discord
 from redbot.core import Config, commands, checks
 from typing import Optional
+import datetime
+import re
 
+IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
 BaseCog = getattr(commands, "Cog", object)
+
 
 class Away(BaseCog):
     """Le away cog"""
 
     default_global_settings = {"ign_servers": []}
-    default_user_settings = {"MESSAGE": False, "IDLE_MESSAGE": False,
-                             "DND_MESSAGE": False, "OFFLINE_MESSAGE": False,
-                             "GAME_MESSAGE":{}, "STREAMING_MESSAGE":False,
-                             "LISTENING_MESSAGE":False}
+    default_user_settings = {
+        "MESSAGE": False,
+        "IDLE_MESSAGE": False,
+        "DND_MESSAGE": False,
+        "OFFLINE_MESSAGE": False,
+        "GAME_MESSAGE": {},
+        "STREAMING_MESSAGE": False,
+        "LISTENING_MESSAGE": False,
+    }
 
     def __init__(self, bot):
         self.bot = bot
         self._away = Config.get_conf(self, 8423491260, force_registration=True)
-
         self._away.register_global(**self.default_global_settings)
         self._away.register_user(**self.default_user_settings)
+
+    def _draw_play(self, song):
+        song_start_time = song.start
+        total_time = song.duration
+        current_time = datetime.datetime.utcnow()
+        elapsed_time = current_time - song_start_time
+        sections = 12
+        loc_time = round((elapsed_time / total_time) * sections)  # 10 sections
+
+        bar_char = "\N{BOX DRAWINGS HEAVY HORIZONTAL}"
+        seek_char = "\N{RADIO BUTTON}"
+        play_char = "\N{BLACK RIGHT-POINTING TRIANGLE}"
+        msg = "\n" + play_char + " "
+
+        for i in range(sections):
+            if i == loc_time:
+                msg += seek_char
+            else:
+                msg += bar_char
+
+        msg += " `{:.7}`/`{:.7}`".format(str(elapsed_time), str(total_time))
+        return msg
 
     async def make_embed_message(self, author, message, state=None):
         """
             Makes the embed reply
         """
-        avatar = author.avatar_url_as() # This will return default avatar if no avatar is present
+        avatar = author.avatar_url_as()  # This will return default avatar if no avatar is present
         color = author.color
-
+        if message:
+            link = IMAGE_LINKS.search(message)
+            if link:
+                message = message.replace(link.group(0), " ")
         if state == "away":
             em = discord.Embed(description=message, color=color)
-            em.set_author(
-                name="{} is currently away".format(author.display_name),
-                icon_url=avatar
-            )
+            em.set_author(name="{} is currently away".format(author.display_name), icon_url=avatar)
         elif state == "idle":
             em = discord.Embed(description=message, color=color)
-            em.set_author(
-                name="{} is currently idle".format(author.display_name),
-                icon_url=avatar
-            )
+            em.set_author(name="{} is currently idle".format(author.display_name), icon_url=avatar)
         elif state == "dnd":
             em = discord.Embed(description=message, color=color)
             em.set_author(
-                name="{} is currently do not disturb".format(author.display_name),
-                icon_url=avatar
+                name="{} is currently do not disturb".format(author.display_name), icon_url=avatar
             )
         elif state == "offline":
             em = discord.Embed(description=message, color=color)
             em.set_author(
-                name="{} is currently offline".format(author.display_name),
-                icon_url=avatar
+                name="{} is currently offline".format(author.display_name), icon_url=avatar
             )
         elif state == "gaming":
             em = discord.Embed(description=message, color=color)
             em.set_author(
                 name=f"{author.display_name} is currently playing {author.activity.name}",
-                icon_url=avatar
+                icon_url=avatar,
             )
+            em.title = getattr(author.activity, "details", None)
+            thumbnail = getattr(author.activity, "large_image_url", None)
+            if thumbnail:
+                em.set_thumbnail(url=thumbnail)
         elif state == "listening":
-            em = discord.Embed(description=message, color=author.activity.color)
-            artist_title = f"{author.activity.title} by " + ", ".join(a for a in author.activity.artists)
-            limit = 256 - (len(author.display_name) + 27) # incase we go over the max allowable size 
+            em = discord.Embed(color=author.activity.color)
+            artist_title = f"{author.activity.title} by " + ", ".join(
+                a for a in author.activity.artists
+            )
+            limit = 256 - (
+                len(author.display_name) + 27
+            )  # incase we go over the max allowable size
             em.set_author(
                 name=f"{author.display_name} is currently listening to {artist_title[:limit]}",
-                icon_url=avatar
+                icon_url=avatar,
             )
+            em.description = message + "\n" + self._draw_play(author.activity)
+            # em.set_footer(text=author.activity.duration)
+            em.set_thumbnail(url=author.activity.album_cover_url)
         elif state == "streaming":
             color = int("6441A4", 16)
             em = discord.Embed(color=color)
             em.description = message + "\n" + author.activity.url
+            em.title = getattr(author.activity, "details", None)
             em.set_author(
                 name=f"{author.display_name} is currently streaming {author.activity.name}",
-                icon_url=avatar
+                icon_url=avatar,
             )
         else:
             em = discord.Embed(color=color)
-            em.set_author(
-                name="{} is currently away".format(author.display_name),
-                icon_url=avatar
-            )
+            em.set_author(name="{} is currently away".format(author.display_name), icon_url=avatar)
+        if link and state not in ["listening", "gaming"]:
+            em.set_image(url=link.group(0))
         return em
 
     async def find_user_mention(self, message):
         """
             Replaces user mentions with their username
         """
+        print(message)
         for word in message.split():
-            if word.startswith("<@") and word.endswith(">"):
-                mention = word.replace("<@", "").replace(">", "").replace("!", "")
-                user = await self.bot.get_user_info(int(mention))
-                message = message.replace(word, "@" + user.name)
+            match = re.search(r"<@!?([0-9]+)>", word)
+            if match:
+                user = await self.bot.get_user_info(int(match.group(1)))
+                message = re.sub(match.re, "@" + user.name, message)
         return message
 
     async def make_text_message(self, author, message, state=None):
@@ -119,9 +156,12 @@ class Away(BaseCog):
                 author.display_name, author.activity.name, message
             )
         elif state == "listening":
-            artist_title = f"{author.activity.title} by " + ", ".join(a for a in author.activity.artists)
-            msg = "{} is currently listening to {} and has set the following message: `{}`".format(
-                author.display_name, artist_title, message
+            artist_title = f"{author.activity.title} by " + ", ".join(
+                a for a in author.activity.artists
+            )
+            currently_playing = self._draw_play(author.activity)
+            msg = "{} is currently listening to {} and has set the following message: `{}`\n{}".format(
+                author.display_name, artist_title, message, currently_playing
             )
         elif state == "streaming":
             msg = "{} is currently streaming at {} and has set the following message: `{}`".format(
@@ -131,7 +171,7 @@ class Away(BaseCog):
             msg = "{} is currently away".format(author.display_name)
         return msg
 
-    async def is_mod_or_admin(self, member:discord.Member):
+    async def is_mod_or_admin(self, member: discord.Member):
         guild = member.guild
         if member == guild.owner:
             return True
@@ -161,7 +201,7 @@ class Away(BaseCog):
                 continue
             away_msg = await self._away.user(author).MESSAGE()
             if away_msg:
-                if type(away_msg) is tuple:
+                if type(away_msg) in [tuple, list]:
                     # This is just to keep backwards compatibility
                     away_msg, delete_after = away_msg
                 else:
@@ -175,11 +215,11 @@ class Away(BaseCog):
                 continue
             idle_msg = await self._away.user(author).IDLE_MESSAGE()
             if idle_msg and author.status == discord.Status.idle:
-                if type(idle_msg) is tuple:
+                if type(idle_msg) in [tuple, list]:
                     idle_msg, delete_after = idle_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:                            
+                if message.channel.permissions_for(guild.me).embed_links:
                     em = await self.make_embed_message(author, idle_msg, "idle")
                     await message.channel.send(embed=em, delete_after=delete_after)
                 else:
@@ -188,11 +228,11 @@ class Away(BaseCog):
                 continue
             dnd_msg = await self._away.user(author).DND_MESSAGE()
             if dnd_msg and author.status == discord.Status.dnd:
-                if type(dnd_msg) is tuple:
+                if type(dnd_msg) in [tuple, list]:
                     dnd_msg, delete_after = dnd_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:                            
+                if message.channel.permissions_for(guild.me).embed_links:
                     em = await self.make_embed_message(author, dnd_msg, "dnd")
                     await message.channel.send(embed=em, delete_after=delete_after)
                 else:
@@ -201,11 +241,11 @@ class Away(BaseCog):
                 continue
             offline_msg = await self._away.user(author).OFFLINE_MESSAGE()
             if offline_msg and author.status == discord.Status.offline:
-                if type(offline_msg) is tuple:
+                if type(offline_msg) in [tuple, list]:
                     offline_msg, delete_after = offline_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:                            
+                if message.channel.permissions_for(guild.me).embed_links:
                     em = await self.make_embed_message(author, offline_msg, "offline")
                     await message.channel.send(embed=em, delete_after=delete_after)
                 else:
@@ -215,7 +255,7 @@ class Away(BaseCog):
             streaming_msg = await self._away.user(author).STREAMING_MESSAGE()
             if streaming_msg and type(author.activity) is discord.Streaming:
                 streaming_msg, delete_after = streaming_msg
-                if message.channel.permissions_for(guild.me).embed_links:                            
+                if message.channel.permissions_for(guild.me).embed_links:
                     em = await self.make_embed_message(author, streaming_msg, "streaming")
                     await message.channel.send(embed=em, delete_after=delete_after)
                 else:
@@ -225,11 +265,11 @@ class Away(BaseCog):
             listening_msg = await self._away.user(author).LISTENING_MESSAGE()
             if listening_msg and type(author.activity) is discord.Spotify:
                 listening_msg, delete_after = listening_msg
-                if message.channel.permissions_for(guild.me).embed_links:                            
+                if message.channel.permissions_for(guild.me).embed_links:
                     em = await self.make_embed_message(author, listening_msg, "listening")
                     await message.channel.send(embed=em, delete_after=delete_after)
                 else:
-                    msg = await self.make_text_message(author, offline_msg, "listening")
+                    msg = await self.make_text_message(author, listening_msg, "listening")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             gaming_msgs = await self._away.user(author).GAME_MESSAGE()
@@ -237,17 +277,17 @@ class Away(BaseCog):
                 for game in gaming_msgs:
                     if game in author.activity.name.lower():
                         game_msg, delete_after = gaming_msgs[game]
-                        if message.channel.permissions_for(guild.me).embed_links:                            
+                        if message.channel.permissions_for(guild.me).embed_links:
                             em = await self.make_embed_message(author, game_msg, "gaming")
                             await message.channel.send(embed=em, delete_after=delete_after)
-                            break # Let's not accidentally post more than one
+                            break  # Let's not accidentally post more than one
                         else:
                             msg = await self.make_text_message(author, game_msg, "gaming")
                             await message.channel.send(msg, delete_after=delete_after)
-                            break 
+                            break
 
     @commands.command(name="away")
-    async def away_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+    async def away_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Tell the bot you're away or back.
 
@@ -268,7 +308,7 @@ class Away(BaseCog):
         await ctx.send(msg)
 
     @commands.command(name="idle")
-    async def idle_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+    async def idle_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're idle.
         
@@ -289,7 +329,7 @@ class Away(BaseCog):
         await ctx.send(msg)
 
     @commands.command(name="offline")
-    async def offline_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+    async def offline_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're offline.
         
@@ -310,7 +350,7 @@ class Away(BaseCog):
         await ctx.send(msg)
 
     @commands.command(name="dnd", aliases=["donotdisturb"])
-    async def donotdisturb_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+    async def donotdisturb_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're dnd.
 
@@ -331,7 +371,7 @@ class Away(BaseCog):
         await ctx.send(msg)
 
     @commands.command(name="streaming")
-    async def streaming_(self, ctx, delete_after:Optional[int]=None, *, message:str=None):
+    async def streaming_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're streaming.
 
@@ -352,7 +392,7 @@ class Away(BaseCog):
         await ctx.send(msg)
 
     @commands.command(name="listening")
-    async def listening_(self, ctx, delete_after:Optional[int]=None, *, message:str=" "):
+    async def listening_(self, ctx, delete_after: Optional[int] = None, *, message: str = " "):
         """
         Set an automatic reply when you're listening to Spotify.
 
@@ -366,11 +406,15 @@ class Away(BaseCog):
             msg = "The bot will no longer reply for you when you're mentioned while listening to Spotify."
         else:
             await self._away.user(author).LISTENING_MESSAGE.set((message, delete_after))
-            msg = "The bot will now reply for you when you're mentioned while listening to Spotify."
+            msg = (
+                "The bot will now reply for you when you're mentioned while listening to Spotify."
+            )
         await ctx.send(msg)
 
     @commands.command(name="gaming")
-    async def gaming_(self, ctx, game:str, delete_after:Optional[int]=None, *, message:str=None):
+    async def gaming_(
+        self, ctx, game: str, delete_after: Optional[int] = None, *, message: str = None
+    ):
         """
         Set an automatic reply when you're playing a specified game.
         
@@ -419,12 +463,14 @@ class Away(BaseCog):
         """View your current away settings"""
         author = ctx.author
         msg = ""
-        data = {"MESSAGE":"Away",
-                "IDLE_MESSAGE":"Idle",
-                "DND_MESSAGE":"Do not disturb",
-                "OFFLINE_MESSAGE": "Offline",
-                "LISTENING_MESSAGE":"Listening",
-                "STREAMING_MESSAGE": "Streaming"}
+        data = {
+            "MESSAGE": "Away",
+            "IDLE_MESSAGE": "Idle",
+            "DND_MESSAGE": "Do not disturb",
+            "OFFLINE_MESSAGE": "Offline",
+            "LISTENING_MESSAGE": "Listening",
+            "STREAMING_MESSAGE": "Streaming",
+        }
         settings = await self._away.user(author).get_raw()
         for attr, name in data.items():
             if type(settings[attr]) in [tuple, list]:
@@ -459,9 +505,10 @@ class Away(BaseCog):
                     msg += f"{game}: {status_msg}\n"
 
         if ctx.channel.permissions_for(ctx.me).embed_links:
-            em = discord.Embed(description = msg[:2048], color = author.color)
-            em.set_author(name=f"{author.display_name}'s away settings", icon_url=author.avatar_url)
+            em = discord.Embed(description=msg[:2048], color=author.color)
+            em.set_author(
+                name=f"{author.display_name}'s away settings", icon_url=author.avatar_url
+            )
             await ctx.send(embed=em)
         else:
             await ctx.send(f"{author.display_name} away settings\n" + msg)
-        
