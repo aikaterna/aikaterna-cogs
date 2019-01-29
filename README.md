@@ -9,8 +9,6 @@ chatchart - Generates a pie chart to display chat activity over the last 5000 me
 
 dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
 
-joinleave - Alerts a set channel when an account under a certain age of days joins a server and leaves within the set time... any server the bot can see. This is a global cog with owner only commands. I wrote this for myself so I won't be adding user requests for the most part, and will be using it to combat the recent user scrapers found joining and leaving servers quickly.
-
 inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme.
 
 nolinks - A very blunt hammer to remove anything that looks like a link. Roles can be whitelisted and it can watch multiple channels.
