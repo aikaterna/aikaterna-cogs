@@ -1,6 +1,8 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
+antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog. Config stuff tacked on by me. Later iterations will include emoji recognizing and possibly link detection for these bad images.
+
 away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna. Set and unset a user as being "away".
 
 blurplefy - Make an avatar or an image upload blurple for Discord's 3rd anniversary.
