@@ -77,7 +77,8 @@ class AntiPhoneClapper(BaseCog):
         watch_channel_list = await self.config.guild(m.guild).watching()
         if not watch_channel_list:
             return
-
+        if m.channel.id not in watch_channel_list:
+            return
         for att in m.attachments:
             if not att.filename.endswith(".gif") or att.size > 200000:
                 continue
