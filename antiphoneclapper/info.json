@@ -5,10 +5,10 @@
 	"description": "Deletes messages with malformed GIFs.",
     "install_msg": "Thanks for installing, have fun.",
     "permissions" : [
-		"manage_messages",
+		"manage_messages"
 	],
 	"requirements": [
-		"pillow",
+		"pillow"
 	],
 	"short": "Deletes messages with malformed GIFs.",
 	"type": "COG"
