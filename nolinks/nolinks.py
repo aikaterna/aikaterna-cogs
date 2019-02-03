@@ -76,9 +76,21 @@ class NoLinks(BaseCog):
         """List the channels being watched."""
         channel_list = await self.config.guild(ctx.guild).watching()
         msg = "Links will be removed in:\n"
-        for channel in channel_list:
-            channel_obj = self.bot.get_channel(channel)
-            msg += f"{channel_obj.mention}\n"
+        if not channel_list:
+            msg += "No channels."
+        else:
+            remove_list = []
+            for channel in channel_list:
+                channel_obj = self.bot.get_channel(channel)
+                if not channel_obj:
+                    remove_list.append(channel)
+                else:
+                    msg += f"{channel_obj.mention}\n"
+            if remove_list:
+                new_list = [x for x in channel_list if x not in remove_list]
+                await self.config.guild(ctx.guild).watching.set(new_list)
+                if len(remove_list) == len(channel_list):
+                    msg += "No channels."
         await ctx.send(msg)
 
     @nolinks.command()
