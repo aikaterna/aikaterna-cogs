@@ -81,11 +81,15 @@ class RndStatus(BaseCog):
         """Define the rndstatus type.
         
         Type list:
-        1 = Playing
+        0 = Playing
+        1 = Streaming
         2 = Listening
         3 = Watching"""
-        await self.config.type.set(type)
-        await ctx.send("Rndstatus type set.")
+        if 0 <= type <= 3:
+            await self.config.type.set(type)
+            await ctx.send("Rndstatus type set.")
+        else:
+            await ctx.send("Type must be between 0 and 3.")
 
     async def switch_status(self, message):
         try:
