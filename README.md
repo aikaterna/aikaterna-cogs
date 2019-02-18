@@ -1,8 +1,9 @@
 # aikaterna-cogs
 **v2 cogs support has ended. I will still provide bugfixes on these cogs if it is significant enough, but no new features will be added.**
 
-Red v3 cogs can be found on the v3 branch of this repo. (https://github.com/aikaterna/aikaterna-cogs/tree/v3)
+**Red v3 cogs can be found on the v3 branch of this repo. (https://github.com/aikaterna/aikaterna-cogs/tree/v3)**
 
+________________
 
 Cogs for v2 Red-DiscordBot by Twentysix26.
 
