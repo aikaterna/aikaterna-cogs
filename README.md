@@ -1,6 +1,8 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
+adventure - Originally by Locastan. My version is a collaboration between TrustyJAID and myself. The repo can be found at: https://github.com/aikaterna/gobcog
+
 antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog. Config stuff tacked on by me. Later iterations will include emoji recognizing and possibly link detection for these bad images.
 
 away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna. Set and unset a user as being "away".
@@ -11,7 +13,11 @@ chatchart - Generates a pie chart to display chat activity over the last 5000 me
 
 dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
 
+imgwelcome - The repo can be found at: https://github.com/aikaterna/imgwelcome
+
 inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme.
+
+leveler - A v3 port of Stevy's v2 leveler, originally by Fixator and modified by me. Add the repo at: https://github.com/aikaterna/Fixator10-Cogs
 
 nolinks - A very blunt hammer to remove anything that looks like a link. Roles can be whitelisted and it can watch multiple channels.
 
