@@ -105,9 +105,9 @@ class Chatchart(BaseCog):
 
         for msg in history:
             if len(msg.author.name) >= 20:
-                short_name = "{}...".format(msg.author.name[:20])
+                short_name = "{}...".format(msg.author.name[:20]).replace("$", "\$")
             else:
-                short_name = msg.author.name
+                short_name = msg.author.name.replace("$", "\$")
             whole_name = "{}#{}".format(short_name, msg.author.discriminator)
             if msg.author.bot:
                 pass
