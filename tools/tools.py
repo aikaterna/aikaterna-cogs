@@ -516,6 +516,10 @@ class Tools(BaseCog):
                     perms_we_have += "{0}\n".format(str(x).split("'")[1])
                 else:
                     perms_we_dont += "{0}\n".format(str(x).split("'")[1])
+            if perms_we_have == "":
+                perms_we_have = "None"
+            if perms_we_dont == "":
+                perms_we_dont = "None"
             msg = discord.Embed(description="Gathering role stats...", colour=role.color)
             if role.color is None:
                 role.color = discord.Colour(value=0x000000)
