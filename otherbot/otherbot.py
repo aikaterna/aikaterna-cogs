@@ -4,6 +4,7 @@ from redbot.core import commands, checks, Config
 
 BaseCog = getattr(commands, "Cog", object)
 
+
 class Otherbot(BaseCog):
     def __init__(self, bot):
         self.bot = bot
@@ -39,12 +40,20 @@ class Otherbot(BaseCog):
 
     @otherbot.command()
     @checks.admin_or_permissions(manage_roles=True)
+    async def remove(self, ctx, bot_user: discord.Member = None):
+        """Remove a bot from the watching list."""
+        async with self.config.guild(ctx.guild).watching() as watch_list:
+            watch_list.remove(bot_user.id)
+        await ctx.send(f"Not watching {bot_user.mention} any more.")
+
+    @otherbot.command()
+    @checks.admin_or_permissions(manage_roles=True)
     async def watching(self, ctx, bot_user: discord.Member = None):
         """Add a bot to watch. Leave blank to list existing bots on the list."""
         data = await self.config.guild(ctx.guild).all()
         msg = "```Watching these bots:\n"
         if not data["watching"]:
-            msg += "None.```"
+            msg += "None."
         if not bot_user:
             for saved_bot_id in data["watching"]:
                 bot_user = await self.bot.get_user_info(saved_bot_id)
@@ -71,7 +80,7 @@ class Otherbot(BaseCog):
         if after.status == discord.Status.offline and (after.id in data["watching"]):
             channel_object = self.bot.get_channel(data["reporting"])
             if not data["ping"]:
-                await channel_object.send(f'{after.mention} is offline.')
+                await channel_object.send(f"{after.mention} is offline.")
             else:
                 await channel_object.send(f'<@&{data["ping"]}>, {after.mention} is offline.')
         else:
