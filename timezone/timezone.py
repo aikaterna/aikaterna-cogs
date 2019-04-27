@@ -36,7 +36,6 @@ class Timezone(commands.Cog):
                 fmt = "**%H:%M** %d-%B-%Y"
                 await ctx.send(f"Current system time: {time.strftime(fmt)}")
             else:
-                fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
                 if "'" in tz:
                     tz = tz.replace("'", "")
                 if len(tz) > 4 and "/" not in tz:
@@ -46,7 +45,8 @@ class Timezone(commands.Cog):
                         "<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
                     )
                 else:
-                    time = datetime.now(pytz.timezone(tz))
+                    fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
+                    time = datetime.now(pytz.timezone(tz.title()))
                     await ctx.send(time.strftime(fmt))
         except Exception as e:
             await ctx.send(f"**Error:** {str(e)} is an unsupported timezone.")
