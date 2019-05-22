@@ -9,6 +9,11 @@ from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 __version__ = "0.0.5"
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
 
 class TrickOrTreat(BaseCog):
     def __init__(self, bot):
@@ -423,6 +428,7 @@ class TrickOrTreat(BaseCog):
             f"Trick or Treat, version {__version__}\n\n*0.0.5 updates:*\n**Save values before waiting on messages:\nQuick commands will not overwrite other values**\n\n*0.0.4 updates:*\n**+2% star chance on trick or treat (6% total)\n+5% lollipop chance on trick or treat (25% total)\nMore RP messages\nFix for steal mechanic freezing\n**"
         )
 
+    @listener()
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return

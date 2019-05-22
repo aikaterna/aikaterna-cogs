@@ -8,6 +8,12 @@ IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
+
 
 class Away(BaseCog):
     """Le away cog"""
@@ -183,6 +189,7 @@ class Away(BaseCog):
             return True
         return False
 
+    @listener()
     async def on_message(self, message):
         tmp = {}
         guild = message.guild

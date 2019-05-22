@@ -7,6 +7,12 @@ from redbot.core.data_manager import cog_data_path
 
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
+
 class Dungeon(BaseCog):
     """Auto-quarantine suspicious users."""
 
@@ -348,6 +354,7 @@ class Dungeon(BaseCog):
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
         return await ctx.send(embed=embed)
 
+    @listener()
     async def on_member_join(self, member):
         default_avatar = False
         toggle = await self.config.guild(member.guild).toggle()
