@@ -348,6 +348,7 @@ class Dungeon(BaseCog):
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
         return await ctx.send(embed=embed)
 
+    @listener()
     async def on_member_join(self, member):
         default_avatar = False
         toggle = await self.config.guild(member.guild).toggle()
