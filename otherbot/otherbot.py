@@ -4,6 +4,11 @@ from redbot.core import commands, checks, Config
 
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
 
 class Otherbot(BaseCog):
     def __init__(self, bot):
@@ -75,6 +80,7 @@ class Otherbot(BaseCog):
                 f"Reporting channel set to: {ctx.message.channel.mention}. Use `{ctx.prefix}otherbot channel` to change this."
             )
 
+    @listener()
     async def on_member_update(self, before, after):
         data = await self.config.guild(after.guild).all()
         if after.status == discord.Status.offline and (after.id in data["watching"]):
