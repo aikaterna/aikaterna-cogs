@@ -7,6 +7,12 @@ from redbot.core.data_manager import cog_data_path
 
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
+
 class Dungeon(BaseCog):
     """Auto-quarantine suspicious users."""
 
