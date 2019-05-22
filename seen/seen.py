@@ -7,6 +7,12 @@ from redbot.core import Config, commands
 
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
+
 class Seen(BaseCog):
     """Shows last time a user was seen in chat"""
     def __init__(self, bot):
@@ -58,6 +64,7 @@ class Seen(BaseCog):
         d, h = divmod(h, 24)
         return (d, h, m)
 
+    @listener()
     async def on_message(self, message):
         if (
             not isinstance(message.channel, discord.abc.PrivateChannel)
