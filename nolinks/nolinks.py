@@ -5,6 +5,12 @@ from redbot.core import Config, commands, checks
 
 BaseCog = getattr(commands, "Cog", object)
 
+listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
+if listener is None:
+
+    def listener(name=None):
+        return lambda x: x
+
 class NoLinks(BaseCog):
     def __init__(self, bot):
         self.bot = bot
@@ -104,6 +110,7 @@ class NoLinks(BaseCog):
         await self.config.guild(ctx.guild).watching.set(channel_list)
         await ctx.send(f"{self.bot.get_channel(channel.id).mention} will not have links removed.")
 
+    @listener()
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
