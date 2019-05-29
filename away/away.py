@@ -132,7 +132,7 @@ class Away(BaseCog):
         for word in message.split():
             match = re.search(r"<@!?([0-9]+)>", word)
             if match:
-                user = await self.bot.get_user_info(int(match.group(1)))
+                user = await self.bot.fetch_user(int(match.group(1)))
                 message = re.sub(match.re, "@" + user.name, message)
         return message
 

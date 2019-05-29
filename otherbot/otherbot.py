@@ -61,7 +61,7 @@ class Otherbot(BaseCog):
             msg += "None."
         if not bot_user:
             for saved_bot_id in data["watching"]:
-                bot_user = await self.bot.get_user_info(saved_bot_id)
+                bot_user = await self.bot.fetch_user(saved_bot_id)
                 if len(bot_user.name) > 16:
                     bot_name = f"{bot_user.name:16}...#{bot_user.discriminator}"
                 else:
