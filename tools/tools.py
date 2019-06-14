@@ -181,7 +181,7 @@ class Tools(BaseCog):
         bancount = len(banlist)
         ban_list = []
         if bancount == 0:
-            banlist = "No users are banned from this server."
+            msg = "No users are banned from this server."
         else:
             msg = ""
             for user_obj in banlist:
