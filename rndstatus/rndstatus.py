@@ -19,7 +19,7 @@ class RndStatus(BaseCog):
 
         default_global = {
             "botstats": False,
-            "delay": "20",
+            "delay": "300",
             "statuses": [
                 "her Turn()",
                 "Tomb Raider II",
