@@ -12,9 +12,7 @@ import re
 import unicodedata
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-class Retrosign(BaseCog):
+class Retrosign(commands.Cog):
     """Make an 80s retro sign. Originally by Anismash"""
     def __init__(self, bot):
         self.bot = bot
@@ -79,5 +77,5 @@ class Retrosign(BaseCog):
                                 image = discord.File(fp=temp_image, filename="image.png")
                                 await ctx.channel.send(file=image)
 
-    def __unload(self):
-        self.session.detach()
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())

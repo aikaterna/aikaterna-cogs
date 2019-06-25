@@ -20,9 +20,7 @@ darkblurple = (78, 93, 148)
 white = (255, 255, 255)
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-class Blurplefy(BaseCog):
+class Blurplefy(commands.Cog):
     def __init__(self, bot):
         """Blurplefy images and check content of images."""
         self.bot = bot
@@ -437,5 +435,5 @@ class Blurplefy(BaseCog):
             msg = ""
         return msg.format(d, h, m, s)
 
-    def __unload(self):
-        self.session.close()
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())

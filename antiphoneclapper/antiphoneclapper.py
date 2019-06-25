@@ -113,5 +113,5 @@ class AntiPhoneClapper(BaseCog):
             else:
                 return
 
-    def __unload(self):
+    def cog_unload(self):
         self.bot.loop.create_task(self.session.close())

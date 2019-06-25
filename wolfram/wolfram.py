@@ -5,10 +5,7 @@ from redbot.core.utils.chat_formatting import box
 import xml.etree.ElementTree as ET
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-
-class Wolfram(BaseCog):
+class Wolfram(commands.Cog):
     """Ask Wolfram Alpha any question."""
 
     def __init__(self, bot):
@@ -55,5 +52,5 @@ class Wolfram(BaseCog):
             await self.config.WOLFRAM_API_KEY.set(key)
             await ctx.send("Key set.")
 
-    def __unload(self):
+    def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
