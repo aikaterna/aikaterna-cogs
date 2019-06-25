@@ -28,9 +28,9 @@ class RndStatus(BaseCog):
                 "Python",
                 "with your heart.",
             ],
-            "type": "1",
+            "streamer": "rndstatusstreamer",
+            "type": 1,
         }
-
         self.config.register_global(**default_global)
 
     @commands.group(autohelp=True)
@@ -55,6 +55,19 @@ class RndStatus(BaseCog):
         await self.config.statuses.set(list(statuses))
         await ctx.send(
             "Done. Redo this command with no parameters to see the current list of statuses."
+        )
+
+    @rndstatus.command(name="streamer")
+    async def _streamer(self, ctx: commands.Context, *, streamer=None):
+        """Set the streamer needed for streaming statuses.
+        """
+        
+        saved_streamer = await self.config.streamer()
+        if streamer == None:
+            return await ctx.send("Current Streamer: " + saved_streamer)
+        await self.config.streamer.set(streamer)
+        await ctx.send(
+            "Done. Redo this command with no parameters to see the current streamer."
         )
 
     @rndstatus.command()
@@ -99,6 +112,8 @@ class RndStatus(BaseCog):
         statuses = await self.config.statuses()
         botstats = await self.config.botstats()
         prefix = await self.bot.db.prefix()
+        streamer = await self.config.streamer()
+        url = "https://www.twitch.tv/" + streamer
 
         if botstats:
             total_users = sum(len(s.members) for s in self.bot.guilds)
@@ -106,10 +121,15 @@ class RndStatus(BaseCog):
             botstatus = f"{prefix[0]}help | {total_users} users | {servers} servers"
             if self.last_change == None:
                 type = await self.config.type()
-                await self.bot.change_presence(
-                    activity=discord.Activity(name=botstatus, type=type)
-                )
-                self.last_change = int(time.perf_counter())
+                if type == 1:
+                    await self.bot.change_presence(
+                        activity=discord.Streaming(name=botstatus, url=url)
+                    )
+                else:
+                    await self.bot.change_presence(
+                        activity=discord.Activity(name=botstatus, type=type)
+                    )
+            self.last_change = int(time.perf_counter())
             if message.author.id == self.bot.user.id:
                 return
             delay = await self.config.delay()
@@ -118,18 +138,28 @@ class RndStatus(BaseCog):
             self.last_change = int(time.perf_counter())
             if (current_game != str(botstatus)) or current_game == None:
                 type = await self.config.type()
-                return await self.bot.change_presence(
-                    activity=discord.Activity(name=botstatus, type=type)
-                )
+                if type == 1:
+                    return await self.bot.change_presence(
+                        activity=discord.Streaming(name=botstatus, url=url)
+                    )
+                else:
+                    return await self.bot.change_presence(
+                        activity=discord.Activity(name=botstatus, type=type)
+                    )
 
         if self.last_change == None:
             self.last_change = int(time.perf_counter())
             if len(statuses) > 0 and (current_game in statuses or current_game == None):
                 new_status = self.random_status(message, statuses)
                 type = await self.config.type()
-                await self.bot.change_presence(
-                    activity=discord.Activity(name=new_status, type=type)
-                )
+                if type == 1:
+                    await self.bot.change_presence(
+                        activity=discord.Streaming(name=new_status, url=url)
+                    )
+                else:
+                    await self.bot.change_presence(
+                        activity=discord.Activity(name=new_status, type=type)
+                    )
 
         if message.author.id != self.bot.user.id:
             delay = await self.config.delay()
@@ -139,9 +169,14 @@ class RndStatus(BaseCog):
                 if current_game != new_status:
                     if current_game in statuses or current_game == None:
                         type = await self.config.type()
-                        await self.bot.change_presence(
-                            activity=discord.Activity(name=new_status, type=type)
-                        )
+                        if type == 1:
+                            await self.bot.change_presence(
+                                activity=discord.Streaming(name=new_status, url=url)
+                            )
+                        else:
+                            await self.bot.change_presence(
+                                activity=discord.Activity(name=new_status, type=type)
+                            )
 
     def random_status(self, msg, statuses):
         try:
