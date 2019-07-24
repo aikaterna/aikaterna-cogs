@@ -5,7 +5,7 @@ adventure - Originally by Locastan. My version is a collaboration between Trusty
 
 antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog. Config stuff tacked on by me. Later iterations will include emoji recognizing and possibly link detection for these bad images.
 
-away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna. Set and unset a user as being "away".
+away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna, and large improvements by TrustyJAID. Set and unset a user as being "away".
 
 blurplefy - Make an avatar or an image upload blurple for Discord's 3rd anniversary.
 
@@ -42,5 +42,7 @@ trickortreat - A trick or treat-based competitive candy eating game with a leade
 tools - A collection of mod and admin tools, ported from my v2 version. Sitryk is responsible for a lot of the code in tools... thanks for the help with this cog.
 
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
+
+youtube - A v3 port of Paddo's youtube search cog for v2.
 
 Are you looking for the v3 lavalink music cog? It's been added to Red v3 as the audio module. Install from develop and ask in the Red support server for help if you need it, or join my server. https://discord.gg/th6eS3T
