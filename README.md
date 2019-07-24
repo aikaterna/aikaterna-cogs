@@ -9,7 +9,11 @@ away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna. Se
 
 blurplefy - Make an avatar or an image upload blurple for Discord's 3rd anniversary.
 
+cah - Cards Against Humanity, played in DM's. This can rate limit large bots via the sheer number of messages sent. Install and use with caution on larger bots.
+
 chatchart - Generates a pie chart to display chat activity over the last 5000 messages. Requested by violetnyte.
+
+dictonary - I stole this from UltimatePancake's v2 cogs, defines words via a dictonary. Only the "define" command for now until the dependency owner updates their files with a pending PR.
 
 dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
 

@@ -1,0 +1,16 @@
+{
+	"author": [
+		"UltimatePancake"
+	],
+	"description": "Gets definitions for given words",
+    "install_msg": "`[p]define <word>` to define a word after loading the cog with `[p]load dictionary`.",
+
+	"requirements": [
+		"PyDictionary"
+	],
+	"short": "Gets definitions for given words",
+	"tags": [
+		"dictionary"
+	],
+	"type": "COG"
+}
