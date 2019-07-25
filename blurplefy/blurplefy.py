@@ -91,7 +91,7 @@ class Blurplefy(commands.Cog):
             else:
                 picture = user.avatar_url
         try:
-            async with self.session.request("GET", picture) as r:
+            async with self.session.request("GET", str(picture)) as r:
                 response = await r.read()
         except ValueError:
             await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
@@ -118,7 +118,7 @@ class Blurplefy(commands.Cog):
             role_check = False
 
         try:
-            async with self.session.request("GET", picture) as r:
+            async with self.session.request("GET", str(picture)) as r:
                 response = await r.read()
         except ValueError:
             await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
@@ -224,7 +224,7 @@ class Blurplefy(commands.Cog):
             else:
                 picture = user.avatar_url
         try:
-            async with self.session.request("GET", picture) as r:
+            async with self.session.request("GET", str(picture)) as r:
                 response = await r.read()
         except ValueError:
             await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
