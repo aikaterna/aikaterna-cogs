@@ -27,7 +27,7 @@ class Pupper(commands.Cog):
     @commands.guild_only()
     @checks.mod_or_permissions(administrator=True)
     @commands.group()
-    async def pet(self, ctx):
+    async def pets(self, ctx):
         """Manage your pet."""
         pass
 
