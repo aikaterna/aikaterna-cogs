@@ -216,7 +216,7 @@ class Pupper(commands.Cog):
                 await bank.deposit_credits(u, deposit)
                 credits_name = await bank.get_currency_name(message.guild)
                 await rando_channel_obj.send(
-                    content=f"{guild_data['borf_msg']} `(+{deposit} {credits_name})`",
+                    content=f"{guild_data['borf_msg']} (`+{deposit}` {credits_name})",
                     delete_after=10,
                 )
             else:
