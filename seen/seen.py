@@ -124,7 +124,7 @@ class Seen(commands.Cog):
         return d, h, m
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message_without_command(self, message):
         if message.guild:
             if message.guild.id not in self._cache:
                 self._cache[message.guild.id] = {}
