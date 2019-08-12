@@ -1,5 +1,7 @@
 from .seen import Seen
 
 
-def setup(bot):
-    bot.add_cog(Seen(bot))
+async def setup(bot):
+    cog = Seen(bot)
+    await cog.initialize()
+    bot.add_cog(cog)
