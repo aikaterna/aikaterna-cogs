@@ -137,7 +137,7 @@ class Timezone(commands.Cog):
                 time = time.strftime(fmt)
                 await ctx.send(
                     f"{user.name}'s current timezone is: **{usertime}**\n"
-                    f"They current time is: {str(time)}"
+                    f"The current time is: {str(time)}"
                 )
             else:
                 await ctx.send("That user hasn't set their timezone.")
