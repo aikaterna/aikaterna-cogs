@@ -124,8 +124,8 @@ class Seen(commands.Cog):
         return d, h, m
 
     @commands.Cog.listener()
-    async def on_message_without_command(self, message):
-        if message.guild:
+    async def on_message(self, message):
+        if getattr(message, "guild", None):
             if message.guild.id not in self._cache:
                 self._cache[message.guild.id] = {}
             self._cache[message.guild.id][message.author.id] = int(time.time())
@@ -137,14 +137,14 @@ class Seen(commands.Cog):
         user: Union[discord.User, discord.Member],
         when: datetime.datetime,
     ):
-        if user.guild:
+        if getattr(user, "guild", None):
             if user.guild.id not in self._cache:
                 self._cache[user.guild.id] = {}
             self._cache[user.guild.id][user.id] = int(time.time())
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        if after.guild:
+        if getattr(after, "guild", None):
             if after.guild.id not in self._cache:
                 self._cache[after.guild.id] = {}
             self._cache[after.guild.id][after.author.id] = int(time.time())
@@ -153,7 +153,7 @@ class Seen(commands.Cog):
     async def on_reaction_remove(
         self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]
     ):
-        if user.guild:
+        if getattr(user, "guild", None):
             if user.guild.id not in self._cache:
                 self._cache[user.guild.id] = {}
             self._cache[user.guild.id][user.id] = int(time.time())
@@ -162,7 +162,7 @@ class Seen(commands.Cog):
     async def on_reaction_add(
         self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]
     ):
-        if user.guild:
+        if getattr(user, "guild", None):
             if user.guild.id not in self._cache:
                 self._cache[user.guild.id] = {}
             self._cache[user.guild.id][user.id] = int(time.time())
