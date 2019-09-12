@@ -19,6 +19,7 @@ class YouTube(commands.Cog):
             async with self.session.get(search_url, params=payload, headers=headers) as r:
                 result = await r.text()
             yt_find = re.findall(r"href=\"\/watch\?v=(.{11})", result)
+            self.session.close()
 
             url_list = []
             for track in yt_find:
@@ -28,7 +29,7 @@ class YouTube(commands.Cog):
         except Exception as e:
             url_list = [f"Something went terribly wrong! [{e}]"]
 
-        return list(set(url_list))
+        return list(url_list)
 
     @commands.command()
     async def youtube(self, ctx, *, query: str):
