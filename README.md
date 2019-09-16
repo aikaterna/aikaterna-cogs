@@ -33,6 +33,8 @@ pingtime - Show all shards' pingtimes.
 
 pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
 
+region - A command to change the voice region of a server. Requires the guild admin or mod role or guild administrator.
+
 retrosign - A v3 port of Anismash's retrosign cog: https://github.com/Anismash/Ani-Cogs/tree/master/retrosign
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
