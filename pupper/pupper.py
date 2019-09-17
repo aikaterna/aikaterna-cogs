@@ -57,7 +57,7 @@ class Pupper(commands.Cog):
         """Set the pet credits range on successful petting."""
         if min_amt > max_amt:
             return await ctx.send("Min must be less than max.")
-        if min_amt or max_amt < 1:
+        if min_amt < 1 or max_amt < 1:
             return await ctx.send("Min and max amounts must be greater than 1.")
         await self.config.guild(ctx.guild).credits.set([min_amt, max_amt])
         await ctx.send(f"Pet credit range set to {min_amt} - {max_amt}.")
