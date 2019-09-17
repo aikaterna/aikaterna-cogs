@@ -65,7 +65,7 @@ class Retrosign(commands.Cog):
 
         async with ctx.channel.typing():
             async with self.session.post(
-                "http://photofunia.com/effects/retro-wave", data=data
+                "https://photofunia.com/effects/retro-wave", data=data
             ) as response:
                 if response.status == 200:
                     soup = bs(await response.text(), "html.parser")
