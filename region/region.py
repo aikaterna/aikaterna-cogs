@@ -15,6 +15,7 @@ class Region(commands.Cog):
             "japan",
             "singapore",
             "eu-central",
+            "europe",
             "india",
             "us-central",
             "london",
