@@ -225,15 +225,15 @@ class TrickOrTreat(BaseCog):
             msg += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
         if userdata["stars"]:
             msg += f"\n{userdata['stars']} \N{WHITE MEDIUM STAR}"
-        if userdata["sickness"] in range(40, 54):
+        if userdata["sickness"] in range(41, 56):
             msg += "\n\n**Sickness is over 40/100**\n*You don't feel so good...*"
-        if userdata["sickness"] in range(55, 70):
+        elif userdata["sickness"] in range(56, 71):
             msg += "\n\n**Sickness is over 55/100**\n*You don't feel so good...*"
-        if userdata["sickness"] in range(71, 84):
+        elif userdata["sickness"] in range(71, 86):
             msg += "\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
-        if userdata["sickness"] in range(85, 100):
+        elif userdata["sickness"] in range(86, 101):
             msg += "\n\n**Sickness is over 85/100**\n*The thought of more sugar makes you feel awful...*"
-        if userdata["sickness"] > 100:
+        elif userdata["sickness"] > 100:
             msg += "\n\n**Sickness is over 100/100**\n*Better wait a while for more candy...*"
         await ctx.send(msg)
 
