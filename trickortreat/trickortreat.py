@@ -463,6 +463,7 @@ class TrickOrTreat(BaseCog):
             int((now - last_time).total_seconds())
             < await self.config.guild(message.guild).cooldown()
         ):
+            await self.config.user(message.author).last_tot.set(str(now))
             messages = [
                 "The thought of candy right now doesn't really sound like a good idea.",
                 "All the lights on this street are dark...",
@@ -532,4 +533,3 @@ class TrickOrTreat(BaseCog):
             win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
 
         await message.channel.send(win_message)
-        await self.config.user(message.author).last_tot.set(str(now))
