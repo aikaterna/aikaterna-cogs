@@ -440,7 +440,7 @@ class TrickOrTreat(commands.Cog):
                     new_sickness = 0
                 await self.config.user(message.author).sickness.set(new_sickness)
 
-        if "trick or treat" not in content:
+        if not content.startswith("trick or treat"):
             return
         toggle = await self.config.guild(message.guild).toggle()
         if not toggle:
