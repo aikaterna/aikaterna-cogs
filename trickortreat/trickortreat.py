@@ -236,10 +236,12 @@ class TrickOrTreat(commands.Cog):
     @commands.command()
     async def totcooldown(self, ctx, cooldown_time: int = 0):
         """Set the cooldown time for trick or treating on the server."""
-        cooldown = await self.config.guild(ctx.guild).cooldown()
-        if not cooldown_time:
+        if cooldown_time == 0:
             await self.config.guild(ctx.guild).cooldown.set(300)
-            await ctx.send("Trick or treating cooldown time reset to 5m.")
+            return await ctx.send("Trick or treating cooldown time reset to 5m.")
+        elif 1 <= cooldown_time <= 30:
+            await self.config.guild(ctx.guild).cooldown.set(30)
+            return await ctx.send("Trick or treating cooldown time set to the minimum of 30s.")
         else:
             await self.config.guild(ctx.guild).cooldown.set(cooldown_time)
             await ctx.send(f"Trick or treating cooldown time set to {cooldown_time}s.")
