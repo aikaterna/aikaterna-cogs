@@ -6,7 +6,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.0.6"
+__version__ = "0.0.6a"
 
 
 class TrickOrTreat(commands.Cog):
@@ -236,6 +236,8 @@ class TrickOrTreat(commands.Cog):
     @commands.command()
     async def totcooldown(self, ctx, cooldown_time: int = 0):
         """Set the cooldown time for trick or treating on the server."""
+        if cooldown_time < 0:
+            return await ctx.send("Nice try.")
         if cooldown_time == 0:
             await self.config.guild(ctx.guild).cooldown.set(300)
             return await ctx.send("Trick or treating cooldown time reset to 5m.")
