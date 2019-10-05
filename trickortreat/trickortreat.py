@@ -38,8 +38,10 @@ class TrickOrTreat(commands.Cog):
         pick = await self.config.guild(ctx.guild).pick()
         if not candy_type:
             candy_type = "candies"
-        if number <= 0:
-            number == 1
+        if number < 0:
+            return await ctx.send("That doesn't sound fun.")
+        if number == 0:
+            return await ctx.send("You pretend to eat a candy.")
         if candy_type in ["candies", "candy"]:
             candy_type = "candies"
         if candy_type in ["lollipops", "lollipop"]:
