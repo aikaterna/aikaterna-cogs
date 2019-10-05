@@ -4,9 +4,7 @@ from random import choice as rndchoice
 import time
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-class RndStatus(BaseCog):
+class RndStatus(commands.Cog):
     """Cycles random statuses or displays bot stats.
 
     If a custom status is already set, it won't change it until
@@ -104,7 +102,8 @@ class RndStatus(BaseCog):
         else:
             await ctx.send("Type must be between 0 and 3.")
 
-    async def switch_status(self, message):
+    @commands.Cog.listener()
+    async def on_message(self, message):
         try:
             current_game = str(message.guild.me.activity.name)
         except AttributeError:
@@ -129,13 +128,12 @@ class RndStatus(BaseCog):
                     await self.bot.change_presence(
                         activity=discord.Activity(name=botstatus, type=type)
                     )
-            self.last_change = int(time.perf_counter())
+                self.last_change = int(time.perf_counter())
             if message.author.id == self.bot.user.id:
                 return
             delay = await self.config.delay()
             if abs(self.last_change - int(time.perf_counter())) < int(delay):
                 return
-            self.last_change = int(time.perf_counter())
             if (current_game != str(botstatus)) or current_game == None:
                 type = await self.config.type()
                 if type == 1:
@@ -148,7 +146,6 @@ class RndStatus(BaseCog):
                     )
 
         if self.last_change == None:
-            self.last_change = int(time.perf_counter())
             if len(statuses) > 0 and (current_game in statuses or current_game == None):
                 new_status = self.random_status(message, statuses)
                 type = await self.config.type()
