@@ -148,6 +148,7 @@ class RndStatus(commands.Cog):
         if self.last_change == None:
             if len(statuses) > 0 and (current_game in statuses or current_game == None):
                 new_status = self.random_status(message, statuses)
+                self.last_change = int(time.perf_counter())
                 type = await self.config.type()
                 if type == 1:
                     await self.bot.change_presence(
