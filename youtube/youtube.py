@@ -23,12 +23,13 @@ class YouTube(commands.Cog):
             url_list = []
             for track in yt_find:
                 url = f"https://www.youtube.com/watch?v={track}"
-                url_list.append(url)
+                if url not in url_list:
+                    url_list.append(url)
 
         except Exception as e:
             url_list = [f"Something went terribly wrong! [{e}]"]
 
-        return list(set(url_list))
+        return url_list
 
     @commands.command()
     async def youtube(self, ctx, *, query: str):
