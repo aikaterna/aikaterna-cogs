@@ -187,40 +187,43 @@ class TrickOrTreat(commands.Cog):
         userinfo = await self.config._all_from_scope(scope="USER")
         if not userinfo:
             return await ctx.send("No one has any candy.")
-        message = await ctx.send("Populating leaderboard...")
-        sorted_acc = sorted(userinfo.items(), key=lambda x: x[1]["eaten"], reverse=True)
-        msg = "{name:33}{score:19}\n".format(name="Name", score="Candies Eaten")
-        for i, account in enumerate(sorted_acc):
-            if account[1]["eaten"] == 0:
-                continue
-            user_idx = i + 1
-            try:
-                user_obj = ctx.guild.get_member(account[0])
-            except AttributeError:
-                user_obj = await self.bot.fetch_user(account[0])
-            user_name = f"{user_obj.name}#{user_obj.discriminator}"
-            if len(user_name) > 28:
-                user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
-            if user_obj == ctx.author:
-                name = f"{user_idx}. <<{user_name}>>"
-            else:
-                name = f"{user_idx}. {user_name}"
-            msg += f"{name:33}{account[1]['eaten']}\N{CANDY}\n"
+        async with ctx.typing():
+            sorted_acc = sorted(userinfo.items(), key=lambda x: x[1]["eaten"], reverse=True)
+            msg = "{name:33}{score:19}\n".format(name="Name", score="Candies Eaten")
+            for i, account in enumerate(sorted_acc):
+                if account[1]["eaten"] == 0:
+                    continue
+                user_idx = i + 1
+                try:
+                    if account[0] in [member.id for member in ctx.guild.members]:
+                        user_obj = ctx.guild.get_member(account[0])
+                    else:
+                        user_obj = await self.bot.fetch_user(account[0])
+                except AttributeError:
+                    user_obj = await self.bot.fetch_user(account[0])
+                user_name = f"{user_obj.name}#{user_obj.discriminator}"
+                if len(user_name) > 28:
+                    user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+                if user_obj == ctx.author:
+                    name = f"{user_idx}. <<{user_name}>>"
+                else:
+                    name = f"{user_idx}. {user_name}"
+                msg += f"{name:33}{account[1]['eaten']}\N{CANDY}\n"
 
-        page_list = []
-        pages = 1
-        for page in pagify(msg, delims=["\n"], page_length=1000):
-            embed = discord.Embed(
-                colour=await ctx.embed_colour(),
-                description=box(
-                    f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog"
+            page_list = []
+            pages = 1
+            for page in pagify(msg, delims=["\n"], page_length=1000):
+                embed = discord.Embed(
+                    colour=await ctx.embed_colour(),
+                    description=box(
+                        f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog"
+                    )
+                    + (box(page, lang="md")),
                 )
-                + (box(page, lang="md")),
-            )
-            embed.set_footer(text=f"Page {pages:,}/{math.ceil(len(msg) / 1500):,}")
-            pages += 1
-            page_list.append(embed)
-        await menu(ctx, page_list, DEFAULT_CONTROLS)
+                embed.set_footer(text=f"Page {pages:,}/{math.ceil(len(msg) / 1500):,}")
+                pages += 1
+                page_list.append(embed)
+        return await menu(ctx, page_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()
