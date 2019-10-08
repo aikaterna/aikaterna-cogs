@@ -181,6 +181,7 @@ class TrickOrTreat(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
     async def cboard(self, ctx):
         """Show the candy eating leaderboard."""
         userinfo = await self.config._all_from_scope(scope="USER")
