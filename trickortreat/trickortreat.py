@@ -196,7 +196,7 @@ class TrickOrTreat(commands.Cog):
             try:
                 user_obj = ctx.guild.get_member(account[0])
             except AttributeError:
-                user_obj = await self.bot.get_user_info(account[0])
+                user_obj = await self.bot.fetch_user(account[0])
             user_name = f"{user_obj.name}#{user_obj.discriminator}"
             if len(user_name) > 28:
                 user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
