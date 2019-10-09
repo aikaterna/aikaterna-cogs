@@ -33,6 +33,8 @@ partycrash - A port of Will's partycrash command from the v2 Admin cog. This cog
 
 pingtime - Show all shards' pingtimes.
 
+pressf - A port/rewrite of NekoTony's v2 pressf cog. Pay your respects by pressing F.
+
 pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
 
 region - A command to change the voice region of a server. Requires the guild admin or mod role or guild administrator.
