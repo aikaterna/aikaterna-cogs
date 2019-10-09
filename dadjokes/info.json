@@ -1,0 +1,10 @@
+{
+	"author": [
+		"UltimatePancake"
+	],
+	"description": "Gets a random dad joke from icanhazdadjoke.com",
+    "install_msg": "Gets a random dad joke from icanhazdadjoke.com. Thanks for installing.",
+	"short": "Random dad jokes",
+	"tags": ["jokes", "dad", "dadjokes"],
+	"type": "COG"
+}
