@@ -247,6 +247,7 @@ class TrickOrTreat(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def cinventory(self, ctx):
         """Check your inventory."""
         userdata = await self.config.user(ctx.author).all()
