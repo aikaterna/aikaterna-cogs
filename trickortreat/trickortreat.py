@@ -3,11 +3,16 @@ import datetime
 import discord
 import random
 import math
+from typing import Union  # <- Remove this at 3.2
+from babel.numbers import format_decimal  # <- Remove this at 3.2
 from redbot.core import commands, checks, Config, bank
-from redbot.core.utils.chat_formatting import box, pagify, humanize_number
+from redbot.core.utils.chat_formatting import box, pagify  #, humanize_number <- Will be for 3.2
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 __version__ = "0.0.6a"
+
+def humanize_number(val: Union[int, float]):  # <- Remove this at 3.2
+    return format_decimal(val, locale="en_US")
 
 
 class TrickOrTreat(commands.Cog):
