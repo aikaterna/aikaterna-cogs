@@ -226,12 +226,12 @@ class TrickOrTreat(commands.Cog):
             user_idx = pos + 1
             if user_obj == ctx.author:
                 temp_msg += (
-                    f"{f'{humanize_number(user_idx)}.': <{pound_len + 2}} "
+                    f"{f'{user_idx}.': <{pound_len + 2}} "
                     f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} <<{user_name}>>\n"
                 )
             else:
                 temp_msg += (
-                    f"{f'{humanize_number(user_idx)}.': <{pound_len + 2}} "
+                    f"{f'{user_idx}.': <{pound_len + 2}} "
                     f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} {user_name}\n"
                 )
 
