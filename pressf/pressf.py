@@ -1,6 +1,7 @@
 import asyncio
 import discord
 from redbot.core import commands
+from redbot.core.utils.common_filters import filter_mass_mentions
 
 
 class PressF(commands.Cog):
@@ -35,7 +36,7 @@ class PressF(commands.Cog):
             answer = pressf.content[:1900]
 
         message = await ctx.send(
-            f"Everyone, let's pay respects to **{answer}**! Press the f reaction on the this message to pay respects."
+            f"Everyone, let's pay respects to **{filter_mass_mentions(answer)}**! Press the f reaction on the this message to pay respects."
         )
         await message.add_reaction("\U0001f1eb")
         self.channels[str(ctx.channel.id)] = {'msg_id': message.id, 'reacted': []}
@@ -43,7 +44,7 @@ class PressF(commands.Cog):
         await message.delete()
         amount = len(self.channels[str(ctx.channel.id)]['reacted'])
         word = "person has" if amount == 1 else "people have"
-        await ctx.channel.send(f"**{amount}** {word} paid respects to **{answer}**.")
+        await ctx.channel.send(f"**{amount}** {word} paid respects to **{filter_mass_mentions(answer)}**.")
         del self.channels[str(ctx.channel.id)]
 
     @commands.Cog.listener()
