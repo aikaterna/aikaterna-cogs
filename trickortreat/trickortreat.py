@@ -11,7 +11,7 @@ from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 __version__ = "0.0.6a"
 
-def humanize_number(val: Union[int, float]):
+def humanize_number(val: Union[int, float]):  # <- Remove this at 3.2
     return format_decimal(val, locale="en_US")
 
 
