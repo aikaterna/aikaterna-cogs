@@ -4,7 +4,7 @@ import discord
 import random
 import math
 from redbot.core import commands, checks, Config, bank
-from redbot.core.utils.chat_formatting import box, pagify
+from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 __version__ = "0.0.6a"
@@ -129,7 +129,9 @@ class TrickOrTreat(commands.Cog):
                 )
 
             pluralcandy = "candy" if number == 1 else "candies"
-            await ctx.send(f"{random.choice(eat_phrase)} {number} {pluralcandy}. (Total eaten: `{await self.config.user(ctx.author).eaten() + number:,}` \N{CANDY})")
+            await ctx.send(
+                f"{random.choice(eat_phrase)} {number} {pluralcandy}. (Total eaten: `{humanize_number(await self.config.user(ctx.author).eaten() + number)}` \N{CANDY})"
+            )
             await self.config.user(ctx.author).sickness.set(userdata["sickness"] + (number * 2))
             await self.config.user(ctx.author).candies.set(userdata["candies"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
@@ -156,7 +158,7 @@ class TrickOrTreat(commands.Cog):
     @commands.guild_only()
     @checks.mod_or_permissions(administrator=True)
     @commands.command()
-    async def balance(self, ctx):
+    async def totbalance(self, ctx):
         """Check how many candies are 'on the ground' in the guild."""
         pick = await self.config.guild(ctx.guild).pick()
         await ctx.send(f"The guild is currently holding: {pick} \N{CANDY}")
@@ -189,63 +191,89 @@ class TrickOrTreat(commands.Cog):
             return await ctx.send("No one has any candy.")
         async with ctx.typing():
             sorted_acc = sorted(userinfo.items(), key=lambda x: x[1]["eaten"], reverse=True)
-            msg = "{name:33}{score:19}\n".format(name="Name", score="Candies Eaten")
-            for i, account in enumerate(sorted_acc):
-                if account[1]["eaten"] == 0:
-                    continue
-                user_idx = i + 1
-                try:
-                    if account[0] in [member.id for member in ctx.guild.members]:
-                        user_obj = ctx.guild.get_member(account[0])
-                    else:
-                        user_obj = await self.bot.fetch_user(account[0])
-                except AttributeError:
-                    user_obj = await self.bot.fetch_user(account[0])
-                user_name = f"{user_obj.name}#{user_obj.discriminator}"
-                if len(user_name) > 28:
-                    user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
-                if user_obj == ctx.author:
-                    name = f"{user_idx}. <<{user_name}>>"
+        # Leaderboard logic from https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/cogs/economy/economy.py#L445
+        pound_len = len(str(len(sorted_acc)))
+        score_len = 10
+        header = "{pound:{pound_len}}{score:{score_len}}{name:2}\n".format(
+            pound="#",
+            pound_len=pound_len + 3,
+            score="Candies Eaten",
+            score_len=score_len + 6,
+            name="\N{THIN SPACE}" + "Name"
+            if not str(ctx.author.mobile_status) in ["online", "idle", "dnd"]
+            else "Name",
+        )
+        temp_msg = header
+        for pos, account in enumerate(sorted_acc):
+            if account[1]["eaten"] == 0:
+                continue
+            try:
+                if account[0] in [member.id for member in ctx.guild.members]:
+                    user_obj = ctx.guild.get_member(account[0])
                 else:
-                    name = f"{user_idx}. {user_name}"
-                msg += f"{name:33}{account[1]['eaten']}\N{CANDY}\n"
+                    user_obj = await self.bot.fetch_user(account[0])
+            except AttributeError:
+                user_obj = await self.bot.fetch_user(account[0])
 
-            page_list = []
-            pages = 1
-            for page in pagify(msg, delims=["\n"], page_length=1000):
-                embed = discord.Embed(
-                    colour=await ctx.embed_colour(),
-                    description=box(
-                        f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog"
-                    )
-                    + (box(page, lang="md")),
+            user_name = f"{user_obj.name}#{user_obj.discriminator}"
+            if len(user_name) > 28:
+                user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+            user_idx = pos + 1
+            if user_obj == ctx.author:
+                temp_msg += (
+                    f"{f'{humanize_number(user_idx)}.': <{pound_len + 2}} "
+                    f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} <<{user_name}>>\n"
                 )
-                embed.set_footer(text=f"Page {pages:,}/{math.ceil(len(msg) / 1500):,}")
-                pages += 1
-                page_list.append(embed)
+            else:
+                temp_msg += (
+                    f"{f'{humanize_number(user_idx)}.': <{pound_len + 2}} "
+                    f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} {user_name}\n"
+                )
+
+        page_list = []
+        pages = 1
+        for page in pagify(temp_msg, delims=["\n"], page_length=1000):
+            embed = discord.Embed(
+                colour=0xF4731C,
+                description=box(f"\N{CANDY} Global leaderboard \N{CANDY}", lang="prolog")
+                + (box(page, lang="md")),
+            )
+            embed.set_footer(
+                text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 1500))}"
+            )
+            pages += 1
+            page_list.append(embed)
         return await menu(ctx, page_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def cinventory(self, ctx):
         """Check your inventory."""
         userdata = await self.config.user(ctx.author).all()
-        msg = f"{ctx.author.mention}'s Candy Bag:\n{userdata['candies']} \N{CANDY}"
+        sickness = userdata["sickness"]
+        msg = f"{ctx.author.mention}'s Candy Bag:"
+        em = discord.Embed(color=await ctx.embed_color())
+        em.description = f"{userdata['candies']} \N{CANDY}"
         if userdata["lollipops"]:
-            msg += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
+            em.description += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
         if userdata["stars"]:
-            msg += f"\n{userdata['stars']} \N{WHITE MEDIUM STAR}"
-        if userdata["sickness"] in range(41, 56):
-            msg += "\n\n**Sickness is over 40/100**\n*You don't feel so good...*"
-        elif userdata["sickness"] in range(56, 71):
-            msg += "\n\n**Sickness is over 55/100**\n*You don't feel so good...*"
-        elif userdata["sickness"] in range(71, 86):
-            msg += "\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
-        elif userdata["sickness"] in range(86, 101):
-            msg += "\n\n**Sickness is over 85/100**\n*The thought of more sugar makes you feel awful...*"
-        elif userdata["sickness"] > 100:
-            msg += "\n\n**Sickness is over 100/100**\n*Better wait a while for more candy...*"
-        await ctx.send(msg)
+            em.description += f"\n{userdata['stars']} \N{WHITE MEDIUM STAR}"
+        if sickness in range(41, 56):
+            em.description += f"\n\n**Sickness is over 40/100**\n*You don't feel so good...*"
+        elif sickness in range(56, 71):
+            em.description += f"\n\n**Sickness is over 55/100**\n*You don't feel so good...*"
+        elif sickness in range(71, 86):
+            em.description += (
+                f"\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
+            )
+        elif sickness in range(86, 101):
+            em.description += f"\n\n**Sickness is over 85/100**\n*The thought of more sugar makes you feel awful...*"
+        elif sickness > 100:
+            em.description += (
+                f"\n\n**Sickness is over 100/100**\n*Better wait a while for more candy...*"
+            )
+        await ctx.send(msg, embed=em)
 
     @commands.guild_only()
     @checks.mod_or_permissions(administrator=True)
