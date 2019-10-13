@@ -371,7 +371,7 @@ class Tools(commands.Cog):
 
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
-        all_forms = [form.format(gid=g.id, mems=g.member_count, name=g.name, zpadding=max_zpadding) for g in guilds]
+        all_forms = [form.format(gid=g.id, mems=g.member_count, name=g.name.strip("*"), zpadding=max_zpadding) for g in guilds]
         final = '\n'.join(all_forms)
 
         await ctx.send(header)
