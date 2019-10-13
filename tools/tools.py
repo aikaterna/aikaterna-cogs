@@ -11,10 +11,8 @@ from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from tabulate import tabulate
 from contextlib import suppress as sps
 
-BaseCog = getattr(commands, "Cog", object)
 
-
-class Tools(BaseCog):
+class Tools(commands.Cog):
     """Mod and Admin tools."""
 
     def __init__(self, bot):
@@ -368,7 +366,7 @@ class Tools(BaseCog):
         asciidoc = lambda m: "```asciidoc\n{}\n```".format(m)
         guilds = sorted(self.bot.guilds, key=lambda g: -g.member_count)
         header = ("```\n"
-                  "The bot is in the following {} server{}\n"
+                  "The bot is in the following {} server{}:\n"
                   "```").format(len(guilds), 's' if len(guilds) > 1 else '')
 
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
@@ -377,8 +375,13 @@ class Tools(BaseCog):
         final = '\n'.join(all_forms)
 
         await ctx.send(header)
-        for page in cf.pagify(final, delims=['\n'], shorten_by=16):
-            await ctx.send(asciidoc(page))
+        page_list = []
+        for page in cf.pagify(final, delims=['\n'], page_length=1000):
+            page_list.append(asciidoc(page))
+
+        if len(page_list) == 1:
+            return await ctx.send(asciidoc(page))
+        await menu(ctx, page_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
