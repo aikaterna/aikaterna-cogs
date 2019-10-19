@@ -30,7 +30,7 @@ class Region(commands.Cog):
             "us-east",
             "sydney",
             "frankfurt",
-            "russia",
+            "russia"
         ]
         region = region.replace(" ", "-")
         if region not in regions:
