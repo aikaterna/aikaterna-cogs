@@ -1,14 +1,10 @@
 {
 	"author": [
-		"UltimatePancake"
+		"UltimatePancake", "aikaterna"
 	],
-	"description": "Gets definitions for given words",
-    "install_msg": "`[p]define <word>` to define a word after loading the cog with `[p]load dictionary`.",
-
-	"requirements": [
-		"PyDictionary"
-	],
-	"short": "Gets definitions for given words",
+	"description": "Gets definitions, antonyms, or synonyms for given words",
+	"install_msg": "After loading the cog with `[p]load dictionary`, use [p]help Dictionary to view commands.",
+	"short": "Gets definitions, antonyms, or synonyms for given words",
 	"tags": [
 		"dictionary"
 	],
