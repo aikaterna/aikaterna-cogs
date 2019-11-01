@@ -239,11 +239,11 @@ class Snacktime(commands.Cog):
         self.snacktimeCheckLock[scid] = True
         if seconds < 0:
             await ctx.send(
-                f"I'm not sure where snackburr is.. He's already {seconds / 60} minutes late!"
+                f"I'm not sure where snackburr is.. He's already {round(abs(seconds/60), 2)} minutes late!"
             )
         else:
             await ctx.send(
-                f"snackburr's out on errands! I think he'll be back in {seconds / 60} minutes"
+                f"snackburr's out on errands! I think he'll be back in {round(seconds/60, 2)} minutes"
             )
         await asyncio.sleep(40)
         self.snacktimeCheckLock[scid] = False
