@@ -1,0 +1,9 @@
+{
+    "NAME" : "Snacktime",
+    "AUTHOR" : ["irdumb", "aikaterna"],
+    "SHORT" : "ʕ •ᴥ•ʔ < It's snacktime, who wants snacks?",
+    "DESCRIPTION" : "snackburr will come around every-so-often if you've asked him to.\nI hear snackburr likes to come around more often when people are partyin.",
+    "INSTALL_MSG" : "A snack delivery bear has ʕ•ᴥ• ʔ",
+    "TAGS" : ["snack", "snacktime", "snackburr", "party", "party time"],
+    "DISABLED" : false
+}
