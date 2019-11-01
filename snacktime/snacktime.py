@@ -462,8 +462,5 @@ class Snacktime(commands.Cog):
                     if userWants:
                         await asyncio.sleep(randint(1, 6))
                         if self.acceptInput.get(scid, False):
-                            await message.channel.send(
-                                await self.get_response(message, "GREEDY").format(
-                                    message.author.name
-                                )
-                            )
+                            resp = await self.get_response(message, "GREEDY")
+                            await message.channel.send(resp.format(message.author.name))
