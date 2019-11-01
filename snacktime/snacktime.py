@@ -215,7 +215,8 @@ class Snacktime(commands.Cog):
             await self.config.guild(ctx.guild).DELIVER_CHANNELS.set(deliver_channels)
             await ctx.send("snackburr will stop delivering here!")
 
-    @commands.command(pass_context=True)
+    @commands.guild_only()
+    @commands.command()
     async def snacktime(self, ctx):
         """Man i'm hungry! When's snackburr gonna get back with more snacks?"""
         scid = f"{ctx.message.guild.id}-{ctx.message.channel.id}"
