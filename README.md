@@ -43,6 +43,8 @@ retrosign - A v3 port of Anismash's retrosign cog: https://github.com/Anismash/A
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
+snacktime - A v3 port of irdumb's snacktime cog. Now with friends!
+
 timezone - A v3 port of Fishyfing's timezone cog with a few improvements.
 
 trickortreat - A trick or treat-based competitive candy eating game with a leaderboard and other fun commands like stealing candy from guildmates.
