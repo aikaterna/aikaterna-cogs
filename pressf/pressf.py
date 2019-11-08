@@ -44,7 +44,7 @@ class PressF(commands.Cog):
         await message.delete()
         amount = len(self.channels[str(ctx.channel.id)]['reacted'])
         word = "person has" if amount == 1 else "people have"
-        await ctx.channel.send(f"**{amount}** {word} paid respects to **{filter_mass_mentions(answer)}**.")
+        await ctx.channel.send(f"**{amount}** {word} paid respects their to **{filter_mass_mentions(answer)}**.")
         del self.channels[str(ctx.channel.id)]
 
     @commands.Cog.listener()
@@ -57,5 +57,5 @@ class PressF(commands.Cog):
             return
         if user.id not in self.channels[str(reaction.message.channel.id)]['reacted']:
             if str(reaction.emoji) == "\U0001f1eb":
-                await reaction.message.channel.send(f"**{user.display_name}** has paid respects.")
+                await reaction.message.channel.send(f"**{user.display_name}** has paid their respects.")
                 self.channels[str(reaction.message.channel.id)]['reacted'].append(user.id)
