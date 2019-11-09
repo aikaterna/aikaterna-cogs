@@ -44,7 +44,7 @@ class PressF(commands.Cog):
         await message.delete()
         amount = len(self.channels[str(ctx.channel.id)]['reacted'])
         word = "person has" if amount == 1 else "people have"
-        await ctx.channel.send(f"**{amount}** {word} paid respects their to **{filter_mass_mentions(answer)}**.")
+        await ctx.channel.send(f"**{amount}** {word} paid respects to **{filter_mass_mentions(answer)}**.")
         del self.channels[str(ctx.channel.id)]
 
     @commands.Cog.listener()
