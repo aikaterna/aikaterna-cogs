@@ -57,5 +57,5 @@ class PressF(commands.Cog):
             return
         if user.id not in self.channels[str(reaction.message.channel.id)]['reacted']:
             if str(reaction.emoji) == "\U0001f1eb":
-                await reaction.message.channel.send(f"**{user.display_name}** has paid respects.")
+                await reaction.message.channel.send(f"**{user.display_name}** has paid their respects.")
                 self.channels[str(reaction.message.channel.id)]['reacted'].append(user.id)
