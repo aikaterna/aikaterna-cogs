@@ -19,6 +19,7 @@ class PressF(commands.Cog):
             return await ctx.send(
                 "Oops! I'm still paying respects in this channel, you'll have to wait until I'm done."
             )
+        self.channels[str(ctx.channel.id)] = {}
 
         if user:
             answer = user.display_name
@@ -26,11 +27,12 @@ class PressF(commands.Cog):
             await ctx.send("What do you want to pay respects to?")
 
             def check(m):
-                return m.author == ctx.author
+                return m.author == ctx.author and m.channel == ctx.channel
 
             try:
                 pressf = await ctx.bot.wait_for("message", timeout=120.0, check=check)
             except asyncio.TimeoutError:
+                del self.channels[str(ctx.channel.id)]
                 return await ctx.send("You took too long to reply.")
 
             answer = pressf.content[:1900]
@@ -41,10 +43,13 @@ class PressF(commands.Cog):
         await message.add_reaction("\U0001f1eb")
         self.channels[str(ctx.channel.id)] = {'msg_id': message.id, 'reacted': []}
         await asyncio.sleep(120)
-        await message.delete()
+        try:
+            await message.delete()
+        except (discord.errors.NotFound, discord.errors.Forbidden):
+            pass
         amount = len(self.channels[str(ctx.channel.id)]['reacted'])
         word = "person has" if amount == 1 else "people have"
-        await ctx.channel.send(f"**{amount}** {word} paid respects to **{filter_mass_mentions(answer)}**.")
+        await ctx.send(f"**{amount}** {word} paid respects to **{filter_mass_mentions(answer)}**.")
         del self.channels[str(ctx.channel.id)]
 
     @commands.Cog.listener()
