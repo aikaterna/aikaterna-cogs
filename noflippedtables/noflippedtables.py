@@ -4,6 +4,7 @@ import re
 from redbot.core import commands, checks, Config
 from redbot.core.utils.chat_formatting import box
 
+
 class NoFlippedTables(commands.Cog):
     """For the table sympathizers"""
 
@@ -15,6 +16,7 @@ class NoFlippedTables(commands.Cog):
             "ALL_TABLES": True,
             "BOT_EXEMPT": False,
             "SNACKBEAR": False,
+            "TOGGLE": False,
         }
 
         self.config.register_guild(**default_guild)
@@ -62,21 +64,34 @@ class NoFlippedTables(commands.Cog):
         else:
             await ctx.send("Snackbear is heading off for his errands!")
 
+    @tableset.command()
+    async def toggle(self, ctx):
+        """Toggle the unflipping on or off."""
+        settings = await self.config.guild(ctx.guild).TOGGLE()
+        await self.config.guild(ctx.guild).TOGGLE.set(not settings)
+        if not settings:
+            await ctx.send("No table shall be left unflipped in this server.")
+        else:
+            await ctx.send("No more unflipping here.")
+
     @commands.Cog.listener()
-    #so much fluff just for this OpieOP
+    # so much fluff just for this OpieOP
     async def on_message(self, message):
         channel = message.channel
         user = message.author
-        if hasattr(user, 'bot') and user.bot is True:
-                    return
+        if hasattr(user, "bot") and user.bot is True:
+            return
+        toggle = await self.config.guild(message.guild).TOGGLE()
+        if not toggle:
+            return
         if channel.id not in self.flippedTables:
-             self.flippedTables[channel.id] = {}
-        #┬─┬ ┬┬ ┻┻ ┻━┻ ┬───┬ ┻━┻ will leave 3 tables left flipped
-        #count flipped tables
-        for m in re.finditer('┻━*┻|┬─*┬', message.content):
+            self.flippedTables[channel.id] = {}
+        # ┬─┬ ┬┬ ┻┻ ┻━┻ ┬───┬ ┻━┻ will leave 3 tables left flipped
+        # count flipped tables
+        for m in re.finditer("┻━*┻|┬─*┬", message.content):
             t = m.group()
             bot_exempt = await self.config.guild(message.guild).BOT_EXEMPT()
-            if '┻' in t and not (message.author.id == self.bot.user.id and bot_exempt):
+            if "┻" in t and not (message.author.id == self.bot.user.id and bot_exempt):
                 if t in self.flippedTables[channel.id]:
                     self.flippedTables[channel.id][t] += 1
                 else:
@@ -85,27 +100,27 @@ class NoFlippedTables(commands.Cog):
                     if not all_tables:
                         break
             else:
-                f = t.replace('┬','┻').replace('─','━')
+                f = t.replace("┬", "┻").replace("─", "━")
                 if f in self.flippedTables[channel.id]:
                     if self.flippedTables[channel.id][f] <= 0:
                         del self.flippedTables[channel.id][f]
                     else:
                         self.flippedTables[channel.id][f] -= 1
-        #wait random time. some tables may be unflipped by now.
-        await asyncio.sleep(randfloat(0,1.5))
+        # wait random time. some tables may be unflipped by now.
+        await asyncio.sleep(randfloat(0, 1.5))
         tables = ""
 
         deleteTables = []
-        #unflip tables in self.flippedTables[channel.id]
+        # unflip tables in self.flippedTables[channel.id]
         for t, n in self.flippedTables[channel.id].items():
             snackburr = await self.config.guild(message.guild).SNACKBEAR()
             if snackburr:
-                unflipped = t.replace('┻','┬').replace('━','─') + " ノʕ •ᴥ•ノʔ" + "\n"
+                unflipped = t.replace("┻", "┬").replace("━", "─") + " ノʕ •ᴥ•ノʔ" + "\n"
             else:
-                unflipped = t.replace('┻','┬').replace('━','─') + " ノ( ゜-゜ノ)" + "\n"
-            for i in range(0,n):
+                unflipped = t.replace("┻", "┬").replace("━", "─") + " ノ( ゜-゜ノ)" + "\n"
+            for i in range(0, n):
                 tables += unflipped
-                #in case being processed in parallel
+                # in case being processed in parallel
                 self.flippedTables[channel.id][t] -= 1
             deleteTables.append(t)
         for t in deleteTables:
