@@ -1,0 +1,9 @@
+{
+    "name" : "region",
+    "author" : ["aikaterna"],
+    "short" : "Change the Discord server's region.",
+    "description" : "Change the Discord server's region with a command.",
+    "install_msg" : "Thanks for installing.",
+    "tags" : ["voice region", "region"],
+    "disabled" : false
+}
