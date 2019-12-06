@@ -1,0 +1,9 @@
+{
+    "name" : "NoFlippedTables",
+    "author" : ["irdumb", "aikaterna"],
+    "short" : "Unflip some tables.",
+    "description" : "Unflip all the flipped tables.",
+    "install_msg" : "Usage: [p]help tableset",
+    "tags" : ["noflippedtables", "no flip", "tables"],
+    "disabled" : false
+}

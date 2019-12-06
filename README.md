@@ -25,6 +25,8 @@ inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme
 
 leveler - A v3 port of Stevy's v2 leveler, originally by Fixator and modified by me. Add the repo at: https://github.com/aikaterna/Fixator10-Cogs
 
+noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.
+
 nolinks - A very blunt hammer to remove anything that looks like a link. Roles can be whitelisted and it can watch multiple channels.
 
 otherbot - Alert a role when bot(s) go offline.
