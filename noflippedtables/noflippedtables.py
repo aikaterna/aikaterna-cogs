@@ -56,13 +56,13 @@ class NoFlippedTables(commands.Cog):
 
     @tableset.command()
     async def snackbear(self, ctx):
-        """Snackbear is unflipping tables!"""
+        """Snackburr is unflipping tables!"""
         settings = await self.config.guild(ctx.guild).SNACKBEAR()
         await self.config.guild(ctx.guild).SNACKBEAR.set(not settings)
         if not settings:
-            await ctx.send("Snackbear will now unflip tables.")
+            await ctx.send("Snackburr will now unflip tables.")
         else:
-            await ctx.send("Snackbear is heading off for his errands!")
+            await ctx.send("Snackburr is heading off for his errands!")
 
     @tableset.command()
     async def toggle(self, ctx):
