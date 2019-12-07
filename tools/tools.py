@@ -580,16 +580,20 @@ class Tools(commands.Cog):
             )
 
     @commands.guild_only()
-    @commands.command()
+    @commands.command(aliases=["listroles"])
     @checks.mod_or_permissions(manage_guild=True)
     async def rolelist(self, ctx):
         """Displays the server's roles."""
         msg = []
-        for role in ctx.guild.roles:
-            role_position = role.position if len(str(role.position)) > 1 else f"0{role.position}"
-            msg.append(f"`{role_position}` - `{role.id}` - {role.mention}")
 
-        rolelist = sorted(msg, reverse=True)
+        form = "`{rpos:0{zpadding}}` - `{rid}` - {rment}"
+        max_zpadding = max([len(str(r.position)) for r in ctx.guild.roles])
+        rolelist = [
+            form.format(rpos=r.position, zpadding=max_zpadding, rid=r.id, rment=r.mention)
+            for r in ctx.guild.roles
+        ]
+
+        rolelist = sorted(rolelist, reverse=True)
         rolelist = "\n".join(rolelist)
         embed_list = []
         for page in cf.pagify(rolelist, shorten_by=1400):
