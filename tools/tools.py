@@ -357,7 +357,7 @@ class Tools(commands.Cog):
             )
             await awaiter.edit(embed=embed)
 
-    @commands.command(name='listguilds', aliases=['listservers', 'guildlist', 'serverlist'])
+    @commands.command(name="listguilds", aliases=["listservers", "guildlist", "serverlist"])
     @checks.mod_or_permissions()
     async def listguilds(self, ctx):
         """
@@ -365,18 +365,23 @@ class Tools(commands.Cog):
         """
         asciidoc = lambda m: "```asciidoc\n{}\n```".format(m)
         guilds = sorted(self.bot.guilds, key=lambda g: -g.member_count)
-        header = ("```\n"
-                  "The bot is in the following {} server{}:\n"
-                  "```").format(len(guilds), 's' if len(guilds) > 1 else '')
+        header = ("```\n" "The bot is in the following {} server{}:\n" "```").format(
+            len(guilds), "s" if len(guilds) > 1 else ""
+        )
 
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
-        all_forms = [form.format(gid=g.id, mems=g.member_count, name=cf.escape(g.name), zpadding=max_zpadding) for g in guilds]
-        final = '\n'.join(all_forms)
+        all_forms = [
+            form.format(
+                gid=g.id, mems=g.member_count, name=cf.escape(g.name), zpadding=max_zpadding
+            )
+            for g in guilds
+        ]
+        final = "\n".join(all_forms)
 
         await ctx.send(header)
         page_list = []
-        for page in cf.pagify(final, delims=['\n'], page_length=1000):
+        for page in cf.pagify(final, delims=["\n"], page_length=1000):
             page_list.append(asciidoc(page))
 
         if len(page_list) == 1:
@@ -385,7 +390,7 @@ class Tools(commands.Cog):
 
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    @commands.command(name='listchannel', aliases=['channellist'])
+    @commands.command(name="listchannel", aliases=["channellist"])
     async def listchannel(self, ctx):
         """
         List the channels of the current server
@@ -394,15 +399,17 @@ class Tools(commands.Cog):
         channels = ctx.guild.channels
         top_channels, category_channels = self.sort_channels(ctx.guild.channels)
 
-        topChannels_formed = '\n'.join(self.channels_format(top_channels))
-        categories_formed = '\n\n'.join([self.category_format(tup) for tup in category_channels])
+        topChannels_formed = "\n".join(self.channels_format(top_channels))
+        categories_formed = "\n\n".join([self.category_format(tup) for tup in category_channels])
 
-        await ctx.send(f"{ctx.guild.name} has {len(channels)} channel{'s' if len(channels) > 1 else ''}.")
+        await ctx.send(
+            f"{ctx.guild.name} has {len(channels)} channel{'s' if len(channels) > 1 else ''}."
+        )
 
-        for page in cf.pagify(topChannels_formed, delims=['\n'], shorten_by=16):
+        for page in cf.pagify(topChannels_formed, delims=["\n"], shorten_by=16):
             await ctx.send(asciidoc(page))
 
-        for page in cf.pagify(categories_formed, delims=['\n\n'], shorten_by=16):
+        for page in cf.pagify(categories_formed, delims=["\n\n"], shorten_by=16):
             await ctx.send(asciidoc(page))
 
     @commands.guild_only()
@@ -571,6 +578,27 @@ class Tools(commands.Cog):
                     perms_we_dont2,
                 )
             )
+
+    @commands.guild_only()
+    @commands.command()
+    @checks.mod_or_permissions(manage_guild=True)
+    async def rolelist(self, ctx):
+        """Displays the server's roles."""
+        msg = []
+        for role in ctx.guild.roles:
+            role_position = role.position if len(str(role.position)) > 1 else f"0{role.position}"
+            msg.append(f"`{role_position}` - `{role.id}` - {role.mention}")
+
+        rolelist = sorted(msg, reverse=True)
+        rolelist = "\n".join(rolelist)
+        embed_list = []
+        for page in cf.pagify(rolelist, shorten_by=1400):
+            embed = discord.Embed(
+                description=f"**Total roles:** {len(ctx.guild.roles)}\n\n{page}",
+                colour=await ctx.embed_colour(),
+            )
+            embed_list.append(embed)
+        await menu(ctx, embed_list, DEFAULT_CONTROLS)
 
     @commands.command(hidden=True)
     async def sharedservers(self, ctx, user: discord.Member = None):
@@ -812,7 +840,10 @@ class Tools(commands.Cog):
                 channels.pop(channels.index(c))
                 temp[c.category].append(c)
 
-        category_channels = sorted([(cat, sorted(chans, key=lambda c: c.position)) for cat, chans in temp.items()], key=lambda t: t[0].position)
+        category_channels = sorted(
+            [(cat, sorted(chans, key=lambda c: c.position)) for cat, chans in temp.items()],
+            key=lambda t: t[0].position,
+        )
         return channels, category_channels
 
     def channels_format(self, channels: list):
@@ -827,8 +858,14 @@ class Tools(commands.Cog):
         name_justify = max([len(c.name[:24]) for c in channels])
         type_justify = max([len(type_name(c)) for c in channels])
 
-        return [channel_form.format(name=c.name[:24].ljust(name_justify), ctype=type_name(c).ljust(type_justify), cid=c.id) for c in channels]
-
+        return [
+            channel_form.format(
+                name=c.name[:24].ljust(name_justify),
+                ctype=type_name(c).ljust(type_justify),
+                cid=c.id,
+            )
+            for c in channels
+        ]
 
     def category_format(self, cat_chan_tuple: tuple):
 
@@ -837,7 +874,7 @@ class Tools(commands.Cog):
 
         chfs = self.channels_format(chs)
         if chfs != []:
-            ch_forms = ['\t' + f for f in chfs]
-            return '\n'.join([f'{cat.name} :: {cat.id}'] + ch_forms)
+            ch_forms = ["\t" + f for f in chfs]
+            return "\n".join([f"{cat.name} :: {cat.id}"] + ch_forms)
         else:
-            return '\n'.join([f'{cat.name} :: {cat.id}'] + ['\tNo Channels'])
+            return "\n".join([f"{cat.name} :: {cat.id}"] + ["\tNo Channels"])
