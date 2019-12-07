@@ -8,5 +8,8 @@
 	"tags": [
 		"dictionary"
 	],
+	"requirements": [
+		"beautifulsoup4"
+	],
 	"type": "COG"
 }
