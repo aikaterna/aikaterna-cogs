@@ -584,8 +584,6 @@ class Tools(commands.Cog):
     @checks.mod_or_permissions(manage_guild=True)
     async def rolelist(self, ctx):
         """Displays the server's roles."""
-        msg = []
-
         form = "`{rpos:0{zpadding}}` - `{rid}` - {rment}"
         max_zpadding = max([len(str(r.position)) for r in ctx.guild.roles])
         rolelist = [
