@@ -79,6 +79,8 @@ class NoFlippedTables(commands.Cog):
     async def on_message(self, message):
         channel = message.channel
         user = message.author
+        if not message.guild:
+            return
         if hasattr(user, "bot") and user.bot is True:
             return
         toggle = await self.config.guild(message.guild).TOGGLE()
