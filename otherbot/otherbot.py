@@ -28,7 +28,13 @@ class Otherbot(BaseCog):
 
     @otherbot.command()
     async def channel(self, ctx, channel: discord.TextChannel = None):
-        """Sets the channel to report in."""
+        """
+        Sets the channel to report in.
+        
+        Default to the current one.
+        """
+        if not channel:
+            channel = ctx.channel
         await self.config.guild(ctx.guild).reporting.set(channel.id)
         await ctx.send(f"Reporting channel set to: {channel.mention}.")
 
