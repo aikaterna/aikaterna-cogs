@@ -2,18 +2,9 @@ import asyncio
 import datetime
 import discord
 from redbot.core import Config, commands, checks, modlog
-from redbot.core.data_manager import cog_data_path
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
-if listener is None:
-
-    def listener(name=None):
-        return lambda x: x
-
-class Dungeon(BaseCog):
+class Dungeon(commands.Cog):
     """Auto-quarantine suspicious users."""
 
     def __init__(self, bot):
