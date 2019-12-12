@@ -103,7 +103,7 @@ class Wolfram(commands.Cog):
         msg = ""
 
         async with ctx.channel.typing():
-            async with self.session.request("GET", url) as r:
+            async with self.session.request("GET", url, params=params) as r:
                 text = await r.content.read()
                 root = ET.fromstring(text)
                 for pod in root.findall(".//pod"):
