@@ -4,6 +4,7 @@ import discord
 from io import BytesIO
 from PIL import Image
 import xml.etree.ElementTree as ET
+import urllib.parse
 
 from redbot.core import Config, commands, checks
 from redbot.core.utils.chat_formatting import box
@@ -65,7 +66,8 @@ class Wolfram(commands.Cog):
         background = "193555"
         foreground = "white"
         units = "metric"
-        query = "+".join(arguments)
+        query = " ".join(arguments)
+        query = urllib.parse.quote(query)
         url = f"http://api.wolframalpha.com/v1/simple?appid={api_key}&i={query}%3F&width={width}&fontsize={font_size}&layout={layout}&background={background}&foreground={foreground}&units={units}"
 
         async with ctx.channel.typing():
@@ -95,7 +97,8 @@ class Wolfram(commands.Cog):
                 "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
             )
 
-        query = "+".join(arguments)
+        query = " ".join(arguments)
+        query = urllib.parse.quote(query)
         url = f"http://api.wolframalpha.com/v2/query?appid={api_key}&input=solve+{query}&podstate=Result__Step-by-step+solution&format=plaintext"
         msg = ""
 
@@ -109,7 +112,7 @@ class Wolfram(commands.Cog):
                     msg += f"{pod.attrib['title']}\n"
                     for pt in pod.findall(".//plaintext"):
                         if pt.text:
-                            strip = pt.text.replace(" | ", "").replace("| ", "")
+                            strip = pt.text.replace(" | ", " ").replace("| ", " ")
                             msg += f"- {strip}\n\n"
                 if len(msg) < 1:
                     msg = "There is as yet insufficient data for a meaningful answer."
