@@ -6,7 +6,6 @@ from PIL import Image
 import xml.etree.ElementTree as ET
 
 from redbot.core import Config, commands, checks
-from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import box
 
 
