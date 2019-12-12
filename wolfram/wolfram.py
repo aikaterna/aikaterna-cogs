@@ -6,7 +6,7 @@ from PIL import Image
 import xml.etree.ElementTree as ET
 
 from redbot.core import Config, commands, checks
-from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.chat_formatting import box, pagify
 
 
 class Wolfram(commands.Cog):
@@ -116,7 +116,8 @@ class Wolfram(commands.Cog):
                             msg += f"- {strip}\n\n"
                 if len(msg) < 1:
                     msg = "There is as yet insufficient data for a meaningful answer."
-                await ctx.send(box(msg))
+                for text in pagify(msg):
+                    await ctx.send(box(text))
 
     @checks.is_owner()
     @commands.command(name="setwolframapi", aliases=["setwolfram"])
