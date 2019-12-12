@@ -85,7 +85,7 @@ class Wolfram(commands.Cog):
                     await ctx.send(f"Oops, there was a problem: {e}")
 
     @commands.command(name="wolframsolve")
-    async def _solve(self, ctx, *arguments: str):
+    async def _solve(self, ctx, *, query: str):
         """Ask Wolfram Alpha any math question. Returns step by step answers."""
         if not arguments:
             return await ctx.send_help()
@@ -95,8 +95,13 @@ class Wolfram(commands.Cog):
                 "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
             )
 
-        query = "+".join(arguments)
-        url = f"http://api.wolframalpha.com/v2/query?appid={api_key}&input=solve+{query}&podstate=Result__Step-by-step+solution&format=plaintext"
+        url = f"http://api.wolframalpha.com/v2/query"
+        params = {
+            "appid": api_key,
+            "input": query,
+            "podstate": "Step-by-step solution",
+            "format": "plaintext",
+        }
         msg = ""
 
         async with ctx.channel.typing():
