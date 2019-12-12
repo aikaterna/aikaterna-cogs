@@ -87,8 +87,6 @@ class Wolfram(commands.Cog):
     @commands.command(name="wolframsolve")
     async def _solve(self, ctx, *, query: str):
         """Ask Wolfram Alpha any math question. Returns step by step answers."""
-        if not arguments:
-            return await ctx.send_help()
         api_key = await self.config.WOLFRAM_API_KEY()
         if not api_key:
             return await ctx.send(
