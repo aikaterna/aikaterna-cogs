@@ -8,5 +8,8 @@
 	"tags": [
 		"wolfram"
 	],
+	"requirements": [
+		"pillow"
+	],
 	"type": "COG"
 }
