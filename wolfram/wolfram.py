@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 import urllib.parse
 
 from redbot.core import Config, commands, checks
-from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.chat_formatting import box, pagify
 
 
 class Wolfram(commands.Cog):
@@ -87,23 +87,25 @@ class Wolfram(commands.Cog):
                     await ctx.send(f"Oops, there was a problem: {e}")
 
     @commands.command(name="wolframsolve")
-    async def _solve(self, ctx, *arguments: str):
+    async def _solve(self, ctx, *, query: str):
         """Ask Wolfram Alpha any math question. Returns step by step answers."""
-        if not arguments:
-            return await ctx.send_help()
         api_key = await self.config.WOLFRAM_API_KEY()
         if not api_key:
             return await ctx.send(
                 "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
             )
 
-        query = " ".join(arguments)
-        query = urllib.parse.quote(query)
-        url = f"http://api.wolframalpha.com/v2/query?appid={api_key}&input=solve+{query}&podstate=Result__Step-by-step+solution&format=plaintext"
+        url = f"http://api.wolframalpha.com/v2/query"
+        params = {
+            "appid": api_key,
+            "input": query,
+            "podstate": "Step-by-step solution",
+            "format": "plaintext",
+        }
         msg = ""
 
         async with ctx.channel.typing():
-            async with self.session.request("GET", url) as r:
+            async with self.session.request("GET", url, params=params) as r:
                 text = await r.content.read()
                 root = ET.fromstring(text)
                 for pod in root.findall(".//pod"):
@@ -116,7 +118,8 @@ class Wolfram(commands.Cog):
                             msg += f"- {strip}\n\n"
                 if len(msg) < 1:
                     msg = "There is as yet insufficient data for a meaningful answer."
-                await ctx.send(box(msg))
+                for text in pagify(msg):
+                    await ctx.send(box(text))
 
     @checks.is_owner()
     @commands.command(name="setwolframapi", aliases=["setwolfram"])
