@@ -88,6 +88,8 @@ class Otherbot(BaseCog):
 
     @listener()
     async def on_member_update(self, before, after):
+        if after.guild is None or not after.bot:
+            return
         data = await self.config.guild(after.guild).all()
         if after.status == discord.Status.offline and (after.id in data["watching"]):
             channel_object = self.bot.get_channel(data["reporting"])
