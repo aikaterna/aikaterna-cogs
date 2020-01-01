@@ -71,9 +71,16 @@ class CardsAgainstHumanity(BaseCog):
                 return member
         # No member yet - try ID
         memID = "".join(list(filter(str.isdigit, name)))
-        newMem = memberForID(memID, server)
+        newMem = self.memberforid(memID, server)
         if newMem:
             return newMem
+        return None
+
+    @staticmethod
+    def memberforid(checkid, server):
+        for member in server.members:
+            if str(member.id) == str(checkid):
+                return member
         return None
 
     def getreadabletimebetween(self, first, last):
