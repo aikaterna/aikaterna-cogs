@@ -6,16 +6,8 @@ import re
 
 IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
-BaseCog = getattr(commands, "Cog", object)
 
-listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
-if listener is None:
-
-    def listener(name=None):
-        return lambda x: x
-
-
-class Away(BaseCog):
+class Away(commands.Cog):
     """Le away cog"""
 
     default_global_settings = {"ign_servers": []}
@@ -189,7 +181,7 @@ class Away(BaseCog):
             return True
         return False
 
-    @listener()
+    @commands.Cog.listener()
     async def on_message(self, message):
         tmp = {}
         guild = message.guild

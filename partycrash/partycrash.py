@@ -4,9 +4,7 @@ from redbot.core.utils.chat_formatting import box, pagify
 import asyncio
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-class PartyCrash(BaseCog):
+class PartyCrash(commands.Cog):
     """Partycrash inspired by v2 Admin by Will
        Does not generate invites, only lists existing invites."""
 

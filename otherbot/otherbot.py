@@ -2,15 +2,7 @@ import discord
 from redbot.core import commands, checks, Config
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
-if listener is None:
-
-    def listener(name=None):
-        return lambda x: x
-
-class Otherbot(BaseCog):
+class Otherbot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2730321001, force_registration=True)
@@ -86,7 +78,7 @@ class Otherbot(BaseCog):
                 f"Reporting channel set to: {ctx.message.channel.mention}. Use `{ctx.prefix}otherbot channel` to change this."
             )
 
-    @listener()
+    @commands.Cog.listener()
     async def on_member_update(self, before, after):
         if after.guild is None or not after.bot:
             return

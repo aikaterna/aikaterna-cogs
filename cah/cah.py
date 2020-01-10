@@ -450,7 +450,7 @@ class CardsAgainstHumanity(BaseCog):
                         member["Task"] = None
                     continue
                 # not enough members - send the embed
-                prefix = await self.bot.db.prefix()
+                prefix = await self.bot.get_valid_prefixes()
                 stat_embed = discord.Embed(color=discord.Color.red())
                 stat_embed.set_author(
                     name="Not enough players to continue! ({}/{})".format(

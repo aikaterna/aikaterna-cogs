@@ -110,7 +110,7 @@ class RndStatus(commands.Cog):
             current_game = None
         statuses = await self.config.statuses()
         botstats = await self.config.botstats()
-        prefix = await self.bot.db.prefix()
+        prefix = await self.bot.get_valid_prefixes()
         streamer = await self.config.streamer()
         url = "https://www.twitch.tv/" + streamer
 

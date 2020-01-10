@@ -5,16 +5,8 @@ import discord
 
 from redbot.core import commands, checks, Config
 
-BaseCog = getattr(commands, "Cog", object)
 
-listener = getattr(commands.Cog, "listener", None)  # Trusty + Sinbad
-if listener is None:
-
-    def listener(name=None):
-        return lambda x: x
-
-
-class AntiPhoneClapper(BaseCog):
+class AntiPhoneClapper(commands.Cog):
     """This cog deletes bad GIFs that will crash phone clients."""
 
     def __init__(self, bot):
@@ -73,7 +65,7 @@ class AntiPhoneClapper(BaseCog):
             tile_sizes.append(im.tile[0][1][2:])
         return any([x[0] > limit[0] or x[1] > limit[1] for x in tile_sizes])
 
-    @listener()
+    @commands.Cog.listener()
     async def on_message(self, m):
         if not m.attachments:
             return

@@ -41,7 +41,10 @@ class Dungeon(commands.Cog):
         dungeon_role_obj = discord.utils.get(ctx.guild.roles, id=dungeon_role_id)
 
         if blacklist:
-            async with self.bot.db.blacklist() as blacklist_list:
+            # if you are reading this to learn, DON'T do this, there will be a real way
+            # to interact with bot-owned data without touching config directly at some
+            # point in the future after Red 3.2
+            async with self.bot._config.blacklist() as blacklist_list:
                 if user.id not in blacklist_list:
                     blacklist_list.append(user.id)
 
