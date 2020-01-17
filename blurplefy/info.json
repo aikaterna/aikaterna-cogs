@@ -9,7 +9,7 @@
 		"manage_roles"
 	],
 	"requirements": [
-		"pillow==5.2.0",
+		"pillow",
 		"python-resize-image"
 	],
 	"short": "Blurplefy a user profile picture or image.",
