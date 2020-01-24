@@ -9,10 +9,7 @@ from redbot.core import commands
 from redbot.core.data_manager import bundled_data_path
 
 
-BaseCog = getattr(commands, "Cog", object)
-
-
-class CardsAgainstHumanity(BaseCog):
+class CardsAgainstHumanity(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.games = []
@@ -773,7 +770,7 @@ class CardsAgainstHumanity(BaseCog):
         if len(game["Members"]) < self.minMembers:
             stat_embed = discord.Embed(color=discord.Color.red())
             stat_embed.set_author(
-                name="Not enough players to continue! ({len(game['Members'])}/{self.minMembers})"
+                name=f"Not enough players to continue! ({len(game['Members'])}/{self.minMembers})"
             )
             stat_embed.set_footer(
                 text=f"Have other users join with: {ctx.prefix}joincah {game['ID']}"
