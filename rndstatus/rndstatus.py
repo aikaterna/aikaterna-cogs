@@ -1,3 +1,4 @@
+import re
 import discord
 from redbot.core import Config, commands, checks
 from random import choice as rndchoice
@@ -115,9 +116,12 @@ class RndStatus(commands.Cog):
         url = "https://www.twitch.tv/" + streamer
 
         if botstats:
+            me = self.bot.user
+            pattern = re.compile(rf"<@!?{me.id}>")
+            clean_prefix = pattern.sub(f"@{me.name}", prefix[0])
             total_users = sum(len(s.members) for s in self.bot.guilds)
             servers = str(len(self.bot.guilds))
-            botstatus = f"{prefix[0]}help | {total_users} users | {servers} servers"
+            botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
             if self.last_change == None:
                 type = await self.config.type()
                 if type == 1:
