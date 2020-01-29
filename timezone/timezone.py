@@ -145,6 +145,9 @@ class Timezone(commands.Cog):
     @time.command()
     async def compare(self, ctx, user: discord.Member = None):
         """Compare your saved timezone with another user's timezone."""
+        if not user:
+            return await ctx.send_help()
+
         usertime = await self.config.user(ctx.message.author).usertime()
         othertime = await self.config.user(user).usertime()
 
