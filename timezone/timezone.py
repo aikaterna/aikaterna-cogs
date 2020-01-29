@@ -62,7 +62,7 @@ class Timezone(commands.Cog):
                 tz = str(country_timezones(code))
                 msg = (
                     f"Supported timezones for **{code}:**\n{tz[:-1][1:]}"
-                    f"\n**Use** `[p]time tz Continent/City` **to display the current time in that timezone.**"
+                    f"\n**Use** `{ctx.prefix}time tz Continent/City` **to display the current time in that timezone.**"
                 )
                 await ctx.send(msg)
             else:
@@ -81,7 +81,7 @@ class Timezone(commands.Cog):
             usertime = await self.config.user(ctx.message.author).usertime()
             if not usertime:
                 await ctx.send(
-                    "You haven't set your timezone. Do `[p]time me Continent/City`: "
+                    f"You haven't set your timezone. Do `{ctx.prefix}time me Continent/City`: "
                     "see <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
                 )
             else:
@@ -98,7 +98,7 @@ class Timezone(commands.Cog):
                 await ctx.send(f"Successfully set your timezone to **{tz.title()}**.")
             else:
                 await ctx.send(
-                    "**Error:** Unrecognized timezone. Try `[p]time me Continent/City`: "
+                    f"**Error:** Unrecognized timezone. Try `{ctx.prefix}time me Continent/City`: "
                     "see <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
                 )
 
@@ -120,7 +120,7 @@ class Timezone(commands.Cog):
                 await ctx.send(f"Successfully set {user.name}'s timezone to **{tz.title()}**.")
             else:
                 await ctx.send(
-                    "**Error:** Unrecognized timezone. Try `[p]time set @user Continent/City`: "
+                    f"**Error:** Unrecognized timezone. Try `{ctx.prefix}time set @user Continent/City`: "
                     "see <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
                 )
 
@@ -150,7 +150,7 @@ class Timezone(commands.Cog):
 
         if not usertime:
             return await ctx.send(
-                "You haven't set your timezone. Do `[p]time me Continent/City`: "
+                f"You haven't set your timezone. Do `{ctx.prefix}time me Continent/City`: "
                 "see <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
             )
         if not othertime:
