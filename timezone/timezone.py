@@ -141,3 +141,33 @@ class Timezone(commands.Cog):
                 )
             else:
                 await ctx.send("That user hasn't set their timezone.")
+
+    @time.command()
+    async def compare(self, ctx, user: discord.Member = None):
+        """Compare your saved timezone with another user's timezone."""
+        usertime = await self.config.user(ctx.message.author).usertime()
+        othertime = await self.config.user(user).usertime()
+
+        if not usertime:
+            return await ctx.send(
+                "You haven't set your timezone. Do `[p]time me Continent/City`: "
+                "see <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
+            )
+        if not othertime:
+            return await ctx.send(f"That user's timezone isn't set yet.")
+
+        user_now = datetime.now(pytz.timezone(usertime))
+        user_diff = user_now.utcoffset().total_seconds() / 60 / 60
+        other_now = datetime.now(pytz.timezone(othertime))
+        other_diff = other_now.utcoffset().total_seconds() / 60 / 60
+        time_diff = int(abs(user_diff - other_diff))
+        fmt = "**%H:%M %Z (UTC %z)**"
+        other_time = other_now.strftime(fmt)
+        plural = "" if time_diff == 1 else "s"
+        time_amt = "the same time zone as you" if time_diff == 0 else f"{time_diff} hour{plural}"
+        position = "ahead of" if user_diff < other_diff else "behind"
+        position_text = "" if time_diff == 0 else f" {position} you"
+
+        await ctx.send(
+            f"{user.display_name}'s time is {other_time} which is {time_amt}{position_text}."
+        )
