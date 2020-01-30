@@ -68,7 +68,7 @@ class Timezone(commands.Cog):
             else:
                 await ctx.send(
                     "That code isn't supported. For a full list, see here: "
-                    "<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
+                    "<https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes>"
                 )
 
     @time.command()
