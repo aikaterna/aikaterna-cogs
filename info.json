@@ -1,5 +1,5 @@
 {
-    "author" : "aikaterna (aikaterna#1393)",
+    "author" : ["aikaterna (aikaterna#1393)"],
     "install_msg" : "Thanks for installing. Please submit issue reports on my repo if something's broken. You can find me in the Red servers or at the invite on my repo.",
     "name" : "aikaterna-cogs",
     "short" : "Utility and fun cogs",
