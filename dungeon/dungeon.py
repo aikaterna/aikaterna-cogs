@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import discord
 from redbot.core import Config, commands, checks, modlog
+from redbot.core.utils.chat_formatting import box, pagify
 
 
 class Dungeon(commands.Cog):
@@ -16,6 +17,7 @@ class Dungeon(commands.Cog):
             "auto_ban": False,
             "auto_ban_message": None,
             "auto_blacklist": False,
+            "bypass": [],
             "dm_message": None,
             "dm_toggle": False,
             "dungeon_channel": None,
@@ -68,9 +70,7 @@ class Dungeon(commands.Cog):
             blacklist_msg = ", blacklisted from the bot,"
         else:
             blacklist_msg = ""
-        msg = (
-            f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
-        )
+        msg = f"{user} has been sent to the dungeon{blacklist_msg} and has had all previous roles stripped."
         await ctx.send(msg)
 
     @commands.group(autohelp=True)
@@ -115,6 +115,35 @@ class Dungeon(commands.Cog):
         auto_blacklist = await self.config.guild(ctx.guild).auto_blacklist()
         await self.config.guild(ctx.guild).auto_blacklist.set(not auto_blacklist)
         await ctx.send(f"Auto-blacklisting dungeon users from the bot: {not auto_blacklist}.")
+
+    @dungeon.command()
+    @commands.cooldown(1, 5, discord.ext.commands.BucketType.guild)
+    async def bypass(self, ctx, user_id: int):
+        """Add a user ID to the bypass list - user will be able to join without restrictions."""
+        if not 17 <= len(str(user_id)) >= 18:
+            return await ctx.send("This doesn't look like a Discord user id.")
+        bypass_ids = await self.config.guild(ctx.guild).bypass()
+        if user_id in bypass_ids:
+            return await ctx.send(f"**{user_id}** is already in the list of bypassed users.")
+        bypass_ids.append(user_id)
+        await self.config.guild(ctx.guild).bypass.set(bypass_ids)
+        bypassed_user = await self.bot.fetch_user(user_id)
+        await ctx.send(
+            f"**{bypassed_user}** ({user_id}) has been added to the bypass list. The next time they attempt to join this server, they will bypass any Dungeon restrictions."
+        )
+
+    @dungeon.command()
+    @commands.cooldown(1, 5, discord.ext.commands.BucketType.guild)
+    async def bypasslist(self, ctx):
+        """Show the current bypass list."""
+        bypass_ids = await self.config.guild(ctx.guild).bypass()
+        msg = "[Bypassed IDs]\n"
+        if not bypass_ids:
+            msg += "None."
+        for id in bypass_ids:
+            msg += (f"{id}\n")
+        for page in pagify(msg, delims=["\n"], page_length=1000):
+            await ctx.send(box(msg, lang="ini"))
 
     @dungeon.command()
     async def channel(self, ctx, channel: discord.TextChannel):
@@ -175,7 +204,7 @@ class Dungeon(commands.Cog):
         await ctx.send(f"Default profile pic flagging: {not profile_toggle}.")
 
     @dungeon.command()
-    async def userrole(self, ctx, role_name: discord.Role = None):
+    async def userrole(self, ctx, *, role_name: discord.Role = None):
         """Sets the role to give to new users that are not sent to the dungeon."""
         if not role_name:
             await self.config.guild(ctx.guild).user_role.set(None)
@@ -241,9 +270,7 @@ class Dungeon(commands.Cog):
             blacklist_msg = " and the bot blacklist"
         else:
             blacklist_msg = ""
-        msg = (
-            f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
-        )
+        msg = f"{user} has been removed from the dungeon{blacklist_msg} and now has the initial user role."
         await ctx.send(msg)
 
         if dm_toggle:
@@ -291,7 +318,7 @@ class Dungeon(commands.Cog):
             if not toggle:
                 await ctx.invoke(self.usertoggle)
             await ctx.send(
-                f"Done.\nDungeon channel created: {dungeon_channel.mention}\nDungeon role created: {dungeon_role.name}\n\nPlease set these items manually:\n- The announce channel for reporting new users that are moved to the dungeon ([p]dungeon announce)\n- The role you wish to award regular members when they join the server ([p]dungeon userrole)\n- The toggle for enabling the regular user role awarding ([p]dungeon usertoggle)"
+                f"Done.\nDungeon channel created: {dungeon_channel.mention}\nDungeon role created: {dungeon_role.name}\n\nPlease set these items manually:\n- The announce channel for reporting new users that are moved to the dungeon ({ctx.prefix}dungeon announce)\n- The role you wish to award regular members when they join the server ({ctx.prefix}dungeon userrole)\n- The toggle for enabling the regular user role awarding ({ctx.prefix}dungeon usertoggle)"
             )
 
         except discord.Forbidden:
@@ -369,16 +396,38 @@ class Dungeon(commands.Cog):
         auto_ban = await self.config.guild(member.guild).auto_ban()
         auto_ban_msg = await self.config.guild(member.guild).auto_ban_message()
         mod_log = await self.config.guild(member.guild).mod_log()
+        bypassed_ids = await self.config.guild(member.guild).bypass()
+
+        if member.id in bypassed_ids:
+            bypassed_ids.remove(member.id)
+            await self.config.guild(member.guild).bypass.set(bypassed_ids)
+            user_role_id = await self.config.guild(member.guild).user_role()
+            user_role_obj = discord.utils.get(member.guild.roles, id=user_role_id)
+            try:
+                await member.add_roles(
+                    user_role_obj,
+                    reason="User has bypassed Dungeon checks. Assigning member role.",
+                )
+            except discord.Forbidden:
+                pass
+            except AttributeError:
+                pass
+            bypass_msg = f"**{member}** ({member.id}) was in the bypass list for **{member.guild.name}** ({member.guild.id}). They were allowed to join without Dungeon checks and I have assigned them the Member role specified in the settings, if any."
+            if announce_channel:
+                await channel_object.send(bypass_msg)
+            else:
+                print(f"dungeon.py: {bypass_msg}")
+            return
 
         if (since_join.days < join_days) or (profile_toggle and default_avatar):
+            banned = False
             blacklist = await self.config.guild(member.guild).auto_blacklist()
             dungeon_role_id = await self.config.guild(member.guild).dungeon_role()
             dungeon_role_obj = discord.utils.get(member.guild.roles, id=dungeon_role_id)
-            perm_msg = (
-                f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {member.guild.id}"
-            )
+            perm_msg = f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {member.guild.id}"
 
             if auto_ban:
+                banned = True
                 if auto_ban_msg:
                     try:
                         await member.send(auto_ban_msg)
@@ -403,11 +452,10 @@ class Dungeon(commands.Cog):
                         print(perm_msg)
                         return
 
+
                 if not mod_log:
                     if announce_channel:
-                        msg = (
-                            f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
-                        )
+                        msg = f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
                         return await channel_object.send(msg)
                     else:
                         print(perm_msg)
@@ -436,6 +484,8 @@ class Dungeon(commands.Cog):
                 async with self.bot._config.blacklist() as blacklist_list:
                     if member.id not in blacklist_list:
                         blacklist_list.append(member.id)
+            if banned:
+                return
             try:
                 if since_join.days < join_days:
                     reason = "Adding dungeon role, new account."
@@ -451,9 +501,7 @@ class Dungeon(commands.Cog):
                     print("dungeon.py: I need permissions to manage channels and manage roles.")
                     return
 
-            msg = (
-                f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
-            )
+            msg = f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
             if default_avatar:
                 msg += ", no profile picture set"
             await channel_object.send(msg)
