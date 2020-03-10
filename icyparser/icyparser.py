@@ -56,6 +56,8 @@ class IcyParser(commands.Cog):
             player = lavalink.get_player(ctx.guild.id)
         except KeyError:
             return await ctx.send("The bot is not playing any music.")
+        if not player.current:
+            return await ctx.send("The bot is not playing any music.")
         if not player.current.is_stream:
             return await ctx.send("The bot is not playing a stream.")
         icy = await self._icyparser(player.current.uri)
