@@ -47,25 +47,28 @@ class IcyParser(commands.Cog):
         self.bot.loop.create_task(self.session.close())
 
     @commands.command(aliases=["icynp"])
-    async def icyparser(self, ctx):
-        """Show the now playing stream information, if any."""
-        audiocog = self.bot.get_cog("Audio")
-        if not audiocog:
-            return await ctx.send("Audio is not loaded.")
-        try:
-            player = lavalink.get_player(ctx.guild.id)
-        except KeyError:
-            return await ctx.send("The bot is not playing any music.")
-        if not player.current:
-            return await ctx.send("The bot is not playing any music.")
-        if not player.current.is_stream:
-            return await ctx.send("The bot is not playing a stream.")
-        icy = await self._icyparser(player.current.uri)
+    async def icyparser(self, ctx, url=None):
+        """Show Icecast or Shoutcast stream information, if any."""
+        if not url:
+            audiocog = self.bot.get_cog("Audio")
+            if not audiocog:
+                return await ctx.send("Audio is not loaded.")
+            try:
+                player = lavalink.get_player(ctx.guild.id)
+            except KeyError:
+                return await ctx.send("The bot is not playing any music.")
+            if not player.current:
+                return await ctx.send("The bot is not playing any music.")
+            if not player.current.is_stream:
+                return await ctx.send("The bot is not playing a stream.")
+            icy = await self._icyparser(player.current.uri)
+        else:
+            icy = await self._icyparser(url)
         if not icy[0]:
             return await ctx.send(
-                f"Can't read the stream information for <{player.current.uri}>, it may not be an Icecast or Shoutcast radio station or there may be no stream information available."
+                f"Can't read the stream information for <{player.current.uri if not url else url}>, it may not be an Icecast or Shoutcast radio station or there may be no stream information available."
             )
-        song = f"**[{icy[0]}]({player.current.uri})**\n"
+        song = f"**[{icy[0]}]({player.current.uri if not url else url})**\n"
         embed = discord.Embed(
             colour=await ctx.embed_colour(), title="Now Playing", description=song
         )
