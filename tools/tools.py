@@ -357,12 +357,31 @@ class Tools(commands.Cog):
             )
             await awaiter.edit(embed=embed)
 
+    @commands.command()
+    async def joined(self, ctx, user: discord.Member = None):
+        """Show when a user joined the guild."""
+        if not user:
+            user = ctx.author
+        if user.joined_at:
+            user_joined = user.joined_at.strftime("%d %b %Y %H:%M")
+            since_joined = (ctx.message.created_at - user.joined_at).days
+            joined_on = f"{user_joined} ({since_joined} days ago)"
+        else:
+            joined_on = "a mysterious date that not even Discord knows."
+
+        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            embed = discord.Embed(
+                description=f"{user.mention} joined this guild on {joined_on}.",
+                color=await ctx.embed_colour(),
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"{user.display_name} joined this guild on {joined_on}.")
+
     @commands.command(name="listguilds", aliases=["listservers", "guildlist", "serverlist"])
     @checks.mod_or_permissions()
     async def listguilds(self, ctx):
-        """
-        List the guilds|servers the bot is in
-        """
+        """List the guilds|servers the bot is in."""
         asciidoc = lambda m: "```asciidoc\n{}\n```".format(m)
         guilds = sorted(self.bot.guilds, key=lambda g: -g.member_count)
         header = ("```\n" "The bot is in the following {} server{}:\n" "```").format(
@@ -587,7 +606,9 @@ class Tools(commands.Cog):
         form = "`{rpos:0{zpadding}}` - `{rid}` - `{rcolor}` - {rment} "
         max_zpadding = max([len(str(r.position)) for r in ctx.guild.roles])
         rolelist = [
-            form.format(rpos=r.position, zpadding=max_zpadding, rid=r.id, rment=r.mention, rcolor=r.color)
+            form.format(
+                rpos=r.position, zpadding=max_zpadding, rid=r.id, rment=r.mention, rcolor=r.color
+            )
             for r in ctx.guild.roles
         ]
 
