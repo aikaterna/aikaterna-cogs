@@ -11,6 +11,7 @@ class Away(commands.Cog):
     """Le away cog"""
 
     default_global_settings = {"ign_servers": []}
+    default_guild_settings = {"TEXT_ONLY": False}
     default_user_settings = {
         "MESSAGE": False,
         "IDLE_MESSAGE": False,
@@ -25,6 +26,7 @@ class Away(commands.Cog):
         self.bot = bot
         self._away = Config.get_conf(self, 8423491260, force_registration=True)
         self._away.register_global(**self.default_global_settings)
+        self._away.register_guild(**self.default_guild_settings)
         self._away.register_user(**self.default_user_settings)
 
     def _draw_play(self, song):
@@ -85,6 +87,17 @@ class Away(commands.Cog):
             thumbnail = getattr(author.activity, "large_image_url", None)
             if thumbnail:
                 em.set_thumbnail(url=thumbnail)
+        elif state == "gamingcustom":
+            status = [c for c in author.activities if c.type == discord.ActivityType.playing]
+            em = discord.Embed(description=message, color=color)
+            em.set_author(
+                name=f"{author.display_name} is currently playing {status[0].name}",
+                icon_url=avatar,
+            )
+            em.title = getattr(status[0], "details", None)
+            thumbnail = getattr(status[0], "large_image_url", None)
+            if thumbnail:
+                em.set_thumbnail(url=thumbnail)
         elif state == "listening":
             em = discord.Embed(color=author.activity.color)
             artist_title = f"{author.activity.title} by " + ", ".join(
@@ -98,8 +111,18 @@ class Away(commands.Cog):
                 icon_url=avatar,
             )
             em.description = message + "\n" + self._draw_play(author.activity)
-            # em.set_footer(text=author.activity.duration)
             em.set_thumbnail(url=author.activity.album_cover_url)
+        elif state == "listeningcustom":
+            activity = [c for c in author.activities if c.type == discord.ActivityType.listening]
+            em = discord.Embed(color=activity[0].color)
+            artist_title = f"{activity[0].title} by " + ", ".join(a for a in activity[0].artists)
+            limit = 256 - (len(author.display_name) + 27)
+            em.set_author(
+                name=f"{author.display_name} is currently listening to {artist_title[:limit]}",
+                icon_url=avatar,
+            )
+            em.description = message + "\n" + self._draw_play(activity[0])
+            em.set_thumbnail(url=activity[0].album_cover_url)
         elif state == "streaming":
             color = int("6441A4", 16)
             em = discord.Embed(color=color)
@@ -109,10 +132,20 @@ class Away(commands.Cog):
                 name=f"{author.display_name} is currently streaming {author.activity.name}",
                 icon_url=avatar,
             )
+        elif state == "streamingcustom":
+            activity = [c for c in author.activities if c.type == discord.ActivityType.streaming]
+            color = int("6441A4", 16)
+            em = discord.Embed(color=color)
+            em.description = message + "\n" + activity[0].url
+            em.title = getattr(author.activity, "details", None)
+            em.set_author(
+                name=f"{author.display_name} is currently streaming {activity[0].name}",
+                icon_url=avatar,
+            )
         else:
             em = discord.Embed(color=color)
             em.set_author(name="{} is currently away".format(author.display_name), icon_url=avatar)
-        if link and state not in ["listening", "gaming"]:
+        if link and state not in ["listening", "listeningcustom", "gaming"]:
             em.set_image(url=link.group(0))
         return em
 
@@ -120,7 +153,6 @@ class Away(commands.Cog):
         """
             Replaces user mentions with their username
         """
-        print(message)
         for word in message.split():
             match = re.search(r"<@!?([0-9]+)>", word)
             if match:
@@ -133,40 +165,44 @@ class Away(commands.Cog):
             Makes the message to display if embeds aren't available
         """
         message = await self.find_user_mention(message)
-        if state == "away":
-            msg = "{} is currently away and has set the following message: `{}`".format(
-                author.display_name, message
-            )
-        elif state == "idle":
-            msg = "{} is currently away and has set the following message: `{}`".format(
-                author.display_name, message
-            )
-        elif state == "dnd":
-            msg = "{} is currently away and has set the following message: `{}`".format(
-                author.display_name, message
-            )
-        elif state == "offline":
-            msg = "{} is currently away and has set the following message: `{}`".format(
-                author.display_name, message
-            )
+
+        if state in ["away", "idle", "dnd", "offline"]:
+            msg = "{} is currently away".format(author.display_name)
         elif state == "gaming":
-            msg = "{} is currently playing {} and has set the following message: `{}`".format(
-                author.display_name, author.activity.name, message
-            )
+            msg = "{} is currently playing {}".format(author.display_name, author.activity.name)
+        elif state == "gamingcustom":
+            status = [c for c in author.activities if c.type == discord.ActivityType.playing]
+            msg = "{} is currently playing {}".format(author.display_name, status[0].name)
         elif state == "listening":
             artist_title = f"{author.activity.title} by " + ", ".join(
                 a for a in author.activity.artists
             )
             currently_playing = self._draw_play(author.activity)
-            msg = "{} is currently listening to {} and has set the following message: `{}`\n{}".format(
-                author.display_name, artist_title, message, currently_playing
+            msg = "{} is currently listening to {}\n{}".format(
+                author.display_name, artist_title, currently_playing
+            )
+        elif state == "listeningcustom":
+            status = [c for c in author.activities if c.type == discord.ActivityType.listening]
+            artist_title = f"{status[0].title} by " + ", ".join(a for a in status[0].artists)
+            currently_playing = self._draw_play(status[0])
+            msg = "{} is currently listening to {}\n{}".format(
+                author.display_name, artist_title, currently_playing
             )
         elif state == "streaming":
-            msg = "{} is currently streaming at {} and has set the following message: `{}`".format(
-                author.display_name, author.activity.url, message
+            msg = "{} is currently streaming at {}".format(
+                author.display_name, author.activity.url
             )
+        elif state == "streamingcustom":
+            status = [c for c in author.activities if c.type == discord.ActivityType.streaming]
+            msg = "{} is currently streaming at {}".format(author.display_name, status[0].url)
         else:
             msg = "{} is currently away".format(author.display_name)
+
+        if message != " " and state != "listeningcustom":
+            msg += f" and has set the following message: `{message}`"
+        elif message != " " and state == "listeningcustom":
+            msg += f"\n\nCustom message: `{message}`"
+
         return msg
 
     async def is_mod_or_admin(self, member: discord.Member):
@@ -198,90 +234,139 @@ class Away(commands.Cog):
         for author in message.mentions:
             if guild.id in list_of_guilds_ign and not await self.is_mod_or_admin(author):
                 continue
-            away_msg = await self._away.user(author).MESSAGE()
+            user_data = await self._away.user(author).all()
+            text_only = await self._away.guild(guild).TEXT_ONLY()
+            embed_links = message.channel.permissions_for(guild.me).embed_links
+
+            away_msg = user_data["MESSAGE"]
             if away_msg:
                 if type(away_msg) in [tuple, list]:
                     # This is just to keep backwards compatibility
                     away_msg, delete_after = away_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:
+                if embed_links and not text_only:
                     em = await self.make_embed_message(author, away_msg, "away")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                else:
+                elif (embed_links and text_only) or not embed_links:
                     msg = await self.make_text_message(author, away_msg, "away")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            idle_msg = await self._away.user(author).IDLE_MESSAGE()
+            idle_msg = user_data["IDLE_MESSAGE"]
             if idle_msg and author.status == discord.Status.idle:
                 if type(idle_msg) in [tuple, list]:
                     idle_msg, delete_after = idle_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:
+                if embed_links and not text_only:
                     em = await self.make_embed_message(author, idle_msg, "idle")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                else:
+                elif (embed_links and text_only) or not embed_links:
                     msg = await self.make_text_message(author, idle_msg, "idle")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            dnd_msg = await self._away.user(author).DND_MESSAGE()
+            dnd_msg = user_data["DND_MESSAGE"]
             if dnd_msg and author.status == discord.Status.dnd:
                 if type(dnd_msg) in [tuple, list]:
                     dnd_msg, delete_after = dnd_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:
+                if embed_links and not text_only:
                     em = await self.make_embed_message(author, dnd_msg, "dnd")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                else:
+                elif (embed_links and text_only) or not embed_links:
                     msg = await self.make_text_message(author, dnd_msg, "dnd")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            offline_msg = await self._away.user(author).OFFLINE_MESSAGE()
+            offline_msg = user_data["OFFLINE_MESSAGE"]
             if offline_msg and author.status == discord.Status.offline:
                 if type(offline_msg) in [tuple, list]:
                     offline_msg, delete_after = offline_msg
                 else:
                     delete_after = None
-                if message.channel.permissions_for(guild.me).embed_links:
+                if embed_links and not text_only:
                     em = await self.make_embed_message(author, offline_msg, "offline")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                else:
+                elif (embed_links and text_only) or not embed_links:
                     msg = await self.make_text_message(author, offline_msg, "offline")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            streaming_msg = await self._away.user(author).STREAMING_MESSAGE()
+            streaming_msg = user_data["STREAMING_MESSAGE"]
             if streaming_msg and type(author.activity) is discord.Streaming:
                 streaming_msg, delete_after = streaming_msg
-                if message.channel.permissions_for(guild.me).embed_links:
+                if embed_links and not text_only:
                     em = await self.make_embed_message(author, streaming_msg, "streaming")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                else:
+                elif (embed_links and text_only) or not embed_links:
                     msg = await self.make_text_message(author, streaming_msg, "streaming")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            listening_msg = await self._away.user(author).LISTENING_MESSAGE()
+            if streaming_msg and type(author.activity) is discord.CustomActivity:
+                stream_status = [
+                    c for c in author.activities if c.type == discord.ActivityType.streaming
+                ]
+                if not stream_status:
+                    continue
+                streaming_msg, delete_after = streaming_msg
+                if embed_links and not text_only:
+                    em = await self.make_embed_message(author, streaming_msg, "streamingcustom")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                elif (embed_links and text_only) or not embed_links:
+                    msg = await self.make_text_message(author, streaming_msg, "streamingcustom")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            listening_msg = user_info["LISTENING_MESSAGE"]
             if listening_msg and type(author.activity) is discord.Spotify:
                 listening_msg, delete_after = listening_msg
-                if message.channel.permissions_for(guild.me).embed_links:
+                if embed_links and not text_only:
                     em = await self.make_embed_message(author, listening_msg, "listening")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                else:
+                elif (embed_links and text_only) or not embed_links:
                     msg = await self.make_text_message(author, listening_msg, "listening")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            gaming_msgs = await self._away.user(author).GAME_MESSAGE()
+            if listening_msg and type(author.activity) is discord.CustomActivity:
+                listening_status = [
+                    c for c in author.activities if c.type == discord.ActivityType.listening
+                ]
+                if not listening_status:
+                    continue
+                listening_msg, delete_after = listening_msg
+                if embed_links and not text_only:
+                    em = await self.make_embed_message(author, listening_msg, "listeningcustom")
+                    await message.channel.send(embed=em, delete_after=delete_after)
+                elif (embed_links and text_only) or not embed_links:
+                    msg = await self.make_text_message(author, listening_msg, "listeningcustom")
+                    await message.channel.send(msg, delete_after=delete_after)
+                continue
+            gaming_msgs = user_data["GAME_MESSAGE"]
             if gaming_msgs and type(author.activity) in [discord.Game, discord.Activity]:
                 for game in gaming_msgs:
                     if game in author.activity.name.lower():
                         game_msg, delete_after = gaming_msgs[game]
-                        if message.channel.permissions_for(guild.me).embed_links:
+                        if embed_links and not text_only:
                             em = await self.make_embed_message(author, game_msg, "gaming")
                             await message.channel.send(embed=em, delete_after=delete_after)
                             break  # Let's not accidentally post more than one
-                        else:
+                        elif (embed_links and text_only) or not embed_links:
                             msg = await self.make_text_message(author, game_msg, "gaming")
+                            await message.channel.send(msg, delete_after=delete_after)
+                            break
+            if gaming_msgs and type(author.activity) is discord.CustomActivity:
+                game_status = [
+                    c for c in author.activities if c.type == discord.ActivityType.playing
+                ]
+                if not game_status:
+                    continue
+                for game in gaming_msgs:
+                    if game in game_status[0].name.lower():
+                        game_msg, delete_after = gaming_msgs[game]
+                        if embed_links and not text_only:
+                            em = await self.make_embed_message(author, game_msg, "gamingcustom")
+                            await message.channel.send(embed=em, delete_after=delete_after)
+                            break  # Let's not accidentally post more than one
+                        elif (embed_links and text_only) or not embed_links:
+                            msg = await self.make_text_message(author, game_msg, "gamingcustom")
                             await message.channel.send(msg, delete_after=delete_after)
                             break
 
@@ -420,6 +505,8 @@ class Away(commands.Cog):
         `game` The game you would like automatic responses for
         `delete_after` Optional seconds to delete the automatic reply
         `message` The custom message to display when you're mentioned
+
+        Use "double quotes" around a game's name if it is more than one word.
         """
         author = ctx.message.author
         mess = await self._away.user(author).GAME_MESSAGE()
@@ -455,6 +542,22 @@ class Away(commands.Cog):
             guilds.append(guild.id)
             await self._away.ign_servers.set(guilds)
             message = "Ignoring this guild."
+        await ctx.send(message)
+
+    @commands.command()
+    @checks.admin_or_permissions(administrator=True)
+    async def awaytextonly(self, ctx):
+        """
+        Toggle forcing the guild's away messages to be text only.
+        
+        This overrides the embed_links check this cog uses for message sending.
+        """
+        text_only = await self._away.guild(ctx.guild).TEXT_ONLY()
+        if text_only:
+            message = "Away messages will now be embedded or text only based on the bot's permissions for embed links."
+        else:
+            message = "Away messages are now forced to be text only, regardless of the bot's permissions for embed links."
+        await self._away.guild(ctx.guild).TEXT_ONLY.set(not text_only)
         await ctx.send(message)
 
     @commands.command(name="awaysettings", aliases=["awayset"])
