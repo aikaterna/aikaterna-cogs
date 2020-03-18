@@ -63,20 +63,18 @@ class Away(commands.Cog):
                 message = message.replace(link.group(0), " ")
         if state == "away":
             em = discord.Embed(description=message, color=color)
-            em.set_author(name="{} is currently away".format(author.display_name), icon_url=avatar)
+            em.set_author(name=f"{author.display_name} is currently away", icon_url=avatar)
         elif state == "idle":
             em = discord.Embed(description=message, color=color)
-            em.set_author(name="{} is currently idle".format(author.display_name), icon_url=avatar)
+            em.set_author(name=f"{author.display_name} is currently idle", icon_url=avatar)
         elif state == "dnd":
             em = discord.Embed(description=message, color=color)
             em.set_author(
-                name="{} is currently do not disturb".format(author.display_name), icon_url=avatar
+                name=f"{author.display_name} is currently do not disturb", icon_url=avatar
             )
         elif state == "offline":
             em = discord.Embed(description=message, color=color)
-            em.set_author(
-                name="{} is currently offline".format(author.display_name), icon_url=avatar
-            )
+            em.set_author(name=f"{author.display_name} is currently offline", icon_url=avatar)
         elif state == "gaming":
             em = discord.Embed(description=message, color=color)
             em.set_author(
@@ -166,37 +164,37 @@ class Away(commands.Cog):
         """
         message = await self.find_user_mention(message)
 
-        if state in ["away", "idle", "dnd", "offline"]:
-            msg = "{} is currently away".format(author.display_name)
+        if state == "away":
+            msg = f"{author.display_name} is currently away"
+        elif state == "idle":
+            msg = f"{author.display_name} is currently idle"
+        elif state == "dnd":
+            msg = f"{author.display_name} is currently do not disturb"
+        elif state == "offline":
+            msg = f"{author.display_name} is currently offline"
         elif state == "gaming":
-            msg = "{} is currently playing {}".format(author.display_name, author.activity.name)
+            msg = f"{author.display_name} is currently playing {author.activity.name}"
         elif state == "gamingcustom":
             status = [c for c in author.activities if c.type == discord.ActivityType.playing]
-            msg = "{} is currently playing {}".format(author.display_name, status[0].name)
+            msg = f"{author.display_name} is currently playing {status[0].name}"
         elif state == "listening":
             artist_title = f"{author.activity.title} by " + ", ".join(
                 a for a in author.activity.artists
             )
             currently_playing = self._draw_play(author.activity)
-            msg = "{} is currently listening to {}\n{}".format(
-                author.display_name, artist_title, currently_playing
-            )
+            msg = f"{author.display_name} is currently listening to {artist_title}\n{currently_playing}"
         elif state == "listeningcustom":
             status = [c for c in author.activities if c.type == discord.ActivityType.listening]
             artist_title = f"{status[0].title} by " + ", ".join(a for a in status[0].artists)
             currently_playing = self._draw_play(status[0])
-            msg = "{} is currently listening to {}\n{}".format(
-                author.display_name, artist_title, currently_playing
-            )
+            msg = f"{author.display_name} is currently listening to {artist_title}\n{currently_playing}"
         elif state == "streaming":
-            msg = "{} is currently streaming at {}".format(
-                author.display_name, author.activity.url
-            )
+            msg = f"{author.display_name} is currently streaming at {author.activity.url}"
         elif state == "streamingcustom":
             status = [c for c in author.activities if c.type == discord.ActivityType.streaming]
-            msg = "{} is currently streaming at {}".format(author.display_name, status[0].url)
+            msg = f"{author.display_name} is currently streaming at {status[0].url}"
         else:
-            msg = "{} is currently away".format(author.display_name)
+            msg = f"{author.display_name} is currently away"
 
         if message != " " and state != "listeningcustom":
             msg += f" and has set the following message: `{message}`"
@@ -315,7 +313,7 @@ class Away(commands.Cog):
                     msg = await self.make_text_message(author, streaming_msg, "streamingcustom")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
-            listening_msg = user_info["LISTENING_MESSAGE"]
+            listening_msg = user_data["LISTENING_MESSAGE"]
             if listening_msg and type(author.activity) is discord.Spotify:
                 listening_msg, delete_after = listening_msg
                 if embed_links and not text_only:
@@ -513,14 +511,14 @@ class Away(commands.Cog):
         if game.lower() in mess:
             del mess[game.lower()]
             await self._away.user(author).GAME_MESSAGE.set(mess)
-            msg = "The bot will no longer reply for you when you're playing {}.".format(game)
+            msg = f"The bot will no longer reply for you when you're playing {game}."
         else:
             if message is None:
                 mess[game.lower()] = (" ", delete_after)
             else:
                 mess[game.lower()] = (message, delete_after)
             await self._away.user(author).GAME_MESSAGE.set(mess)
-            msg = "The bot will now reply for you when you're playing {}.".format(game)
+            msg = f"The bot will now reply for you when you're playing {game}."
         await ctx.send(msg)
 
     @commands.command(name="toggleaway")
