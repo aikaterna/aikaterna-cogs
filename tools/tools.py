@@ -737,39 +737,39 @@ class Tools(commands.Cog):
         waiting = await ctx.send(load)
 
         data = "```ini\n"
-        data += "[Name]:      {}\n".format(cf.escape(str(user)))
-        data += "[Nickname]:  {}\n".format(cf.escape(str(user.nick)))
-        data += "[ID]:        {}\n".format(user.id)
-        data += "[Status]:    {}\n".format(user.status)
-        data += "[Servers]:   {} shared\n".format(seen)
-        act = user.activity
-        if act is None:
-            pass
-
-        elif act.type == discord.ActivityType.playing:
-            data += "[Playing]:   {}\n".format(cf.escape(str(act.name)))
-        elif act.type == discord.ActivityType.listening:
-            if isinstance(act, discord.Spotify):
-                _form = act.title
+        data += "[Name]:          {}\n".format(cf.escape(str(user)))
+        if user.nick is not None:
+            data += "[Nickname]:      {}\n".format(cf.escape(str(user.nick)))
+        data += "[ID]:            {}\n".format(user.id)
+        data += "[Status]:        {}\n".format(user.status)
+        data += "[Servers]:       {} shared\n".format(seen)
+        if actplay := discord.utils.get(user.activities, type=discord.ActivityType.playing):
+            data += "[Playing]:       {}\n".format(cf.escape(str(actplay.name)))
+        if actlisten := discord.utils.get(user.activities, type=discord.ActivityType.listening):
+            if isinstance(actlisten, discord.Spotify):
+                _form = actlisten.title
             else:
-                _form = act.name
-            data += "[Listening]: {}\n".format(cf.escape(_form))
-        elif act.type == discord.ActivityType.listening:
-            data += "[Watching]:   {}\n".format(cf.escape(str(user.activity.name)))
-        else:
+                _form = actlisten.name
+            data += "[Listening]:     {}\n".format(cf.escape(_form))
+        if actwatch := discord.utils.get(user.activities, type=discord.ActivityType.watching):
+            data += "[Watching]:      {}\n".format(cf.escape(str(actwatch.name)))
+        if actstream := discord.utils.get(user.activities, type=discord.ActivityType.streaming):
             data += "[Streaming]: [{}]({})\n".format(
-                cf.escape(str(user.activity.name)), cf.escape(user.activity.url)
+                cf.escape(str(actstream.name)), cf.escape(actstream.url)
             )
+        if actcustom := discord.utils.get(user.activities, type=discord.ActivityType.custom):
+            if actcustom.name is not None:
+                data += "[Custom status]: {}\n".format(cf.escape(str(actcustom.name)))
         passed = (ctx.message.created_at - user.created_at).days
-        data += "[Created]:   {}\n".format(self._dynamic_time(user.created_at))
+        data += "[Created]:       {}\n".format(self._dynamic_time(user.created_at))
         joined_at = self.fetch_joined_at(user, ctx.guild)
         if caller != "invoke":
-            data += "[Joined]:    {}\n".format(self._dynamic_time(joined_at))
-            data += "[Roles]:     {}\n".format(", ".join(roles))
-            data += "[In Voice]:  {}\n".format(
+            data += "[Joined]:        {}\n".format(self._dynamic_time(joined_at))
+            data += "[Roles]:         {}\n".format(", ".join(roles))
+            data += "[In Voice]:      {}\n".format(
                 user.voice.channel if user.voice is not None else None
             )
-            data += "[AFK]:       {}\n".format(user.voice.afk if user.voice is not None else False)
+            data += "[AFK]:           {}\n".format(user.voice.afk if user.voice is not None else False)
         data += "```"
         await asyncio.sleep(1)
         await waiting.edit(content=data)
