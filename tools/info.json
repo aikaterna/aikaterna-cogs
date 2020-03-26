@@ -5,7 +5,7 @@
 	],
 	"description": "Mod and admin tools.",
     "install_msg": "Thanks for installing. Use `[p]help` Tools to get started.",
-    "min_python_version": [3, 6, 0],
+    "min_python_version": [3, 8, 0],
     "permissions" : [
 		"ban_members",
 		"manage_channels"
