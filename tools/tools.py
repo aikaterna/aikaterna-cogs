@@ -747,7 +747,7 @@ class Tools(commands.Cog):
             data += "[Playing]:       {}\n".format(cf.escape(str(actplay.name)))
         if actlisten := discord.utils.get(user.activities, type=discord.ActivityType.listening):
             if isinstance(actlisten, discord.Spotify):
-                _form = "{} - {}".format(actlisten.artist, actlisten.title)
+                _form = actlisten.title
             else:
                 _form = actlisten.name
             data += "[Listening]:     {}\n".format(cf.escape(_form))
