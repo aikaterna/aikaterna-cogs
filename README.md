@@ -1,7 +1,7 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
-adventure - Originally by Locastan. My version is a collaboration between TrustyJAID and myself. The repo can be found at: https://github.com/aikaterna/gobcog
+adventure - Originally by Locastan. My version is a collaboration between TrustyJAID, Draper, and myself. The repo can be found at: https://github.com/aikaterna/gobcog
 
 antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog. Config stuff tacked on by me. Later iterations will include emoji recognizing and possibly link detection for these bad images.
 
