@@ -288,14 +288,14 @@ class Tools(commands.Cog):
                 await ctx.send("No roles were found")
                 return
             else:
-                msg = "**Roles found with** {} **in the name.**\n\n".format(rolename)
+                msg = "**Roles found with** {} **in the name.**\nType the number of the role you wish to see.\n\n".format(rolename)
                 tbul8 = []
                 for num, role in enumerate(roles):
                     tbul8.append([num + 1, role.name])
                 m1 = await ctx.send(msg + tabulate(tbul8, tablefmt="plain"))
 
                 def check(m):
-                    if (m.author == author) and (m.channel == ctx.channel):
+                    if (m.author == ctx.author) and (m.channel == ctx.channel):
                         return True
 
                 response = await self.bot.wait_for("message", check=check, timeout=25)
@@ -309,10 +309,9 @@ class Tools(commands.Cog):
                     response = int(response.content)
 
                 if response not in range(0, len(roles) + 1):
-                    return
+                    return await ctx.send("Cancelled.")
                 elif response == 0:
-                    await ctx.send("Cancelled.")
-                    return
+                    return await ctx.send("Cancelled.")
                 else:
                     role = roles[response - 1]
 
