@@ -19,6 +19,8 @@ dictonary - I stole this from UltimatePancake's v2 cogs, defines words via a dic
 
 dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
 
+hunting - A long overdue port of Paddo's v2 hunting game to v3.
+
 icyparser - Show icecast/shoutcast stream information. An audio addon cog to show the current stream info, or provide a url yourself.
 
 imgwelcome - The repo can be found at: https://github.com/aikaterna/imgwelcome
