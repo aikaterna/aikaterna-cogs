@@ -41,7 +41,6 @@ class Hunting(commands.Cog):
         self.config.register_user(**default_user)
         self.config.register_guild(**default_guild)
 
-    @checks.mod_or_permissions(manage_guild=True)
     @commands.guild_only()
     @commands.group()
     async def hunting(self, ctx):
@@ -128,6 +127,7 @@ class Hunting(commands.Cog):
             page_list.append(embed)
         return await menu(ctx, page_list, DEFAULT_CONTROLS)
 
+    @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
     async def next(self, ctx):
         """When will the next occurrence happen?"""
@@ -162,6 +162,7 @@ class Hunting(commands.Cog):
             message = f"{member.name} shot a total of {total} animals ({humanize_list(kill_list)})"
         await ctx.send(bold(message))
 
+    @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
     async def start(self, ctx, channel: discord.TextChannel = None):
         """Start the hunt."""
@@ -181,6 +182,7 @@ class Hunting(commands.Cog):
 
         await ctx.send(bold(message))
 
+    @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
     async def stop(self, ctx, channel: discord.TextChannel = None):
         """Stop the hunt."""
@@ -197,6 +199,7 @@ class Hunting(commands.Cog):
 
         await ctx.send(bold(message))
 
+    @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
     async def timing(self, ctx, interval_min: int, interval_max: int, bang_timeout: int):
         """
