@@ -356,6 +356,7 @@ class Tools(commands.Cog):
             )
             await awaiter.edit(embed=embed)
 
+    @commands.guild_only()
     @commands.command()
     async def joined(self, ctx, user: discord.Member = None):
         """Show when a user joined the guild."""
