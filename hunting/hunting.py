@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.0.2"
+__version__ = "3.0.1"
 
 
 class Hunting(commands.Cog):
@@ -85,7 +85,6 @@ class Hunting(commands.Cog):
             else "Name",
         )
         temp_msg = header
-        user_idx = 0
         for pos, account in enumerate(sorted_acc):
             if account[1]["total"] == 0:
                 continue
@@ -102,6 +101,7 @@ class Hunting(commands.Cog):
                     user_name = f"{user_obj.display_name[:19]}...#{user_obj.discriminator}"
                 user_idx = pos + 1
             except AttributeError:
+                user_idx = pos + 1
                 user_name = str(user_obj)
             if user_obj == ctx.author:
                 temp_msg += (
