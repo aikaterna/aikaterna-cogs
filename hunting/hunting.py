@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.0.3"
+__version__ = "3.0.4"
 
 
 class Hunting(commands.Cog):
@@ -271,6 +271,10 @@ class Hunting(commands.Cog):
 
     async def _wait_for_bang(self, guild, channel):
         def check(message):
+            if guild != message.guild:
+                return False
+            if channel != message.channel:
+                return False
             return message.content.lower().split(" ")[0] == "bang" if message.content else False
 
         animal = random.choice(list(self.animals.keys()))
