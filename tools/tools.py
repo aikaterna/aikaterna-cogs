@@ -444,7 +444,7 @@ class Tools(commands.Cog):
         header = "{:>33}\n{}\n\n".format(head1, "-" * 57)
 
         user_body = (
-            " {mem}\n"
+            " {mem} ({memid})\n"
             " {spcs}Joined Guild:    {sp1}{join}\n"
             " {spcs}Account Created: {sp2}{created}\n\n"
         )
@@ -470,6 +470,7 @@ class Tools(commands.Cog):
 
             disp += user_body.format(
                 mem=member.display_name,
+                memid=member.id,
                 join=self._dynamic_time(member.joined_at),
                 created=self._dynamic_time(member.created_at),
                 spcs=smspc,
