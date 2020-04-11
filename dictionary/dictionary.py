@@ -1,7 +1,11 @@
 import aiohttp
 from bs4 import BeautifulSoup
+import logging
 import re
 from redbot.core import commands
+
+
+log = logging.getLogger("red.aikaterna.dictionary")
 
 
 class Dictionary(commands.Cog):
@@ -19,9 +23,9 @@ class Dictionary(commands.Cog):
         try:
             async with self.session.request("GET", url) as response:
                 return BeautifulSoup(await response.text(), "html.parser")
-        except Exception as e:
-            print(e)
-            return
+        except Exception:
+            log.error("Error fetching dictionary.py related webpage", exc_info=True)
+            return None
 
     @commands.command()
     async def antonym(self, ctx, *, word: str):
@@ -37,6 +41,8 @@ class Dictionary(commands.Cog):
 
     async def _antonym(self, ctx, word):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
+        if not data:
+            return await ctx.send("Error fetching data.")
         section = data.find_all("ul", {"class": "css-1lc0dpe et6tpn80"})
         try:
             section[1]
@@ -74,10 +80,12 @@ class Dictionary(commands.Cog):
         await search_msg.edit(content=str_buffer)
 
     async def _definition(self, ctx, word):
-        html = await self._get_soup_object(f"http://wordnetweb.princeton.edu/perl/webwn?s={word}")
-        types = html.findAll("h3")
+        data = await self._get_soup_object(f"http://wordnetweb.princeton.edu/perl/webwn?s={word}")
+        if not data:
+            return await ctx.send("Error fetching data.")
+        types = data.findAll("h3")
         length = len(types)
-        lists = html.findAll("ul")
+        lists = data.findAll("ul")
         out = {}
         if not lists:
             return
@@ -95,6 +103,8 @@ class Dictionary(commands.Cog):
 
     async def _synonym(self, ctx, word):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
+        if not data:
+            return await ctx.send("Error fetching data.")
         section = data.find_all("ul", {"class": "css-1lc0dpe et6tpn80"})
         try:
             section[1]

@@ -1,8 +1,12 @@
 import asyncio
 import datetime
 import discord
+import logging
 from redbot.core import Config, commands, checks, modlog
 from redbot.core.utils.chat_formatting import box, pagify
+
+
+log = logging.getLogger("red.aikaterna.dungeon")
 
 
 class Dungeon(commands.Cog):
@@ -141,7 +145,7 @@ class Dungeon(commands.Cog):
         if not bypass_ids:
             msg += "None."
         for id in bypass_ids:
-            msg += (f"{id}\n")
+            msg += f"{id}\n"
         for page in pagify(msg, delims=["\n"], page_length=1000):
             await ctx.send(box(msg, lang="ini"))
 
@@ -416,7 +420,7 @@ class Dungeon(commands.Cog):
             if announce_channel:
                 await channel_object.send(bypass_msg)
             else:
-                print(f"dungeon.py: {bypass_msg}")
+                log.debug(f"dungeon.py: {bypass_msg}")
             return
 
         if (since_join.days < join_days) or (profile_toggle and default_avatar):
@@ -437,7 +441,7 @@ class Dungeon(commands.Cog):
                                 f"I couldn't DM {member} ({member.id}) to let them know they've been banned, they've blocked me."
                             )
                         else:
-                            print(perm_msg)
+                            log.debug(perm_msg)
                             return
                 try:
                     await member.guild.ban(
@@ -449,16 +453,15 @@ class Dungeon(commands.Cog):
                             f"I tried to auto-ban someone ({member}, {member.id}) but I don't have ban permissions."
                         )
                     else:
-                        print(perm_msg)
+                        log.debug(perm_msg)
                         return
-
 
                 if not mod_log:
                     if announce_channel:
                         msg = f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
                         return await channel_object.send(msg)
                     else:
-                        print(perm_msg)
+                        log.debug(perm_msg)
                         return
                 else:
                     try:
@@ -472,9 +475,10 @@ class Dungeon(commands.Cog):
                             until=None,
                             channel=None,
                         )
-                    except RuntimeError as e:
-                        print(
-                            f"dungeon.py error while autobanning user and attempting to create modlog entry: {e}\nIn guild: {member.guild.id}"
+                    except RuntimeError:
+                        log.error(
+                            f"dungeon.py error while autobanning user and attempting to create modlog entry in guild: {member.guild.id}",
+                            exc_info=True,
                         )
 
             if blacklist:
@@ -498,7 +502,9 @@ class Dungeon(commands.Cog):
                         "Someone suspicious joined but something went wrong. I need permissions to manage channels and manage roles."
                     )
                 else:
-                    print("dungeon.py: I need permissions to manage channels and manage roles.")
+                    log.info(
+                        f"dungeon.py: I need permissions to manage channels and manage roles in {member.guild.name} ({member.guild.id})."
+                    )
                     return
 
             msg = f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"

@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import discord
 import inspect
+import logging
 import random
 import os
 import time
@@ -10,6 +11,9 @@ from redbot.core.utils import chat_formatting as cf
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from tabulate import tabulate
 from contextlib import suppress as sps
+
+
+log = logging.getLogger("red.aikaterna.tools")
 
 
 class Tools(commands.Cog):
@@ -21,10 +25,10 @@ class Tools(commands.Cog):
     async def _Tools__error(self, ctx, error):
         if error.__cause__:
             cause = error.__cause__
-            print(f"Tools Cog :: Error Occured ::\n{error}\n{cause}\n")
+            log.info(f"Tools Cog :: Error Occured ::\n{error}\n{cause}\n")
         else:
             cause = error
-            print(f"Tools Cog :: Error Occured :: \n{cause}\n")
+            log.info(f"Tools Cog :: Error Occured :: \n{cause}\n")
 
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)

@@ -2,8 +2,12 @@ from PIL import Image
 from io import BytesIO
 import aiohttp
 import discord
+import logging
 
 from redbot.core import commands, checks, Config
+
+
+log = logging.getLogger("red.aikaterna.antiphoneclapper")
 
 
 class AntiPhoneClapper(commands.Cog):
@@ -27,7 +31,10 @@ class AntiPhoneClapper(commands.Cog):
 
     @nogif.command()
     async def watch(self, ctx, channel: discord.TextChannel):
-        """Add a channel to watch. Gifs that break mobile clients will be removed in these channels."""
+        """
+        Add a channel to watch. 
+        Gif attachments that break mobile clients will be removed in these channels.
+        """
         channel_list = await self.config.guild(ctx.guild).watching()
         if channel.id not in channel_list:
             channel_list.append(channel.id)
@@ -100,7 +107,7 @@ class AntiPhoneClapper(commands.Cog):
                     return
                 except discord.errors.Forbidden:
                     await m.channel.send(f"Don't send GIFs that do that, {m.author.mention}")
-                    print(f"Failed to delete message ({m.id}) that contained phone killing gif")
+                    log.debug(f"Failed to delete message ({m.id}) that contained phone killing gif")
                     return
             else:
                 return
