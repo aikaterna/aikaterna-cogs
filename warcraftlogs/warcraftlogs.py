@@ -17,7 +17,7 @@ class WarcraftLogs(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 2713931001, force_registration=True)
         self.session = aiohttp.ClientSession()
-        self.zones = [1002, 1001, 1000]
+        self.zones = [1003, 1002, 1001, 1000]
         self.partitions = [2, 1]
 
         default_user = {
@@ -280,8 +280,10 @@ class WarcraftLogs(commands.Cog):
             zone_name = "MoltenCore"
         elif zone == 1001:
             zone_name = "Onyxia"
-        else:
+        elif zone == 1002:
             zone_name = "BWL"
+        else:
+            zone_name = "ZG"
         return zone_name
 
     @staticmethod
@@ -294,13 +296,15 @@ class WarcraftLogs(commands.Cog):
             zone_name = "Molten Core"
         elif zone_name == "BWL":
             zone_name = "Blackwing Lair"
+        elif zone_name == "ZG":
+            zone_name = "Zul'Gurub"
         else:
             zone_name = zone_name
 
         if phase_num == "1":
             phase_num = "Phase 1 & 2"
         else:
-            phase_num = "Phase 3"
+            phase_num = "Phase 3 & 4"
         return zone_name, phase_num
 
     @staticmethod
