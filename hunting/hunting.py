@@ -64,8 +64,11 @@ class Hunting(commands.Cog):
                 await ctx.send(box(page, lang="ini"))
 
     @hunting.command()
-    async def leaderboard(self, ctx):
-        """This will show the top 50 hunters globally."""
+    async def leaderboard(self, ctx, global_leaderboard=False):
+        """
+        This will show the top 50 hunters for the server.
+        Use True for the global_leaderboard variable to show the global leaderboard.
+        """
         userinfo = await self.config._all_from_scope(scope="USER")
         if not userinfo:
             return await ctx.send(bold("Please shoot something before you can brag about it."))
@@ -92,7 +95,10 @@ class Hunting(commands.Cog):
                 if account[0] in [member.id for member in ctx.guild.members]:
                     user_obj = ctx.guild.get_member(account[0])
                 else:
-                    user_obj = account[0]
+                    if global_leaderboard:
+                        user_obj = account[0]
+                    else:
+                        continue
             except AttributeError:
                 user_obj = account[0]
             try:
@@ -116,13 +122,13 @@ class Hunting(commands.Cog):
 
         page_list = []
         pages = 1
-        for page in pagify(temp_msg, delims=["\n"], page_length=1000):
+        for page in pagify(temp_msg, delims=["\n"], page_length=800):
             embed = discord.Embed(
                 colour=await ctx.bot.get_embed_color(location=ctx.channel),
                 description=box(f"Hunting Leaderboard", lang="prolog") + (box(page, lang="md")),
             )
             embed.set_footer(
-                text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 1500))}"
+                text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 800))}"
             )
             pages += 1
             page_list.append(embed)
