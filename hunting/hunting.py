@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.0.5"
+__version__ = "3.0.6"
 
 
 class Hunting(commands.Cog):
@@ -78,17 +78,15 @@ class Hunting(commands.Cog):
 
         pound_len = len(str(len(sorted_acc)))
         score_len = 10
-        header = "{pound:{pound_len}}{score:{score_len}}{name:2}\n".format(
-            pound="#",
-            pound_len=pound_len + 3,
-            score="Birds Shot",
+        header = "{score:{score_len}}{name:2}\n".format(
+            score="# Birds Shot",
             score_len=score_len + 5,
             name="Name"
             if not str(ctx.author.mobile_status) in ["online", "idle", "dnd"]
             else "Name",
         )
         temp_msg = header
-        for pos, account in enumerate(sorted_acc):
+        for account in sorted_acc:
             if account[1]["total"] == 0:
                 continue
             try:
@@ -105,34 +103,33 @@ class Hunting(commands.Cog):
                 user_name = f"{user_obj.display_name}#{user_obj.discriminator}"
                 if len(user_name) > 28:
                     user_name = f"{user_obj.display_name[:19]}...#{user_obj.discriminator}"
-                user_idx = pos + 1
             except AttributeError:
-                user_idx = pos + 1
                 user_name = str(user_obj)
             if user_obj == ctx.author:
-                temp_msg += (
-                    f"{f'{user_idx}.': <{pound_len + 2}} "
-                    f"{humanize_number(account[1]['total']) + '   ': <{score_len + 4}} <<{user_name}>>\n"
-                )
+                temp_msg += f"{humanize_number(account[1]['total']) + '   ': <{score_len + 4}} <<{user_name}>>\n"
             else:
-                temp_msg += (
-                    f"{f'{user_idx}.': <{pound_len + 2}} "
-                    f"{humanize_number(account[1]['total']) + '   ': <{score_len + 4}} {user_name}\n"
-                )
+                temp_msg += f"{humanize_number(account[1]['total']) + '   ': <{score_len + 4}} {user_name}\n"
 
         page_list = []
         pages = 1
         for page in pagify(temp_msg, delims=["\n"], page_length=800):
+            if global_leaderboard:
+                title = "Global Hunting Leaderboard"
+            else:
+                title = f"Hunting Leaderboard For {ctx.guild.name}"
             embed = discord.Embed(
                 colour=await ctx.bot.get_embed_color(location=ctx.channel),
-                description=box(f"Hunting Leaderboard", lang="prolog") + (box(page, lang="md")),
+                description=box(title, lang="prolog") + (box(page, lang="md")),
             )
             embed.set_footer(
                 text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 800))}"
             )
             pages += 1
             page_list.append(embed)
-        return await menu(ctx, page_list, DEFAULT_CONTROLS)
+        if len(page_list) == 1:
+            await ctx.send(embed=page_list[0])
+        else:
+            await menu(ctx, page_list, DEFAULT_CONTROLS)
 
     @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
