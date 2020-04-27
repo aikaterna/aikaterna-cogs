@@ -2,12 +2,41 @@ import re
 import discord
 from redbot.core import Config, commands, checks
 from random import choice as rndchoice
+from collections import defaultdict, Counter, Sequence
 import time
+import contextlib
+import asyncio
+import logging
+
+
+log = logging.getLogger("red.aikaterna-cogs.rndstatus")
+
+
+class AsyncGen:
+    """Yield entry every `delay` seconds."""
+
+    def __init__(self, contents: Sequence, delay: float = 0.0, steps: int = 5):
+        self.delay = delay
+        self.content = contents
+        self.i = 0
+        self.steps = steps
+        self.to = len(contents)
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if self.i >= self.to:
+            raise StopAsyncIteration
+        i = self.content[self.i]
+        self.i += 1
+        if self.i % self.steps == 0:
+            await asyncio.sleep(self.delay)
+        return i
 
 
 class RndStatus(commands.Cog):
     """Cycles random statuses or displays bot stats.
-
     If a custom status is already set, it won't change it until
     it's back to none. [p]set game"""
 
@@ -15,6 +44,10 @@ class RndStatus(commands.Cog):
         self.bot = bot
         self.last_change = None
         self.config = Config.get_conf(self, 2752521001, force_registration=True)
+        self._user_count = 0
+
+        self.user_task = asyncio.create_task(self._get_user_count())
+        self.presence_task = asyncio.create_task(self.maybe_update_presence())
 
         default_global = {
             "botstats": False,
@@ -32,6 +65,24 @@ class RndStatus(commands.Cog):
         }
         self.config.register_global(**default_global)
 
+    def cog_unload(self):
+        self.user_task.cancel()
+        self.presence_task.cancel()
+
+    async def _get_user_count(self, ):
+        await self.bot.wait_until_ready()
+        with contextlib.suppress(asyncio.CancelledError):
+            self._user_count = len(self.bot.users)
+            while True:
+                temp_data = defaultdict(set)
+                async for s in AsyncGen(self.bot.guilds):
+                    if s.unavailable:
+                        continue
+                    async for m in AsyncGen(s.members):
+                        temp_data["Unique Users"].add(m.id)
+                self._user_count = len(temp_data["Unique Users"])
+                await asyncio.sleep(30)
+
     @commands.group(autohelp=True)
     @commands.guild_only()
     @checks.is_owner()
@@ -42,7 +93,6 @@ class RndStatus(commands.Cog):
     @rndstatus.command(name="set")
     async def _set(self, ctx, *statuses: str):
         """Sets Red's random statuses.
-
         Accepts multiple statuses.
         Must be enclosed in double quotes in case of multiple words.
         Example:
@@ -60,10 +110,10 @@ class RndStatus(commands.Cog):
     async def _streamer(self, ctx: commands.Context, *, streamer=None):
         """Set the streamer needed for streaming statuses.
         """
-        
+
         saved_streamer = await self.config.streamer()
-        if streamer == None:
-            return await ctx.send("Current Streamer: " + saved_streamer)
+        if streamer is None:
+            return await ctx.send(f"Current Streamer: {saved_streamer}" )
         await self.config.streamer.set(streamer)
         await ctx.send(
             "Done. Redo this command with no parameters to see the current streamer."
@@ -74,24 +124,23 @@ class RndStatus(commands.Cog):
         """Toggle for a bot stats status instead of random messages."""
         botstats = await self.config.botstats()
         await self.config.botstats.set(not botstats)
-        await ctx.send("Botstats toggle: {}.".format(not botstats))
-        if not botstats == False:
+        await ctx.send(f"Botstats toggle: {not botstats}.")
+        if botstats is not False:
             await self.bot.change_presence(activity=None)
 
     @rndstatus.command()
     async def delay(self, ctx, seconds: int):
         """Sets interval of random status switch.
-
         Must be 20 or superior."""
         if seconds < 20:
             seconds = 20
         await self.config.delay.set(seconds)
-        await ctx.send(f"Interval set to {str(seconds)} seconds.")
+        await ctx.send(f"Interval set to {seconds} seconds.")
 
     @rndstatus.command()
     async def type(self, ctx, type: int):
         """Define the rndstatus type.
-        
+
         Type list:
         0 = Playing
         1 = Streaming
@@ -103,90 +152,100 @@ class RndStatus(commands.Cog):
         else:
             await ctx.send("Type must be between 0 and 3.")
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        try:
-            current_game = str(message.guild.me.activity.name)
-        except AttributeError:
-            current_game = None
-        statuses = await self.config.statuses()
-        botstats = await self.config.botstats()
-        prefix = await self.bot.get_valid_prefixes()
-        streamer = await self.config.streamer()
-        url = "https://www.twitch.tv/" + streamer
+    async def maybe_update_presence(self):
+        await self.bot.wait_until_ready()
+        pattern = re.compile(rf"<@!?{self.bot.user.id}>")
+        delay = 0
+        while True:
+            try:
+                if self.last_change is not None:
+                    await asyncio.sleep(delay)
+                cog_settings = await self.config.all()
+                guilds = self.bot.guilds
+                guild = next(g for g in guilds if not g.unavailable)
+                try:
+                    current_game = str(guild.me.activity.name)
+                except AttributeError:
+                    current_game = None
+                statuses = cog_settings["statuses"]
+                botstats = cog_settings["botstats"]
+                streamer = cog_settings["streamer"]
+                _type = cog_settings["type"]
+                delay = cog_settings["delay"]
 
-        if botstats:
-            me = self.bot.user
-            pattern = re.compile(rf"<@!?{me.id}>")
-            clean_prefix = pattern.sub(f"@{me.name}", prefix[0])
-            total_users = sum(len(s.members) for s in self.bot.guilds)
-            servers = str(len(self.bot.guilds))
-            botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
-            if self.last_change == None:
-                type = await self.config.type()
-                if type == 1:
-                    await self.bot.change_presence(
-                        activity=discord.Streaming(name=botstatus, url=url)
-                    )
-                else:
-                    await self.bot.change_presence(
-                        activity=discord.Activity(name=botstatus, type=type)
-                    )
-                self.last_change = int(time.perf_counter())
-            if message.author.id == self.bot.user.id:
-                return
-            delay = await self.config.delay()
-            if abs(self.last_change - int(time.perf_counter())) < int(delay):
-                return
-            if (current_game != str(botstatus)) or current_game == None:
-                type = await self.config.type()
-                if type == 1:
-                    return await self.bot.change_presence(
-                        activity=discord.Streaming(name=botstatus, url=url)
-                    )
-                else:
-                    return await self.bot.change_presence(
-                        activity=discord.Activity(name=botstatus, type=type)
-                    )
+                url = f"https://www.twitch.tv/{streamer}"
+                prefix = await self.bot.get_valid_prefixes()
 
-        if self.last_change == None:
-            if len(statuses) > 0 and (current_game in statuses or current_game == None):
-                new_status = self.random_status(message, statuses)
-                self.last_change = int(time.perf_counter())
-                type = await self.config.type()
-                if type == 1:
-                    await self.bot.change_presence(
-                        activity=discord.Streaming(name=new_status, url=url)
-                    )
-                else:
-                    await self.bot.change_presence(
-                        activity=discord.Activity(name=new_status, type=type)
-                    )
-
-        if message.author.id != self.bot.user.id:
-            delay = await self.config.delay()
-            if abs(self.last_change - int(time.perf_counter())) >= int(delay):
-                self.last_change = int(time.perf_counter())
-                new_status = self.random_status(message, statuses)
-                if current_game != new_status:
-                    if current_game in statuses or current_game == None:
-                        type = await self.config.type()
-                        if type == 1:
+                if botstats:
+                    me = self.bot.user
+                    clean_prefix = pattern.sub(f"@{me.name}", prefix[0])
+                    total_users = self._user_count
+                    servers = str(len(self.bot.guilds))
+                    botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
+                    if self.last_change is None:
+                        if _type == 1:
+                            await self.bot.change_presence(
+                                activity=discord.Streaming(name=botstatus, url=url)
+                            )
+                        else:
+                            await self.bot.change_presence(
+                                activity=discord.Activity(name=botstatus, type=_type)
+                            )
+                        self.last_change = int(time.perf_counter())
+                        continue
+                    elif abs(self.last_change - int(time.perf_counter())) < int(delay):
+                        continue
+                    elif (current_game != str(botstatus)) or current_game is None:
+                        if _type == 1:
+                            await self.bot.change_presence(
+                                activity=discord.Streaming(name=botstatus, url=url)
+                            )
+                        else:
+                            await self.bot.change_presence(
+                                activity=discord.Activity(name=botstatus, type=_type)
+                            )
+                        continue
+                elif self.last_change is None:
+                    log.critical("5")
+                    if len(statuses) > 0 and (current_game in statuses or current_game is None):
+                        new_status = self.random_status(guild, statuses)
+                        self.last_change = int(time.perf_counter())
+                        if _type == 1:
                             await self.bot.change_presence(
                                 activity=discord.Streaming(name=new_status, url=url)
                             )
                         else:
                             await self.bot.change_presence(
-                                activity=discord.Activity(name=new_status, type=type)
+                                activity=discord.Activity(name=new_status, type=_type)
                             )
+                    continue
+                elif abs(self.last_change - int(time.perf_counter())) >= int(delay):
+                    log.critical("6")
+                    self.last_change = int(time.perf_counter())
+                    new_status = self.random_status(guild, statuses)
+                    if current_game != new_status:
+                        if current_game in statuses or current_game is None:
+                            if _type == 1:
+                                await self.bot.change_presence(
+                                    activity=discord.Streaming(name=new_status, url=url)
+                                )
+                            else:
+                                await self.bot.change_presence(
+                                    activity=discord.Activity(name=new_status, type=_type)
+                                )
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                log.exception(e, exc_info=e)
 
-    def random_status(self, msg, statuses):
+
+    def random_status(self, guild, statuses):
         try:
-            current = str(msg.guild.me.activity.name)
+            current = str(guild.me.activity.name)
         except AttributeError:
             current = None
         try:
-            new = str(msg.guild.me.activity.name)
+            new = str(guild.me.activity.name)
         except AttributeError:
             new = None
         if len(statuses) > 1:
