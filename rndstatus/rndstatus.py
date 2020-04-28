@@ -10,6 +10,7 @@ import logging
 
 
 log = logging.getLogger("red.aikaterna-cogs.rndstatus")
+pattern = re.compile(rf"<@!?{self.bot.user.id}>")
 
 
 class AsyncGen:
@@ -154,7 +155,6 @@ class RndStatus(commands.Cog):
 
     async def maybe_update_presence(self):
         await self.bot.wait_until_ready()
-        pattern = re.compile(rf"<@!?{self.bot.user.id}>")
         delay = 0
         while True:
             try:
@@ -206,7 +206,6 @@ class RndStatus(commands.Cog):
                             )
                         continue
                 elif self.last_change is None:
-                    log.critical("5")
                     if len(statuses) > 0 and (current_game in statuses or current_game is None):
                         new_status = self.random_status(guild, statuses)
                         self.last_change = int(time.perf_counter())
@@ -220,7 +219,6 @@ class RndStatus(commands.Cog):
                             )
                     continue
                 elif abs(self.last_change - int(time.perf_counter())) >= int(delay):
-                    log.critical("6")
                     self.last_change = int(time.perf_counter())
                     new_status = self.random_status(guild, statuses)
                     if current_game != new_status:
