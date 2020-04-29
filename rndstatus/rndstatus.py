@@ -1,6 +1,7 @@
 import re
 import discord
 from redbot.core import Config, commands, checks
+from redbot.core.utils import AsyncIter
 from random import choice as rndchoice
 from collections import defaultdict, Counter, Sequence
 import time
@@ -10,30 +11,6 @@ import logging
 
 
 log = logging.getLogger("red.aikaterna-cogs.rndstatus")
-pattern = re.compile(rf"<@!?{self.bot.user.id}>")
-
-
-class AsyncGen:
-    """Yield entry every `delay` seconds."""
-
-    def __init__(self, contents: Sequence, delay: float = 0.0, steps: int = 5):
-        self.delay = delay
-        self.content = contents
-        self.i = 0
-        self.steps = steps
-        self.to = len(contents)
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        if self.i >= self.to:
-            raise StopAsyncIteration
-        i = self.content[self.i]
-        self.i += 1
-        if self.i % self.steps == 0:
-            await asyncio.sleep(self.delay)
-        return i
 
 
 class RndStatus(commands.Cog):
@@ -76,10 +53,10 @@ class RndStatus(commands.Cog):
             self._user_count = len(self.bot.users)
             while True:
                 temp_data = defaultdict(set)
-                async for s in AsyncGen(self.bot.guilds):
+                async for s in AsyncIter(self.bot.guilds):
                     if s.unavailable:
                         continue
-                    async for m in AsyncGen(s.members):
+                    async for m in AsyncIter(s.members):
                         temp_data["Unique Users"].add(m.id)
                 self._user_count = len(temp_data["Unique Users"])
                 await asyncio.sleep(30)
@@ -155,11 +132,10 @@ class RndStatus(commands.Cog):
 
     async def maybe_update_presence(self):
         await self.bot.wait_until_ready()
+        pattern = re.compile(rf"<@!?{self.bot.user.id}>")
         delay = 0
         while True:
             try:
-                if self.last_change is not None:
-                    await asyncio.sleep(delay)
                 cog_settings = await self.config.all()
                 guilds = self.bot.guilds
                 guild = next(g for g in guilds if not g.unavailable)
@@ -192,20 +168,18 @@ class RndStatus(commands.Cog):
                                 activity=discord.Activity(name=botstatus, type=_type)
                             )
                         self.last_change = int(time.perf_counter())
-                        continue
-                    elif abs(self.last_change - int(time.perf_counter())) < int(delay):
-                        continue
-                    elif (current_game != str(botstatus)) or current_game is None:
+                    if abs(self.last_change - int(time.perf_counter())) < int(delay):
+                        return
+                    if (current_game != str(botstatus)) or current_game is None:
                         if _type == 1:
-                            await self.bot.change_presence(
+                            return await self.bot.change_presence(
                                 activity=discord.Streaming(name=botstatus, url=url)
                             )
                         else:
-                            await self.bot.change_presence(
+                            return await self.bot.change_presence(
                                 activity=discord.Activity(name=botstatus, type=_type)
                             )
-                        continue
-                elif self.last_change is None:
+                if self.last_change is None:
                     if len(statuses) > 0 and (current_game in statuses or current_game is None):
                         new_status = self.random_status(guild, statuses)
                         self.last_change = int(time.perf_counter())
@@ -217,8 +191,7 @@ class RndStatus(commands.Cog):
                             await self.bot.change_presence(
                                 activity=discord.Activity(name=new_status, type=_type)
                             )
-                    continue
-                elif abs(self.last_change - int(time.perf_counter())) >= int(delay):
+                if abs(self.last_change - int(time.perf_counter())) >= int(delay):
                     self.last_change = int(time.perf_counter())
                     new_status = self.random_status(guild, statuses)
                     if current_game != new_status:
@@ -235,7 +208,7 @@ class RndStatus(commands.Cog):
                 break
             except Exception as e:
                 log.exception(e, exc_info=e)
-
+            await asyncio.sleep(delay)
 
     def random_status(self, guild, statuses):
         try:
