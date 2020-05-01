@@ -3,7 +3,8 @@
 		"aikaterna"
 	],
 	"description": "Random statuses with an optional bot stats mode. Ported from Twentysix's v2 cog.",
-    "install_msg": "Thanks for installing, have fun.",
+	"install_msg": "Thanks for installing, have fun.",
+	"min_bot_version": "3.3.6",
 	"short": "Random bot statuses",
 	"tags": [
 		"status"
