@@ -2,9 +2,8 @@ import aiohttp
 import asyncio
 import datetime
 import discord
-import itertools
 import json
-from typing import Optional
+from operator import itemgetter
 from redbot.core import Config, commands, checks
 from redbot.core.utils.chat_formatting import box, humanize_list, pagify
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
@@ -326,8 +325,8 @@ class WarcraftLogs(commands.Cog):
 
     @staticmethod
     def get_recent_gear(data):
-        data = reversed(data)
-        for encounter in data:
+        date_sorted_data = sorted(data, key=itemgetter('startTime'), reverse=True) 
+        for encounter in date_sorted_data:
             try:
                 item_name = encounter["gear"][0]["name"]
                 if item_name == "Unknown Item":
