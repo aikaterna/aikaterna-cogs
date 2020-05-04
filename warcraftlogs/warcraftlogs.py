@@ -218,25 +218,25 @@ class WarcraftLogs(commands.Cog):
                     encounter = self.get_recent_gear(data)
                     if encounter:
                         all_encounters.append(encounter)
-            encounter = self.get_recent_gear(all_encounters)
+        final = self.get_recent_gear(all_encounters)
 
         wowhead_url = "https://classic.wowhead.com/item={}"
         wcl_url = "https://classic.warcraftlogs.com/reports/{}"
         itempage = ""
 
-        for item in encounter["gear"]:
+        for item in final["gear"]:
             if item["id"] == 0:
                 continue
             rarity = self.get_rarity(item)
             itempage += f"{rarity} [{item['name']}]({wowhead_url.format(item['id'])})\n"
-        itempage += f"\nAverage ilvl: {encounter['ilvlKeyOrPatch']}"
+        itempage += f"\nAverage ilvl: {final['ilvlKeyOrPatch']}"
 
         embed = discord.Embed(
-            title=f"{encounter['characterName']} - {encounter['server']} ({region.upper()})\n{encounter['class']} ({encounter['spec']})",
+            title=f"{final['characterName']} - {final['server']} ({region.upper()})\n{final['class']} ({final['spec']})",
             description=itempage,
         )
         embed.set_footer(
-            text=f"Gear data pulled from {wcl_url.format(encounter['reportID'])}\nEncounter: {encounter['encounterName']}\nLog Date/Time: {self.time_convert(encounter['startTime'])} UTC"
+            text=f"Gear data pulled from {wcl_url.format(final['reportID'])}\nEncounter: {final['encounterName']}\nLog Date/Time: {self.time_convert(final['startTime'])} UTC"
         )
         await ctx.send(embed=embed)
 
