@@ -203,6 +203,7 @@ class WarcraftLogs(commands.Cog):
             if not region:
                 return await ctx.send("Please specify a region name with this command.")
 
+        all_encounters = []
         for zone, phase in [(x, y) for x in self.zones for y in self.partitions]:
             url = f"https://classic.warcraftlogs.com/v1/parses/character/{username}/{realmname}/{region}?zone={zone}&partition={phase}&api_key={apikey}"
 
@@ -216,7 +217,8 @@ class WarcraftLogs(commands.Cog):
                 if data:
                     encounter = self.get_recent_gear(data)
                     if encounter:
-                        break
+                        all_encounters.append(encounter)
+            encounter = self.get_recent_gear(all_encounters)
 
         wowhead_url = "https://classic.wowhead.com/item={}"
         wcl_url = "https://classic.warcraftlogs.com/reports/{}"
