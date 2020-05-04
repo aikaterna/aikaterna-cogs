@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import datetime
 import discord
+import itertools
 import json
 from operator import itemgetter
 from redbot.core import Config, commands, checks
