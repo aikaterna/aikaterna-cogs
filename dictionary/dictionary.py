@@ -43,7 +43,7 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("ul", {"class": "css-1lc0dpe et6tpn80"})
+        section = data.find_all("ul", {"class": "css-1ytlws2 et6tpn80"})
         try:
             section[1]
         except IndexError:
@@ -105,7 +105,7 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("ul", {"class": "css-1lc0dpe et6tpn80"})
+        section = data.find_all("ul", {"class": "css-1ytlws2 et6tpn80"})
         try:
             section[1]
         except IndexError:
