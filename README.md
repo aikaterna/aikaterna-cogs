@@ -41,6 +41,8 @@ pressf - A port/rewrite of NekoTony's v2 pressf cog. Pay your respects by pressi
 
 pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
 
+quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
+
 region - A command to change the voice region of a server. Requires the guild admin or mod role or guild administrator.
 
 retrosign - A v3 port of Anismash's retrosign cog.
