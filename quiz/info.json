@@ -1,0 +1,8 @@
+{
+	"author": ["Keane", "aikaterna"],
+	"description": "Play a kahoot-like trivia game.",
+	"install_msg": "Thanks for installing.",
+	"short": "Play a kahoot-like trivia game.",
+	"tags": ["trivia", "quiz"],
+	"type": "COG"
+}
