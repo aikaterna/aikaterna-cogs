@@ -1,7 +1,7 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
-adventure - Originally by Locastan. My version is a collaboration between TrustyJAID and myself. The repo can be found at: https://github.com/aikaterna/gobcog
+adventure - Originally by Locastan. My version is a collaboration between TrustyJAID, Draper, and myself. The repo can be found on my repo page here on github.
 
 antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog. Config stuff tacked on by me. Later iterations will include emoji recognizing and possibly link detection for these bad images.
 
@@ -19,13 +19,13 @@ dictonary - I stole this from UltimatePancake's v2 cogs, defines words via a dic
 
 dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
 
+hunting - A long overdue port of Paddo's v2 hunting game to v3.
+
 icyparser - Show icecast/shoutcast stream information. An audio addon cog to show the current stream info, or provide a url yourself.
 
 imgwelcome - The repo can be found at: https://github.com/aikaterna/imgwelcome
 
 inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme.
-
-leveler - A v3 port of Stevy's v2 leveler, originally by Fixator and modified by me. Add the repo at: https://github.com/aikaterna/Fixator10-Cogs
 
 noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.
 
@@ -41,9 +41,11 @@ pressf - A port/rewrite of NekoTony's v2 pressf cog. Pay your respects by pressi
 
 pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
 
+quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
+
 region - A command to change the voice region of a server. Requires the guild admin or mod role or guild administrator.
 
-retrosign - A v3 port of Anismash's retrosign cog: https://github.com/Anismash/Ani-Cogs/tree/master/retrosign
+retrosign - A v3 port of Anismash's retrosign cog.
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
@@ -55,8 +57,10 @@ trickortreat - A trick or treat-based competitive candy eating game with a leade
 
 tools - A collection of mod and admin tools, ported from my v2 version. Sitryk is responsible for a lot of the code in tools... thanks for the help with this cog.
 
+warcraftlogs - Fetch player info/metrics from the WarcraftLogs API for World of Warcraft Classic. Does not provide stats for non-Classic characters.
+
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
 youtube - A v3 port of Paddo's youtube search cog for v2.
 
-Are you looking for the v3 lavalink music cog? It's been added to Red v3 as the audio module. Install from develop and ask in the Red support server for help if you need it, or join my server. https://discord.gg/th6eS3T
+Support for these cogs is via opened issues on the appropriate repo or in the Red - Cog Support server.

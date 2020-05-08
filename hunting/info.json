@@ -1,0 +1,8 @@
+{
+	"author": ["aikaterna", "Paddo"],
+	"description": "Hunting, it hunts birds and things that fly.",
+	"install_msg": "Check out [p]hunting to get started.",
+	"short": "A bird hunting game.",
+	"tags": ["hunting", "hunt", "game"],
+	"type": "COG"
+}

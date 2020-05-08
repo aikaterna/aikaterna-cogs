@@ -1,7 +1,7 @@
 import discord
 import pytz
 from datetime import datetime
-from pytz import all_timezones
+from pytz import common_timezones
 from pytz import country_timezones
 from typing import Optional
 from redbot.core import Config, commands, checks
@@ -45,8 +45,11 @@ class Timezone(commands.Cog):
                         "<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
                     )
                 else:
+                    tz = tz.title() if '/' in tz else tz.upper()
+                    if tz not in common_timezones:
+                        raise Exception(tz)
                     fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
-                    time = datetime.now(pytz.timezone(tz.title()))
+                    time = datetime.now(pytz.timezone(tz))
                     await ctx.send(time.strftime(fmt))
         except Exception as e:
             await ctx.send(f"**Error:** {str(e)} is an unsupported timezone.")
@@ -90,7 +93,7 @@ class Timezone(commands.Cog):
                 msg = f"Your current timezone is **{usertime}.**\n" f"The current time is: {time}"
                 await ctx.send(msg)
         else:
-            exist = True if tz.title() in all_timezones else False
+            exist = True if tz.title() in common_timezones else False
             if exist:
                 if "'" in tz:
                     tz = tz.replace("'", "")
@@ -112,7 +115,7 @@ class Timezone(commands.Cog):
             await ctx.send("That timezone is invalid.")
             return
         else:
-            exist = True if tz.title() in all_timezones else False
+            exist = True if tz.title() in common_timezones else False
             if exist:
                 if "'" in tz:
                     tz = tz.replace("'", "")

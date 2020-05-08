@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import discord
 import inspect
+import logging
 import random
 import os
 import time
@@ -10,6 +11,9 @@ from redbot.core.utils import chat_formatting as cf
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from tabulate import tabulate
 from contextlib import suppress as sps
+
+
+log = logging.getLogger("red.aikaterna.tools")
 
 
 class Tools(commands.Cog):
@@ -21,10 +25,10 @@ class Tools(commands.Cog):
     async def _Tools__error(self, ctx, error):
         if error.__cause__:
             cause = error.__cause__
-            print(f"Tools Cog :: Error Occured ::\n{error}\n{cause}\n")
+            log.info(f"Tools Cog :: Error Occured ::\n{error}\n{cause}\n")
         else:
             cause = error
-            print(f"Tools Cog :: Error Occured :: \n{cause}\n")
+            log.info(f"Tools Cog :: Error Occured :: \n{cause}\n")
 
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
@@ -288,14 +292,14 @@ class Tools(commands.Cog):
                 await ctx.send("No roles were found")
                 return
             else:
-                msg = "**Roles found with** {} **in the name.**\n\n".format(rolename)
+                msg = "**Roles found with** {} **in the name.**\nType the number of the role you wish to see.\n\n".format(rolename)
                 tbul8 = []
                 for num, role in enumerate(roles):
                     tbul8.append([num + 1, role.name])
                 m1 = await ctx.send(msg + tabulate(tbul8, tablefmt="plain"))
 
                 def check(m):
-                    if (m.author == author) and (m.channel == ctx.channel):
+                    if (m.author == ctx.author) and (m.channel == ctx.channel):
                         return True
 
                 response = await self.bot.wait_for("message", check=check, timeout=25)
@@ -309,10 +313,9 @@ class Tools(commands.Cog):
                     response = int(response.content)
 
                 if response not in range(0, len(roles) + 1):
-                    return
+                    return await ctx.send("Cancelled.")
                 elif response == 0:
-                    await ctx.send("Cancelled.")
-                    return
+                    return await ctx.send("Cancelled.")
                 else:
                     role = roles[response - 1]
 
@@ -357,6 +360,7 @@ class Tools(commands.Cog):
             )
             await awaiter.edit(embed=embed)
 
+    @commands.guild_only()
     @commands.command()
     async def joined(self, ctx, user: discord.Member = None):
         """Show when a user joined the guild."""
@@ -444,7 +448,7 @@ class Tools(commands.Cog):
         header = "{:>33}\n{}\n\n".format(head1, "-" * 57)
 
         user_body = (
-            " {mem}\n"
+            " {mem} ({memid})\n"
             " {spcs}Joined Guild:    {sp1}{join}\n"
             " {spcs}Account Created: {sp2}{created}\n\n"
         )
@@ -470,6 +474,7 @@ class Tools(commands.Cog):
 
             disp += user_body.format(
                 mem=member.display_name,
+                memid=member.id,
                 join=self._dynamic_time(member.joined_at),
                 created=self._dynamic_time(member.created_at),
                 spcs=smspc,

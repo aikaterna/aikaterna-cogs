@@ -2,6 +2,9 @@ import discord
 import re
 from redbot.core import Config, commands, checks
 
+LINKS = re.compile(
+            "(([\w]+:)?//)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?"
+        )
 
 class NoLinks(commands.Cog):
     def __init__(self, bot):
@@ -142,10 +145,4 @@ class NoLinks(commands.Cog):
 
     @staticmethod
     def _match_url(url):
-        regex = re.compile(
-            "(([\w]+:)?//)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?"
-        )
-        if regex.match(url):
-            return True
-        else:
-            return False
+        return LINKS.match(url)

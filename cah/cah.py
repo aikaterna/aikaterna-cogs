@@ -448,8 +448,9 @@ class CardsAgainstHumanity(commands.Cog):
                 stat_embed.set_author(
                     name=f"Not enough players to continue! ({len(game['Members'])}/{self.minMembers})"
                 )
+                prefix = await self.bot.get_valid_prefixes()
                 stat_embed.set_footer(
-                    text=f"Have other users join with: {ctx.prefix}joincah {game['ID']}"
+                    text=f"Have other users join with: {prefix[0]}joincah {game['ID']}"
                 )
                 await member["User"].send(embed=stat_embed)
                 continue
@@ -617,12 +618,13 @@ class CardsAgainstHumanity(commands.Cog):
                 return
         if not judge == "**YOU** are":
             # Judge doesn't need to lay a card
+            prefix = await self.bot.get_valid_prefixes()
             if blackNum == 1:
                 # Singular
-                msg += f"\n\nLay a card with `{ctx.prefix}lay [card number]`"
+                msg += f"\n\nLay a card with `{prefix[0]}lay [card number]`"
             elif blackNum > 1:
                 # Plural
-                msg += f"\n\nLay **{blackNum} cards** with `{ctx.prefix}lay [card numbers separated by commas (1,2,3)]`"
+                msg += f"\n\nLay **{blackNum} cards** with `{prefix[0]}lay [card numbers separated by commas (1,2,3)]`"
 
         stat_embed.set_author(name="Current Play")
         stat_embed.set_footer(text=f"Cards Against Humanity - id: {game['ID']}")
@@ -688,7 +690,8 @@ class CardsAgainstHumanity(commands.Cog):
             i += 1
             msg += "{}. {}\n".format(i, " - ".join(sub["Cards"]))
         if judge == "**YOU** are":
-            msg += f"\nPick a winner with `{ctx.prefix}pick [submission number]`."
+            prefix = await self.bot.get_valid_prefixes()
+            msg += f"\nPick a winner with `{prefix[0]}pick [submission number]`."
         await user.send(msg)
 
     async def drawCard(self, game):
@@ -772,8 +775,9 @@ class CardsAgainstHumanity(commands.Cog):
             stat_embed.set_author(
                 name=f"Not enough players to continue! ({len(game['Members'])}/{self.minMembers})"
             )
+            prefix = await self.bot.get_valid_prefixes()
             stat_embed.set_footer(
-                text=f"Have other users join with: {ctx.prefix}joincah {game['ID']}"
+                text=f"Have other users join with: {prefix[0]}joincah {game['ID']}"
             )
             for member in game["Members"]:
                 if member["IsBot"]:
@@ -866,7 +870,8 @@ class CardsAgainstHumanity(commands.Cog):
             return
         userGame = await self.userGame(ctx.author)
         if not userGame:
-            msg = f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+            prefix = await self.bot.get_valid_prefixes()
+            msg = f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             return await ctx.author.send(msg)
         await self.showPlay(ctx, ctx.author)
 
@@ -877,7 +882,8 @@ class CardsAgainstHumanity(commands.Cog):
             return
         userGame = await self.userGame(ctx.author)
         if not userGame:
-            msg = f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+            prefix = await self.bot.get_valid_prefixes()
+            msg = f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             return await ctx.author.send(msg)
         userGame["Time"] = int(time.time())
         if message == None:
@@ -902,8 +908,9 @@ class CardsAgainstHumanity(commands.Cog):
         if not await self.checkPM(ctx.message):
             return
         userGame = await self.userGame(ctx.author)
+        prefix = await self.bot.get_valid_prefixes()
         if not userGame:
-            msg = f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+            msg = f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             return await ctx.author.send(msg)
         userGame["Time"] = int(time.time())
         for member in userGame["Members"]:
@@ -932,7 +939,7 @@ class CardsAgainstHumanity(commands.Cog):
                 name=f"Not enough players to continue! ({len(userGame['Members'])}/{self.minMembers})"
             )
             stat_embed.set_footer(
-                text=f"Have other users join with: {ctx.prefix}joincah {userGame['ID']}"
+                text=f"Have other users join with: {prefix[0]}joincah {userGame['ID']}"
             )
             return await ctx.author.send(embed=stat_embed)
 
@@ -946,14 +953,14 @@ class CardsAgainstHumanity(commands.Cog):
                 card = []
             if not len(card) == numberCards:
                 await ctx.author.send(
-                    f"You need to lay **{numberCards} cards** (no duplicates) with `{ctx.prefix}lay [card numbers separated by commas (1,2,3)]`"
+                    f"You need to lay **{numberCards} cards** (no duplicates) with `{prefix[0]}lay [card numbers separated by commas (1,2,3)]`"
                 )
                 return await self.showHand(ctx, ctx.author)
             # Got something
             # Check for duplicates
             if not len(card) == len(set(card)):
                 await ctx.author.send(
-                    f"You need to lay **{numberCards} cards** (no duplicates) with `{ctx.prefix}lay [card numbers separated by commas (1,2,3)]`"
+                    f"You need to lay **{numberCards} cards** (no duplicates) with `{prefix[0]}lay [card numbers separated by commas (1,2,3)]`"
                 )
                 return await self.showHand(ctx, ctx.author)
             # Works
@@ -962,7 +969,7 @@ class CardsAgainstHumanity(commands.Cog):
                     c = int(c)
                 except Exception:
                     await ctx.author.send(
-                        f"You need to lay **{numberCards} cards** (no duplicates) with `{ctx.prefix}lay [card numbers separated by commas (1,2,3)]`"
+                        f"You need to lay **{numberCards} cards** (no duplicates) with `{prefix[0]}lay [card numbers separated by commas (1,2,3)]`"
                     )
                     return await self.showHand(ctx, ctx.author)
 
@@ -985,7 +992,7 @@ class CardsAgainstHumanity(commands.Cog):
                 card = int(card)
             except Exception:
                 await ctx.author.send(
-                    f"You need to lay a valid card with `{ctx.prefix}lay [card number]`"
+                    f"You need to lay a valid card with `{prefix[0]}lay [card number]`"
                 )
                 return await self.showHand(ctx, ctx.author)
             if card < 1 or card > len(user["Hand"]):
@@ -1009,9 +1016,10 @@ class CardsAgainstHumanity(commands.Cog):
             return
         # Check if the user is already in game
         userGame = await self.userGame(ctx.author)
+        prefix = await self.bot.get_valid_prefixes()
         if not userGame:
             # Not in a game
-            msg = f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+            msg = f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             return await ctx.author.send(msg)
         userGame["Time"] = int(time.time())
         isJudge = False
@@ -1053,8 +1061,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         await self.showHand(ctx, ctx.author)
         userGame["Time"] = currentTime = int(time.time())
@@ -1068,8 +1077,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if userGame:
             # Already in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're already in a game (id: *{userGame['ID']}*)\nType `{ctx.prefix}leavecah` to leave that game."
+                f"You're already in a game (id: *{userGame['ID']}*)\nType `{prefix[0]}leavecah` to leave that game."
             )
 
         # Not in a game - create a new one
@@ -1139,18 +1149,23 @@ class CardsAgainstHumanity(commands.Cog):
         isCreator = False
         if userGame:
             # Already in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.message.channel.send(
-                f"You're already in a game (id: *{userGame['ID']}*)\nType `{ctx.prefix}leavecah` to leave that game."
+                f"You're already in a game (id: *{userGame['ID']}*)\nType `{prefix[0]}leavecah` to leave that game."
             )
         if len(self.games):
             if id:
                 game = self.gameForID(id)
+                prefix = await self.bot.get_valid_prefixes()
                 if game == None:
                     # That id doesn't exist - or is possibly a user
                     # If user, has to be joined from server chat
                     if not ctx.message.guild:
                         return await ctx.message.channel.send(
-                            f"I couldn't find a game attached to that id.  If you are trying to join a user - run the `{ctx.prefix}joincah [user]` command in a channel on a server you share with that user."
+                            f"I couldn't find a game attached to that id. \n"
+                            f"If you are trying to join a user - run the `{prefix[0]}joincah [user]` "
+                            f"command in a channel in a Discord server you share with that user.\n"
+                            f"Make sure to use the proper command prefix for your server - it may or may not be `{prefix[0]}`."
                         )
                     else:
                         # We have a server - let's try for a user
@@ -1158,7 +1173,10 @@ class CardsAgainstHumanity(commands.Cog):
                         if not member:
                             # Couldn't find user!
                             return await ctx.message.channel.send(
-                                f"I couldn't find a game attached to that id.  If you are trying to join a user - run the `{ctx.prefix}joincah [user]` command in a channel on a server you share with that user."
+                                f"I couldn't find a game attached to that id. \n"
+                                f"If you are trying to join a user - run the `{prefix[0]}joincah [user]` "
+                                f"command in a channel in a Discord server you share with that user.\n"
+                                f"Make sure to use the proper command prefix for your server - it may or may not be `{prefix[0]}`."
                             )
                         # Have a user - check if they're in a game
                         game = await self.userGame(member)
@@ -1252,8 +1270,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         botCount = 0
         for member in userGame["Members"]:
@@ -1316,8 +1335,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         botCount = 0
         for member in userGame["Members"]:
@@ -1406,8 +1426,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         botCount = 0
         for member in userGame["Members"]:
@@ -1439,8 +1460,9 @@ class CardsAgainstHumanity(commands.Cog):
             # Remove a bot by id
             if not await self.removeMember(id):
                 # not found
+                prefix = await self.bot.get_valid_prefixes()
                 return await ctx.author.send(
-                    f"I couldn't locate that bot on this game.  If you're trying to remove a player, try the `{ctx.prefix}removeplayer [name]` command."
+                    f"I couldn't locate that bot on this game.  If you're trying to remove a player, try the `{prefix[0]}removeplayer [name]` command."
                 )
         # await self.nextPlay(ctx, userGame)
 
@@ -1493,8 +1515,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         stat_embed = discord.Embed(color=discord.Color.purple())
         stat_embed.set_author(name="Current Score")
@@ -1536,8 +1559,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         stat_embed = discord.Embed(color=discord.Color.purple())
         stat_embed.set_author(name="Card Check")
@@ -1583,8 +1607,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         botCount = 0
         for member in userGame["Members"]:
@@ -1629,7 +1654,8 @@ class CardsAgainstHumanity(commands.Cog):
             # Player was removed - try to handle it calmly...
             await self.checkSubmissions(ctx, userGame)
         else:
-            msg = f"I couldn't locate that player on this game.  If you're trying to remove a bot, try the `{ctx.prefix}removebot [id]` command."
+            prefix = await self.bot.get_valid_prefixes()
+            msg = f"I couldn't locate that player on this game.  If you're trying to remove a bot, try the `{prefix[0]}removebot [id]` command."
             return await ctx.author.send(msg)
 
     @commands.command()
@@ -1641,8 +1667,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         if userGame["Judge"] == -1:
             msg = "The game hasn't started yet.  Probably not worth it to flush your hand before you get it..."
@@ -1677,8 +1704,9 @@ class CardsAgainstHumanity(commands.Cog):
         userGame = await self.userGame(ctx.author)
         if not userGame:
             # Not in a game
+            prefix = await self.bot.get_valid_prefixes()
             return await ctx.author.send(
-                f"You're not in a game - you can create one with `{ctx.prefix}newcah` or join one with `{ctx.prefix}joincah`."
+                f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             )
         botCount = 0
         for member in userGame["Members"]:

@@ -1,0 +1,8 @@
+{
+	"author": ["aikaterna"],
+	"description": "Check WarcraftLogs for data on players of World of Warcraft Classic.",
+	"install_msg": "Check out [p]help WarcraftLogs and set your WCL API key, available by signing into a WarcraftLogs account on their site and visiting the bottom of your settings page. ",
+	"short": "WarcraftLogs data for World of Warcraft Classic players.",
+	"tags": ["warcraft"],
+	"type": "COG"
+}
