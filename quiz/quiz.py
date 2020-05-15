@@ -21,6 +21,7 @@ def check_global_setting_admin():
     Command decorator. If the bank is not global, it checks if the author is
     either a bot admin or has the manage_guild permission.
     """
+
     async def pred(ctx: commands.Context):
         author = ctx.author
         if not await bank.is_global():
@@ -47,6 +48,7 @@ class Quiz(commands.Cog):
     Play a kahoot-like trivia game with questions from Open Trivia Database.
     Originally by Keane for Red v2
     """
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -58,7 +60,7 @@ class Quiz(commands.Cog):
         self.config = Config.get_conf(self, 2782511001, force_registration=True)
         default_guild = {
             "afk": 3,
-            "multiplier": 1,
+            "multiplier": 100,
             "questions": 20,
             "show_answer": True,
             "token": None,
@@ -200,17 +202,18 @@ class Quiz(commands.Cog):
     async def quizset_multiplier(self, ctx, multiplier: int):
         """
         Set the credit multiplier.
-        The accepted range is 1 - 100.
-        1 equals an approximate 1000 credits per game.
-        100 equals an approximate 100000 credits per game.
+        The accepted range is 0 - 10000.
+        0 will turn credit gain off.
+        Credit gain will be based on the number of questions set and user speed.
+        1x = A small amount of credits like 1-10.
+        100x = A handful of credits: 100-500.
+        10000x = Quite a lot of credits, around 10k to 50k.
 		"""
-        if 1 <= multiplier <= 100:
+        if 0 <= multiplier <= 10000:
             await self.config.guild(ctx.guild).multiplier.set(multiplier)
             credits_name = await bank.get_currency_name(ctx.guild)
-            return await ctx.send(
-                f"Credit multipilier: `{multiplier}x`"
-            )
-        await ctx.send("Please use a number between 1 and 100. The default is 1.")
+            return await ctx.send(f"Credit multipilier: `{multiplier}x`")
+        await ctx.send("Please use a number between 0 and 10000. The default is 100.")
 
     async def start_loop(self):
         """Starts quiz games when the timeout period ends."""
@@ -356,13 +359,16 @@ class Quiz(commands.Cog):
         winner = channel.guild.get_member(idlist[0])
         await channel.send(f"Game over! {winner.mention} won!")
 
+        multiplier = await self.config.guild(channel.guild).multiplier()
+        if multiplier == 0:
+            self.playing_channels.pop(channel.id)
+            return
+
         leaderboard = "\n"
         max_credits = self.calculate_credits(channelinfo["Players"][idlist[0]])
         end_len = len(str(max_credits)) + 1
         rank_len = len(str(len(channelinfo["Players"])))
         rank = 1
-
-        multiplier = await self.config.guild(channel.guild).multiplier()
 
         for playerid in idlist:
             player = channel.guild.get_member(playerid)
@@ -422,7 +428,6 @@ class Quiz(commands.Cog):
             result = 0.0002 * (adjusted ** 2.9)
         else:
             result = (0.6625 * math.exp(0.0411 * adjusted)) + 50
-        result = result * 1000
         return round(result)
 
     @commands.Cog.listener()
@@ -461,11 +466,11 @@ class Quiz(commands.Cog):
                     return response_json
                 elif response_code == 1:
                     raise RuntimeError(
-                        "Question retrieval unsuccessful. Response " "code from OTDB: 1"
+                        "Question retrieval unsuccessful. Response code from OTDB: 1"
                     )
                 elif response_code == 2:
                     raise RuntimeError(
-                        "Question retrieval unsuccessful. Response " "code from OTDB: 2"
+                        "Question retrieval unsuccessful. Response code from OTDB: 2"
                     )
                 elif response_code == 3:
                     # Token expired. Obtain new one.
