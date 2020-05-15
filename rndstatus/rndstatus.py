@@ -170,7 +170,6 @@ class RndStatus(commands.Cog):
                 else:
                     if len(statuses) > 0:
                         new_status = self.random_status(guild, statuses)
-                        log.info(new_status)
                         if current_game != new_status:
                             if (current_game != new_status) or current_game is None:
                                 if _type == 1:
