@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.0.7"
+__version__ = "3.1.0"
 
 
 class Hunting(commands.Cog):
@@ -38,6 +38,7 @@ class Hunting(commands.Cog):
             "wait_for_bang_timeout": 20,
             "channels": [],
             "bang_time": False,
+            "bang_words": True,
         }
         default_user = {"author_name": None, "score": {}, "total": 0}
         self.config.register_user(**default_user)
@@ -57,10 +58,15 @@ class Hunting(commands.Cog):
                     channel_obj = self.bot.get_channel(channel_id)
                     channel_names.append(channel_obj.name)
 
-            msg = f"[Hunting in]:             {humanize_list(channel_names)}\n"
-            msg += f"[Bang timeout]:           {guild_data['wait_for_bang_timeout']} seconds\n"
-            msg += f"[Hunt interval minimum]:  {guild_data['hunt_interval_minimum']} seconds\n"
-            msg += f"[Hunt interval maximum]:  {guild_data['hunt_interval_maximum']} seconds\n"
+            hunting_mode = "Words" if guild_data["bang_words"] else "Reactions"
+            reaction_time = "Off" if guild_data["bang_words"] else "On"
+
+            msg = f"[Hunting in]:                 {humanize_list(channel_names)}\n"
+            msg += f"[Bang timeout]:               {guild_data['wait_for_bang_timeout']} seconds\n"
+            msg += f"[Hunt interval minimum]:      {guild_data['hunt_interval_minimum']} seconds\n"
+            msg += f"[Hunt interval maximum]:      {guild_data['hunt_interval_maximum']} seconds\n"
+            msg += f"[Hunting mode]:               {hunting_mode}\n"
+            msg += f"[Bang response time message]: {reaction_time}\n"
 
             for page in pagify(msg, delims=["\n"]):
                 await ctx.send(box(page, lang="ini"))
@@ -139,7 +145,17 @@ class Hunting(commands.Cog):
         """Toggle displaying the bang response time from users."""
         toggle = await self.config.guild(ctx.guild).bang_time()
         await self.config.guild(ctx.guild).bang_time.set(not toggle)
-        await ctx.send(f"Bang time shown: {not toggle}.\n")
+        toggle_text = "will not" if toggle else "will"
+        await ctx.send(f"Bang reaction time {toggle_text} be shown.\n")
+
+    @checks.mod_or_permissions(manage_guild=True)
+    @hunting.command()
+    async def mode(self, ctx):
+        """Toggle whether the bot listens for 'bang' or a reaction."""
+        toggle = await self.config.guild(ctx.guild).bang_words()
+        await self.config.guild(ctx.guild).bang_words.set(not toggle)
+        toggle_text = "Use the reaction" if toggle else "Type 'bang'"
+        await ctx.send(f"{toggle_text} to react to the bang message when it appears.\n")
 
     @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
@@ -283,34 +299,64 @@ class Hunting(commands.Cog):
             self.next_bang[guild_id] = value
 
     async def _wait_for_bang(self, guild, channel):
-        def check(message):
-            if guild != message.guild:
-                return False
-            if channel != message.channel:
-                return False
-            return message.content.lower().split(" ")[0] == "bang" if message.content else False
-
         animal = random.choice(list(self.animals.keys()))
-        await channel.send(self.animals[animal])
+        animal_message = await channel.send(self.animals[animal])
         now = time.time()
         timeout = await self.config.guild(guild).wait_for_bang_timeout()
-        try:
-            message = await self.bot.wait_for("message", check=check, timeout=timeout)
-            bang_now = time.time()
-            time_for_bang = "{:.3f}".format(bang_now - now)
-            bangtime = (
-                ""
-                if not await self.config.guild(guild).bang_time()
-                else f"{message.author.display_name}: \N{COLLISION SYMBOL} {time_for_bang}s"
-            )
 
-            if random.randrange(0, 17) > 1:
-                await self._add_score(guild, message.author, animal)
-                msg = f"{message.author.display_name} shot a {animal}!\n{bangtime}"
-            else:
-                msg = f"{message.author.display_name} missed the shot and the {animal} got away!"
-        except asyncio.TimeoutError:
-            msg = f"The {animal} got away!"
+        shooting_type = await self.config.guild(guild).bang_words()
+        if shooting_type:
+
+            def check(message):
+                if guild != message.guild:
+                    return False
+                if channel != message.channel:
+                    return False
+                return (
+                    message.content.lower().split(" ")[0] == "bang" if message.content else False
+                )
+
+            try:
+                bang_msg = await self.bot.wait_for("message", check=check, timeout=timeout)
+            except asyncio.TimeoutError:
+                self.in_game.remove(channel.id)
+                return await channel.send(f"The {animal} got away!")
+            author = bang_msg.author
+
+        else:
+            emoji = "\N{COLLISION SYMBOL}"
+            await animal_message.add_reaction(emoji)
+
+            def check(reaction, user):
+                if user.bot:
+                    return False
+                return user and str(reaction.emoji) == "💥"
+
+            try:
+                await self.bot.wait_for("reaction_add", check=check, timeout=timeout)
+            except asyncio.TimeoutError:
+                self.in_game.remove(channel.id)
+                return await channel.send(f"The {animal} got away!")
+
+            message_with_reacts = await animal_message.channel.fetch_message(animal_message.id)
+            reacts = message_with_reacts.reactions[0]
+            async for user in reacts.users():
+                if user.bot:
+                    continue
+                author = user
+                break
+
+        bang_now = time.time()
+        time_for_bang = "{:.3f}".format(bang_now - now)
+        bangtime = (
+            "" if not await self.config.guild(guild).bang_time() else f" in {time_for_bang}s"
+        )
+
+        if random.randrange(0, 17) > 1:
+            await self._add_score(guild, author, animal)
+            msg = f"{author.display_name} shot a {animal}{bangtime}!"
+        else:
+            msg = f"{author.display_name} missed the shot and the {animal} got away!"
 
         self.in_game.remove(channel.id)
         await channel.send(bold(msg))
@@ -343,4 +389,7 @@ class Hunting(commands.Cog):
         )
         await asyncio.sleep(wait_time)
         self.bot.loop.create_task(self._wait_for_bang(message.guild, message.channel))
-        del self.next_bang[message.guild.id]
+        try:
+            del self.next_bang[message.guild.id]
+        except KeyError:
+            pass
