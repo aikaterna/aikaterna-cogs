@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.0.6"
+__version__ = "3.0.7"
 
 
 class Hunting(commands.Cog):
@@ -30,12 +30,14 @@ class Hunting(commands.Cog):
         self.in_game = []
         self.paused_games = []
         self.next_bang = {}
+        self.game_tasks = []
 
         default_guild = {
             "hunt_interval_minimum": 900,
             "hunt_interval_maximum": 3600,
             "wait_for_bang_timeout": 20,
             "channels": [],
+            "bang_time": False,
         }
         default_user = {"author_name": None, "score": {}, "total": 0}
         self.config.register_user(**default_user)
@@ -130,6 +132,14 @@ class Hunting(commands.Cog):
             await ctx.send(embed=page_list[0])
         else:
             await menu(ctx, page_list, DEFAULT_CONTROLS)
+
+    @checks.mod_or_permissions(manage_guild=True)
+    @hunting.command()
+    async def bangtime(self, ctx):
+        """Toggle displaying the bang response time from users."""
+        toggle = await self.config.guild(ctx.guild).bang_time()
+        await self.config.guild(ctx.guild).bang_time.set(not toggle)
+        await ctx.send(f"Bang time shown: {not toggle}.\n")
 
     @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
@@ -282,13 +292,21 @@ class Hunting(commands.Cog):
 
         animal = random.choice(list(self.animals.keys()))
         await channel.send(self.animals[animal])
+        now = time.time()
         timeout = await self.config.guild(guild).wait_for_bang_timeout()
         try:
             message = await self.bot.wait_for("message", check=check, timeout=timeout)
+            bang_now = time.time()
+            time_for_bang = "{:.3f}".format(bang_now - now)
+            bangtime = (
+                ""
+                if not await self.config.guild(guild).bang_time()
+                else f"{message.author.display_name}: \N{COLLISION SYMBOL} {time_for_bang}s"
+            )
 
             if random.randrange(0, 17) > 1:
                 await self._add_score(guild, message.author, animal)
-                msg = f"{message.author.display_name} shot a {animal}!"
+                msg = f"{message.author.display_name} shot a {animal}!\n{bangtime}"
             else:
                 msg = f"{message.author.display_name} missed the shot and the {animal} got away!"
         except asyncio.TimeoutError:
