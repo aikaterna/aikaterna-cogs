@@ -47,7 +47,7 @@ class RndStatus(commands.Cog):
         self.user_task.cancel()
         self.presence_task.cancel()
 
-    async def _get_user_count(self, ):
+    async def _get_user_count(self):
         await self.bot.wait_until_ready()
         with contextlib.suppress(asyncio.CancelledError):
             self._user_count = len(self.bot.users)
@@ -158,57 +158,35 @@ class RndStatus(commands.Cog):
                     total_users = self._user_count
                     servers = str(len(self.bot.guilds))
                     botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
-                    if self.last_change is None:
-                        if _type == 1:
-                            await self.bot.change_presence(
-                                activity=discord.Streaming(name=botstatus, url=url)
-                            )
-                        else:
-                            await self.bot.change_presence(
-                                activity=discord.Activity(name=botstatus, type=_type)
-                            )
-                        self.last_change = int(time.perf_counter())
-                    if abs(self.last_change - int(time.perf_counter())) < int(delay):
-                        return
                     if (current_game != str(botstatus)) or current_game is None:
                         if _type == 1:
-                            return await self.bot.change_presence(
+                            await self.bot.change_presence(
                                 activity=discord.Streaming(name=botstatus, url=url)
                             )
                         else:
-                            return await self.bot.change_presence(
+                            await self.bot.change_presence(
                                 activity=discord.Activity(name=botstatus, type=_type)
                             )
-                if self.last_change is None:
-                    if len(statuses) > 0 and (current_game in statuses or current_game is None):
+                else:
+                    if len(statuses) > 0:
                         new_status = self.random_status(guild, statuses)
-                        self.last_change = int(time.perf_counter())
-                        if _type == 1:
-                            await self.bot.change_presence(
-                                activity=discord.Streaming(name=new_status, url=url)
-                            )
-                        else:
-                            await self.bot.change_presence(
-                                activity=discord.Activity(name=new_status, type=_type)
-                            )
-                if abs(self.last_change - int(time.perf_counter())) >= int(delay):
-                    self.last_change = int(time.perf_counter())
-                    new_status = self.random_status(guild, statuses)
-                    if current_game != new_status:
-                        if current_game in statuses or current_game is None:
-                            if _type == 1:
-                                await self.bot.change_presence(
-                                    activity=discord.Streaming(name=new_status, url=url)
-                                )
-                            else:
-                                await self.bot.change_presence(
-                                    activity=discord.Activity(name=new_status, type=_type)
-                                )
+                        log.info(new_status)
+                        if current_game != new_status:
+                            if (current_game != new_status) or current_game is None:
+                                if _type == 1:
+                                    await self.bot.change_presence(
+                                        activity=discord.Streaming(name=new_status, url=url)
+                                    )
+                                else:
+                                    await self.bot.change_presence(
+                                        activity=discord.Activity(name=new_status, type=_type)
+                                    )
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 log.exception(e, exc_info=e)
             await asyncio.sleep(delay)
+            
 
     def random_status(self, guild, statuses):
         try:
