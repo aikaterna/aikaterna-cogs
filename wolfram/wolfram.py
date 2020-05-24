@@ -124,7 +124,7 @@ class Wolfram(commands.Cog):
     @checks.is_owner()
     @commands.command(name="setwolframapi", aliases=["setwolfram"])
     async def _setwolframapi(self, ctx, key: str):
-        """Set the api-key."""
+        """Set the api-key. The key is the AppID of your application on the Wolfram|Alpha Developer Portal."""
 
         if key:
             await self.config.WOLFRAM_API_KEY.set(key)
