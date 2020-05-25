@@ -71,7 +71,7 @@ class Wolfram(commands.Cog):
         units = "metric"
         query = " ".join(arguments)
         query = urllib.parse.quote(query)
-        url = f"http://api.wolframalpha.com/v1/simple?appid={api_key}&i={query}%3F&width={width}&fontsize={font_size}&layout={layout}&background={background}&foreground={foreground}&units={units}"
+        url = f"http://api.wolframalpha.com/v1/simple?appid={api_key}&i={query}%3F&width={width}&fontsize={font_size}&layout={layout}&background={background}&foreground={foreground}&units={units}&ip=127.0.0.1"
 
         async with ctx.typing():
             async with self.session.request("GET", url) as r:
