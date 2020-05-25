@@ -1,9 +1,14 @@
 import asyncio
 import datetime
 import discord
+import logging
 import random
 from redbot.core import commands, checks, Config, bank
-from redbot.core.utils.chat_formatting import box, humanize_list
+from redbot.core.errors import BalanceTooHigh
+from redbot.core.utils.chat_formatting import box, humanize_list, pagify
+
+
+log = logging.getLogger("red.aikaterna.pupper")
 
 
 class Pupper(commands.Cog):
@@ -20,6 +25,7 @@ class Pupper(commands.Cog):
             "hello_msg": "Hi! Can someone pet me?",
             "last_pet": "2019-08-01 00:00:00.000001",
             "toggle": False,
+            "delete_after": 10,
         }
 
         self.config.register_guild(**default_guild)
@@ -29,14 +35,59 @@ class Pupper(commands.Cog):
     @commands.group()
     async def pets(self, ctx):
         """Manage your pet."""
-        pass
+        if ctx.invoked_subcommand is None:
+            guild_data = await self.config.guild(ctx.guild).all()
+            if not guild_data["channel"]:
+                channel_names = ["No channels set."]
+            else:
+                channel_names = []
+                for channel_id in guild_data["channel"]:
+                    channel_obj = self.bot.get_channel(channel_id)
+                    channel_names.append(channel_obj.name)
+
+            space = "\N{EN SPACE}"
+            toggle = "Active" if guild_data["toggle"] else "Inactive"
+            delete_after = (
+                "No deletion" if not guild_data["delete_after"] else guild_data["delete_after"]
+            )
+
+            msg = f"[Channels]:       {humanize_list(channel_names)}\n"
+            msg += f"[Cooldown]:       {guild_data['cooldown']} seconds\n"
+            msg += f"[Credit range]:   {guild_data['credits'][0]} - {guild_data['credits'][1]} credits\n"
+            msg += f"[Delete after]:   {delete_after}\n"
+            msg += f"[Toggle]:         {toggle}\n"
+            msg += f"{space}\n"
+            msg += f"[Hello message]:  {guild_data['hello_msg']}\n"
+            msg += f"[Thanks message]: {guild_data['borf_msg']}\n"
+
+            for page in pagify(msg, delims=["\n"]):
+                await ctx.send(box(page, lang="ini"))
 
     @pets.command()
     async def toggle(self, ctx):
         """Toggle pets on the server."""
         toggle = await self.config.guild(ctx.guild).toggle()
-        msg = f"Pets active: {not toggle}.\n"
         await self.config.guild(ctx.guild).toggle.set(not toggle)
+        await ctx.send(f"The pet is now {'' if not toggle else 'in'}active.")
+
+    @pets.command()
+    async def delete(self, ctx, amount: int = 0):
+        """
+        Set how long to wait before deleting the thanks message.
+        To leave the thanks message with no deletion, use 0 as the amount.
+        10 is the default.
+        Max is 5 minutes (300).
+		"""
+        if amount < 0:
+            return await ctx.send("Use a positive number.")
+        if 1 <= amount <= 5:
+            return await ctx.send("Use a slightly larger number, greater than 5.")
+        if amount > 300:
+            return await ctx.send("Use a smaller number, less than or equal to 300.")
+
+        set_amount = None if amount == 0 else amount
+        await self.config.guild(ctx.guild).delete_after.set(set_amount)
+        msg = f"Timer set to {amount}." if set_amount else "Delete timer has been turned off."
         await ctx.send(msg)
 
     @pets.command()
@@ -95,13 +146,13 @@ class Pupper(commands.Cog):
         """Channel management for pet appearance."""
         await ctx.send_help()
         channel_list = await self.config.guild(ctx.guild).channel()
-        channel_msg = "Petting Channels:\n"
+        channel_msg = "[Petting Channels]:\n"
         if not channel_list:
             channel_msg += "None."
         for chan in channel_list:
             channel_obj = self.bot.get_channel(chan)
             channel_msg += f"{channel_obj.name}\n"
-        await ctx.send(box(channel_msg))
+        await ctx.send(box(channel_msg, lang="ini"))
 
     @channel.command()
     async def add(self, ctx, channel: discord.TextChannel):
@@ -172,54 +223,68 @@ class Pupper(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if isinstance(message.channel, discord.abc.PrivateChannel):
-            return
-        if message.author.bot:
-            return
-        guild_data = await self.config.guild(message.guild).all()
-        if not guild_data["toggle"]:
-            return
-        if not guild_data["channel"]:
-            return
-        self.pets.setdefault(message.guild.id, False)
-        if self.pets[message.guild.id]:
-            return
+        try:
+            if isinstance(message.channel, discord.abc.PrivateChannel):
+                return
+            if message.author.bot:
+                return
+            guild_data = await self.config.guild(message.guild).all()
+            if not guild_data["toggle"]:
+                return
+            if not guild_data["channel"]:
+                return
+            self.pets.setdefault(message.guild.id, False)
+            if self.pets[message.guild.id]:
+                return
 
-        last_time = datetime.datetime.strptime(str(guild_data["last_pet"]), "%Y-%m-%d %H:%M:%S.%f")
-        now = datetime.datetime.now(datetime.timezone.utc)
-        now = now.replace(tzinfo=None)
-        if (
-            int((now - last_time).total_seconds())
-            > await self.config.guild(message.guild).cooldown()
-        ):
-            self._pet_lock(message.guild.id, True)
-            rando_channel = random.choice(guild_data["channel"])
-            await asyncio.sleep(random.randint(60, 480))
-            rando_channel_obj = self.bot.get_channel(rando_channel)
-            borf_msg = await rando_channel_obj.send(guild_data["hello_msg"])
-            pets = "👋"
-            pets_action = {"veryfastpats": "👋"}
+            last_time = datetime.datetime.strptime(
+                str(guild_data["last_pet"]), "%Y-%m-%d %H:%M:%S.%f"
+            )
+            now = datetime.datetime.now(datetime.timezone.utc)
+            now = now.replace(tzinfo=None)
+            if (
+                int((now - last_time).total_seconds())
+                > await self.config.guild(message.guild).cooldown()
+            ):
+                self._pet_lock(message.guild.id, True)
+                rando_channel = random.choice(guild_data["channel"])
+                await asyncio.sleep(random.randint(60, 480))
+                rando_channel_obj = self.bot.get_channel(rando_channel)
+                borf_msg = await rando_channel_obj.send(guild_data["hello_msg"])
+                pets = "👋"
+                pets_action = {"veryfastpats": "👋"}
 
-            def check(r, u):
-                return r.message.id == borf_msg.id and any(e in str(r.emoji) for e in pets)
+                def check(r, u):
+                    return r.message.id == borf_msg.id and any(e in str(r.emoji) for e in pets)
 
-            try:
-                r, u = await self.bot.wait_for("reaction_add", check=check, timeout=300.0)
-            except asyncio.TimeoutError:
-                return await borf_msg.delete()
+                try:
+                    r, u = await self.bot.wait_for("reaction_add", check=check, timeout=300.0)
+                except asyncio.TimeoutError:
+                    return await borf_msg.delete()
 
-            reacts = {v: k for k, v in pets_action.items()}
-            react = reacts[r.emoji]
-            if react == "veryfastpats":
-                await borf_msg.delete()
-                deposit = random.randint(guild_data["credits"][0], guild_data["credits"][1])
-                await bank.deposit_credits(u, deposit)
-                credits_name = await bank.get_currency_name(message.guild)
-                await rando_channel_obj.send(
-                    content=f"{guild_data['borf_msg']} (`+{deposit}` {credits_name})",
-                    delete_after=10,
-                )
-            else:
-                pass
-            self._pet_lock(message.guild.id, False)
-            await self.config.guild(message.guild).last_pet.set(str(now))
+                reacts = {v: k for k, v in pets_action.items()}
+                react = reacts[r.emoji]
+                if react == "veryfastpats":
+                    await borf_msg.delete()
+                    deposit = random.randint(guild_data["credits"][0], guild_data["credits"][1])
+                    try:
+                        large_bank = False
+                        await bank.deposit_credits(u, deposit)
+                    except BalanceTooHigh as e:
+                        large_bank = True
+                        await bank.set_balance(u, e.max_balance)
+                    credits_name = await bank.get_currency_name(message.guild)
+                    msg = (
+                        f"{guild_data['borf_msg']} (`+{deposit}` {credits_name})"
+                        if not large_bank
+                        else guild_data["borf_msg"]
+                    )
+                    await rando_channel_obj.send(
+                        content=msg, delete_after=guild_data["delete_after"]
+                    )
+                else:
+                    pass
+                self._pet_lock(message.guild.id, False)
+                await self.config.guild(message.guild).last_pet.set(str(now))
+        except Exception:
+            log.error("Error in pupper loop.", exc_info=True)
