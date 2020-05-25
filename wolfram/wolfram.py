@@ -33,9 +33,6 @@ class Wolfram(commands.Cog):
 
         url = "http://api.wolframalpha.com/v2/query?"
         query = " ".join(question)
-        if "where am i" in query.lower():
-            await asyncio.sleep(1)
-            return await ctx.send("There is as yet insufficient data for a meaningful answer.")
         payload = {"input": query, "appid": api_key}
         headers = {"user-agent": "Red-cog/2.0.0"}
         async with self.session.get(url, params=payload, headers=headers) as r:
@@ -49,6 +46,8 @@ class Wolfram(commands.Cog):
             message = "There is as yet insufficient data for a meaningful answer."
         else:
             message = "\n".join(a[0:3])
+            if "Current geoip location" in message:
+                message = "There is as yet insufficient data for a meaningful answer."
 
         await ctx.send(box(message))
 
