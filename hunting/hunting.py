@@ -330,6 +330,10 @@ class Hunting(commands.Cog):
             def check(reaction, user):
                 if user.bot:
                     return False
+                if guild != reaction.message.guild:
+                    return False
+                if channel != reaction.message.channel:
+                    return False
                 return user and str(reaction.emoji) == "💥"
 
             try:
