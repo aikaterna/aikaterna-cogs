@@ -35,13 +35,14 @@ class Wolfram(commands.Cog):
         query = " ".join(question)
         payload = {"input": query, "appid": api_key}
         headers = {"user-agent": "Red-cog/2.0.0"}
-        async with self.session.get(url, params=payload, headers=headers) as r:
-            result = await r.text()
-        root = ET.fromstring(result)
-        a = []
-        for pt in root.findall(".//plaintext"):
-            if pt.text:
-                a.append(pt.text.capitalize())
+        async with ctx.typing():
+            async with self.session.get(url, params=payload, headers=headers) as r:
+                result = await r.text()
+            root = ET.fromstring(result)
+            a = []
+            for pt in root.findall(".//plaintext"):
+                if pt.text:
+                    a.append(pt.text.capitalize())
         if len(a) < 1:
             message = "There is as yet insufficient data for a meaningful answer."
         else:
@@ -72,7 +73,7 @@ class Wolfram(commands.Cog):
         query = urllib.parse.quote(query)
         url = f"http://api.wolframalpha.com/v1/simple?appid={api_key}&i={query}%3F&width={width}&fontsize={font_size}&layout={layout}&background={background}&foreground={foreground}&units={units}"
 
-        async with ctx.channel.typing():
+        async with ctx.typing():
             async with self.session.request("GET", url) as r:
                 img = await r.content.read()
                 if len(img) == 43:
@@ -106,7 +107,7 @@ class Wolfram(commands.Cog):
         }
         msg = ""
 
-        async with ctx.channel.typing():
+        async with ctx.typing():
             async with self.session.request("GET", url, params=params) as r:
                 text = await r.content.read()
                 root = ET.fromstring(text)
