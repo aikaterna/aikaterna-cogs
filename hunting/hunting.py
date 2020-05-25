@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.1.0"
+__version__ = "3.1.1"
 
 
 class Hunting(commands.Cog):
@@ -388,8 +388,13 @@ class Hunting(commands.Cog):
             int(time.mktime(datetime.datetime.utcnow().timetuple())) + wait_time
         )
         await asyncio.sleep(wait_time)
-        self.bot.loop.create_task(self._wait_for_bang(message.guild, message.channel))
+        task = self.bot.loop.create_task(self._wait_for_bang(message.guild, message.channel))
+        self.game_tasks.append(task)
         try:
             del self.next_bang[message.guild.id]
         except KeyError:
             pass
+
+    def cog_unload(self):
+        for task in self.game_tasks:
+            task.cancel()
