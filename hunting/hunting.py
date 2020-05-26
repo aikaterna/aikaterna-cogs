@@ -99,7 +99,7 @@ class Hunting(commands.Cog):
                 continue
             try:
                 if account[0] in [member.id for member in ctx.guild.members]:
-                    user_obj = ctx.guild.get_member(account[0])
+                    user_obj = self.bot.get_user(account[0])
                 else:
                     if global_leaderboard:
                         user_obj = account[0]
@@ -107,11 +107,9 @@ class Hunting(commands.Cog):
                         continue
             except AttributeError:
                 user_obj = account[0]
-            try:
-                user_name = f"{user_obj.display_name}#{user_obj.discriminator}"
-                if len(user_name) > 28:
-                    user_name = f"{user_obj.display_name[:19]}...#{user_obj.discriminator}"
-            except AttributeError:
+            if len(user_name) > 28:
+                user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+            else:
                 user_name = str(user_obj)
             if user_obj == ctx.author:
                 temp_msg += f"{humanize_number(account[1]['total']) + '   ': <{score_len + 4}} <<{user_name}>>\n"
