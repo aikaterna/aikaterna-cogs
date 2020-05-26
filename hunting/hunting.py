@@ -40,7 +40,7 @@ class Hunting(commands.Cog):
             "bang_time": False,
             "bang_words": True,
         }
-        default_user = {"author_name": None, "score": {}, "total": 0}
+        default_user = {"score": {}, "total": 0}
         self.config.register_user(**default_user)
         self.config.register_guild(**default_guild)
 
@@ -265,7 +265,6 @@ class Hunting(commands.Cog):
 
     async def _add_score(self, guild, author, avian):
         user_data = await self.config.user(author).all()
-        user_data["author_name"] = author.display_name
         try:
             user_data["score"][avian] += 1
         except KeyError:
