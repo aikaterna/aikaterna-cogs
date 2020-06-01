@@ -59,7 +59,7 @@ class Hunting(commands.Cog):
                     channel_names.append(channel_obj.name)
 
             hunting_mode = "Words" if guild_data["bang_words"] else "Reactions"
-            reaction_time = "Off" if guild_data["bang_time"] else "On"
+            reaction_time = "On" if guild_data["bang_time"] else "Off"
 
             msg = f"[Hunting in]:                 {humanize_list(channel_names)}\n"
             msg += f"[Bang timeout]:               {guild_data['wait_for_bang_timeout']} seconds\n"
@@ -84,6 +84,9 @@ class Hunting(commands.Cog):
         async with ctx.typing():
             sorted_acc = sorted(userinfo.items(), key=lambda x: (x[1]["total"]), reverse=True)[:50]
 
+        if not hasattr(ctx.guild, "members"):
+            global_leaderboard = True
+
         pound_len = len(str(len(sorted_acc)))
         score_len = 10
         header = "{score:{score_len}}{name:2}\n".format(
@@ -97,16 +100,10 @@ class Hunting(commands.Cog):
         for account in sorted_acc:
             if account[1]["total"] == 0:
                 continue
-            try:
-                if account[0] in [member.id for member in ctx.guild.members]:
-                    user_obj = self.bot.get_user(account[0])
-                else:
-                    if global_leaderboard:
-                        user_obj = account[0]
-                    else:
-                        continue
-            except AttributeError:
-                user_obj = account[0]
+            if global_leaderboard or (account[0] in [member.id for member in ctx.guild.members]):
+                user_obj = self.bot.get_user(account[0]) or account[0]
+            else:
+                continue
             if isinstance(user_obj, discord.User) and len(str(user_obj)) > 28:
                 user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
             else:
