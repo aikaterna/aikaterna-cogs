@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.1.1"
+__version__ = "3.1.2"
 
 
 class Hunting(commands.Cog):
@@ -40,7 +40,7 @@ class Hunting(commands.Cog):
             "bang_time": False,
             "bang_words": True,
         }
-        default_user = {"author_name": None, "score": {}, "total": 0}
+        default_user = {"score": {}, "total": 0}
         self.config.register_user(**default_user)
         self.config.register_guild(**default_guild)
 
@@ -99,7 +99,7 @@ class Hunting(commands.Cog):
                 continue
             try:
                 if account[0] in [member.id for member in ctx.guild.members]:
-                    user_obj = ctx.guild.get_member(account[0])
+                    user_obj = self.bot.get_user(account[0])
                 else:
                     if global_leaderboard:
                         user_obj = account[0]
@@ -107,11 +107,9 @@ class Hunting(commands.Cog):
                         continue
             except AttributeError:
                 user_obj = account[0]
-            try:
-                user_name = f"{user_obj.display_name}#{user_obj.discriminator}"
-                if len(user_name) > 28:
-                    user_name = f"{user_obj.display_name[:19]}...#{user_obj.discriminator}"
-            except AttributeError:
+            if isinstance(user_obj, discord.User) and len(str(user_obj)) > 28:
+                user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+            else:
                 user_name = str(user_obj)
             if user_obj == ctx.author:
                 temp_msg += f"{humanize_number(account[1]['total']) + '   ': <{score_len + 4}} <<{user_name}>>\n"
@@ -267,7 +265,6 @@ class Hunting(commands.Cog):
 
     async def _add_score(self, guild, author, avian):
         user_data = await self.config.user(author).all()
-        user_data["author_name"] = author.display_name
         try:
             user_data["score"][avian] += 1
         except KeyError:
