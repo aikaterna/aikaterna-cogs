@@ -59,7 +59,7 @@ class Hunting(commands.Cog):
                     channel_names.append(channel_obj.name)
 
             hunting_mode = "Words" if guild_data["bang_words"] else "Reactions"
-            reaction_time = "Off" if guild_data["bang_words"] else "On"
+            reaction_time = "Off" if guild_data["bang_time"] else "On"
 
             msg = f"[Hunting in]:                 {humanize_list(channel_names)}\n"
             msg += f"[Bang timeout]:               {guild_data['wait_for_bang_timeout']} seconds\n"
