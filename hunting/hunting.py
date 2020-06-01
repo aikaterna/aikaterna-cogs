@@ -107,7 +107,7 @@ class Hunting(commands.Cog):
                         continue
             except AttributeError:
                 user_obj = account[0]
-            if isinstance(user_obj, discord.User) and len(user_name) > 28:
+            if isinstance(user_obj, discord.User) and len(str(user_obj)) > 28:
                 user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
             else:
                 user_name = str(user_obj)
