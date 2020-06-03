@@ -35,13 +35,19 @@ class YouTube(commands.Cog):
     async def youtube(self, ctx, *, query: str):
         """Search on Youtube."""
         result = await self._youtube_results(query)
-        await ctx.send(result[0])
+        if result:
+            await ctx.send(result[0])
+        else:
+            await ctx.send("Nothing found. Try again later.")
 
     @commands.command()
     async def ytsearch(self, ctx, *, query: str):
         """Search on Youtube, multiple results."""
         result = await self._youtube_results(query)
-        await menu(ctx, result, DEFAULT_CONTROLS)
+        if result:
+            await menu(ctx, result, DEFAULT_CONTROLS)
+        else:
+            await ctx.send("Nothing found. Try again later.")
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
