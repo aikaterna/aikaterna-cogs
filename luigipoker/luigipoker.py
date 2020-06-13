@@ -157,11 +157,11 @@ class LuigiPoker(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("No response.")
             return await self.fold(ctx)
-        if "stay" in user_resp.content:
+        if "stay" in user_resp.content.lower():
             return await self.stay(ctx)
-        elif "hit" in user_resp.content:
+        elif "hit" in user_resp.content.lower():
             return await self.hit(ctx)
-        elif "fold" in user_resp.content:
+        elif "fold" in user_resp.content.lower():
             return await self.fold(ctx)
         else:
             log.error(
