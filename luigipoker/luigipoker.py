@@ -84,7 +84,7 @@ class Deck:
 
 class LuigiPoker(commands.Cog):
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -151,7 +151,7 @@ class LuigiPoker(commands.Cog):
         await self._play_response(ctx, answers)
 
     async def _play_response(self, ctx, answers):
-        pred = MessagePredicate.lower_contained_in(answers)
+        pred = MessagePredicate.lower_contained_in(answers, ctx=ctx)
         try:
             user_resp = await ctx.bot.wait_for("message", timeout=120, check=pred)
         except asyncio.TimeoutError:
