@@ -84,7 +84,7 @@ class Deck:
 
 class LuigiPoker(commands.Cog):
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def __init__(self, bot):
         self.bot = bot
