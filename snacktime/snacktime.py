@@ -5,6 +5,7 @@ from random import randint
 from random import choice as randchoice
 
 from redbot.core import bank, checks, commands, Config
+from redbot.core.errors import BalanceTooHigh
 from redbot.core.utils.chat_formatting import box, humanize_list, pagify
 
 from .phrases import FRIENDS, SNACKBURR_PHRASES
@@ -225,7 +226,7 @@ class Snacktime(commands.Cog):
                 return
             else:
                 phrases = [
-                    "Don't look at me. I donno where snackburr's at ¯\_(ツ)_/¯",
+                    r"Don't look at me. I donno where snackburr's at ¯\_(ツ)_/¯",
                     "I hear snackburr likes parties. *wink wink",
                     "I hear snackburr is attracted to channels with active conversations",
                     "If you party, snackburr will come! 〈( ^o^)ノ",
@@ -439,10 +440,13 @@ class Snacktime(commands.Cog):
                                 resp = await self.get_response(message, "LAST_SECOND")
                                 resp = resp.format(message.author.name, snackAmt)
                                 await message.channel.send(resp)
-                            await bank.deposit_credits(message.author, snackAmt)
-                        except:
+                            try:
+                                await bank.deposit_credits(message.author, snackAmt)
+                            except BalanceTooHigh as b:
+                                await bank.set_balance(message.author, b.max_balance)
+                        except Exception as e:
                             log.info(
-                                f"Snacktime: Failed to send pb message. {message.author.name} didn't get pb"
+                                f"Failed to send pb message. {message.author.name} didn't get pb\n", exc_info=True
                             )
 
                 else:

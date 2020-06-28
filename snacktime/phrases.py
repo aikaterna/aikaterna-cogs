@@ -5,7 +5,7 @@ FRIENDS = {
     "Satin": "▼・ᴥ・▼ <",
     "Thunky": "ᘛ⁐̤ᕐᐷ <",
     "Jingle": "꒰∗´꒳`꒱ <",
-    "FluffButt": "/ᐠ｡ꞈ｡ᐟ\ <",
+    "FluffButt": r"/ᐠ｡ꞈ｡ᐟ\ <",
     "Staplefoot": "(￣(エ)￣) <",
 }
 
