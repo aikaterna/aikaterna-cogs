@@ -11,6 +11,9 @@ class Otherbot(commands.Cog):
 
         self.config.register_guild(**default_guild)
 
+    async def generate_cache(self):
+        self.otherbot_cache = await self.config.all_guilds()
+
     @commands.group()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
@@ -29,6 +32,7 @@ class Otherbot(commands.Cog):
             channel = ctx.channel
         await self.config.guild(ctx.guild).reporting.set(channel.id)
         await ctx.send(f"Reporting channel set to: {channel.mention}.")
+        await self.generate_cache()
 
     @otherbot.command()
     async def pingrole(self, ctx, role_name: discord.Role = None):
@@ -40,6 +44,7 @@ class Otherbot(commands.Cog):
         pingrole_id = await self.config.guild(ctx.guild).ping()
         pingrole_obj = discord.utils.get(ctx.guild.roles, id=pingrole_id)
         await ctx.send(f"Ping role set to: {pingrole_obj.name}.")
+        await self.generate_cache()
 
     @otherbot.command()
     @checks.admin_or_permissions(manage_roles=True)
@@ -48,6 +53,7 @@ class Otherbot(commands.Cog):
         async with self.config.guild(ctx.guild).watching() as watch_list:
             watch_list.remove(bot_user.id)
         await ctx.send(f"Not watching {bot_user.mention} any more.")
+        await self.generate_cache()
 
     @otherbot.command()
     @checks.admin_or_permissions(manage_roles=True)
@@ -77,12 +83,15 @@ class Otherbot(commands.Cog):
             await ctx.send(
                 f"Reporting channel set to: {ctx.message.channel.mention}. Use `{ctx.prefix}otherbot channel` to change this."
             )
+        await self.generate_cache()
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         if after.guild is None or not after.bot:
             return
-        data = await self.config.guild(after.guild).all()
+        data = self.otherbot_cache.get(before.guild.id)
+        if data is None:
+            return
         if after.status == discord.Status.offline and (after.id in data["watching"]):
             channel_object = self.bot.get_channel(data["reporting"])
             if not data["ping"]:

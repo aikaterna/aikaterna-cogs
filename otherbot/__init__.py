@@ -1,5 +1,7 @@
 from .otherbot import Otherbot
 
 
-def setup(bot):
-    bot.add_cog(Otherbot(bot))
+async def setup(bot):
+    cog = Otherbot(bot)
+    await cog.generate_cache()
+    bot.add_cog(cog)
