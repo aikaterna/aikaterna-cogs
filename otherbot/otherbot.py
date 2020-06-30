@@ -89,7 +89,7 @@ class Otherbot(commands.Cog):
     async def on_member_update(self, before, after):
         if after.guild is None or not after.bot:
             return
-        data = self.otherbot_cache.get(before.guild.id)
+        data = self.otherbot_cache.get(after.guild.id)
         if data is None:
             return
         if after.status == discord.Status.offline and (after.id in data["watching"]):
