@@ -6,7 +6,7 @@ import math
 import random
 import time
 
-from redbot.core import bank, checks, commands, Config
+from redbot.core import checks, commands, Config
 from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize_number, pagify
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
