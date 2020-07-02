@@ -49,14 +49,23 @@ class Snacktime(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_channel(**default_channel)
 
-    async def persona_choice(self, msg):
-        invite_friends = await self.config.guild(msg.guild).FRIENDS()
+    async def persona_choice(self, ctx: None, message: None):
+        if ctx:
+            invite_friends = await self.config.guild(ctx.guild).FRIENDS()
+        else:
+            invite_friends = await self.config.guild(message.guild).FRIENDS()
         personas = FRIENDS
         if not invite_friends:
-            return "Snackburr"
+            return "Snackburr" if message else "ʕ •ᴥ•ʔ <"
         elif invite_friends is True:
-            del personas["Snackburr"]
-        return randchoice(list(personas.keys()))
+            try:
+                del personas["Snackburr"]
+            except KeyError:
+                pass
+        if message:
+            return randchoice(list(personas.keys()))
+        else:
+            return randchoice(list(personas.values()))
 
     async def get_response(self, msg, phrase_type):
         scid = f"{msg.guild.id}-{msg.channel.id}"
@@ -64,6 +73,29 @@ class Snacktime(commands.Cog):
         persona_phrase = FRIENDS.get(persona)
         phrase = randchoice(SNACKBURR_PHRASES[phrase_type])
         return f"`{persona_phrase} {phrase}`"
+
+    @commands.cooldown(1, 1, commands.BucketType.channel)
+    @commands.guild_only()
+    @commands.command()
+    async def eat(self, ctx, amount: int):
+        """
+        all this talk about pb is makin me hungry.
+
+        how bout you guys?
+        """
+        persona = await self.persona_choice(ctx=ctx, message=None)
+        if amount < 0:
+            return await ctx.send(f"`{persona} Woah slow down!`")
+        if amount > await bank.get_balance(ctx.author):
+            return await ctx.send(f"`{persona} You don't got that much pb!.. don't look at me..`")
+
+        await bank.withdraw_credits(ctx.author, amount)
+
+        first_phrase = randchoice(SNACKBURR_PHRASES["EAT_BEFORE"])
+        second_phrase = randchoice(SNACKBURR_PHRASES["EAT_AFTER"])
+        await ctx.send(
+            f"`{persona} {ctx.author.display_name} {first_phrase} {second_phrase} {amount} whole pb jars!`"
+        )
 
     @commands.guild_only()
     @commands.group()
@@ -254,7 +286,7 @@ class Snacktime(commands.Cog):
         scid = f"{message.guild.id}-{message.channel.id}"
         if self.acceptInput.get(scid, False):
             return
-        self.channel_persona[scid] = await self.persona_choice(message)
+        self.channel_persona[scid] = await self.persona_choice(ctx=None, message=message)
         await message.channel.send(await self.get_response(message, "SNACKTIME"))
 
         self.acceptInput[scid] = True
@@ -446,7 +478,8 @@ class Snacktime(commands.Cog):
                                 await bank.set_balance(message.author, b.max_balance)
                         except Exception as e:
                             log.info(
-                                f"Failed to send pb message. {message.author.name} didn't get pb\n", exc_info=True
+                                f"Failed to send pb message. {message.author.name} didn't get pb\n",
+                                exc_info=True,
                             )
 
                 else:
