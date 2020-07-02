@@ -1,13 +1,13 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
-adventure - Originally by Locastan. My version is a collaboration between TrustyJAID, Draper, and myself. The repo can be found on my repo page here on github.
+adventure - Original concept & cog by locastan. My version is a collaboration between TrustyJAID, Draper, and myself and is now markedly different than locastan's version. The repo can be found on my repo page here on github.
 
-antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog. Config stuff tacked on by me. Later iterations will include emoji recognizing and possibly link detection for these bad images.
+antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog.
 
-away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna, and large improvements by TrustyJAID. Set and unset a user as being "away".
+away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna, and large improvements by TrustyJAID. Set and unset a user as being "away", or other statuses.
 
-blurplefy - Make an avatar or an image upload blurple for Discord's 3rd anniversary.
+blurplefy - Make an avatar or an image upload blurple for Discord's anniversaries.
 
 cah - Cards Against Humanity, played in DM's. This can rate limit large bots via the sheer number of messages sent. Install and use with caution on larger bots.
 
@@ -15,15 +15,15 @@ chatchart - Generates a pie chart to display chat activity over the last 5000 me
 
 dadjokes - Another UltimatePancake cog. Get some dad jokes on command.
 
-dictonary - I stole this from UltimatePancake's v2 cogs, defines words via a dictonary. Only the "define" command for now until the dependency owner updates their files with a pending PR.
+dictonary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
 
-dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the dungeon_readme.md file on this repo for more information.
+dungeon - New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the [dungeon_readme.md](https://github.com/aikaterna/aikaterna-cogs/blob/v3/dungeon_readme.md) file on this repo for more information.
 
 hunting - A long overdue port of Paddo's v2 hunting game to v3.
 
 icyparser - Show icecast/shoutcast stream information. An audio addon cog to show the current stream info, or provide a url yourself.
 
-imgwelcome - The repo can be found at: https://github.com/aikaterna/imgwelcome
+imgwelcome - Welcome users to your server(s) with an image. The repo can be found on my repo page here on github.
 
 inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme.
 
