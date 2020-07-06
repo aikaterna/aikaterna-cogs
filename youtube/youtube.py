@@ -13,13 +13,12 @@ class YouTube(commands.Cog):
 
     async def _youtube_results(self, query: str):
         try:
-            search_url = "https://www.youtube.com/results?"
-            payload = {"search_query": "".join(query)}
+            query = query.replace(" ", "+")
+            search_url = f"https://www.youtube.com/results?search_query={query}"
             headers = {"user-agent": "Red-cog/3.0"}
-            async with self.session.get(search_url, params=payload, headers=headers) as r:
+            async with self.session.get(search_url, headers=headers) as r:
                 result = await r.text()
-            yt_find = re.findall(r"href=\"\/watch\?v=(.{11})", result)
-
+            yt_find = re.findall(r"{\"videoId\":\"(.{11})", result)
             url_list = []
             for track in yt_find:
                 url = f"https://www.youtube.com/watch?v={track}"
