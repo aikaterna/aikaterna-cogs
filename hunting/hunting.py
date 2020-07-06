@@ -180,7 +180,7 @@ class Hunting(commands.Cog):
 
         for animal in score.items():
             total = total + animal[1]
-            if animal[1] == 1:
+            if animal[1] == 1 or animal[0][-1] == "s":
                 kill_list.append(f"{animal[1]} {animal[0].capitalize()}")
             else:
                 kill_list.append(f"{animal[1]} {animal[0].capitalize()}s")
