@@ -11,6 +11,9 @@ class Otherbot(commands.Cog):
 
         self.config.register_guild(**default_guild)
 
+    def cog_unload(self):
+        self.otherbot_cache.clear()
+
     async def generate_cache(self):
         self.otherbot_cache = await self.config.all_guilds()
 
@@ -91,6 +94,8 @@ class Otherbot(commands.Cog):
             return
         data = self.otherbot_cache.get(after.guild.id)
         if data is None:
+            return
+        if not data["watching"]:
             return
         if after.status == discord.Status.offline and (after.id in data["watching"]):
             channel_object = self.bot.get_channel(data["reporting"])
