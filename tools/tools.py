@@ -330,44 +330,44 @@ class Tools(commands.Cog):
                 else:
                     role = roles[response - 1]
 
-        if role is not None and len([m for m in guild.members if role in m.roles]) < 50:
-            awaiter = await ctx.send(
-                embed=discord.Embed(
-                    description="Getting member names...", colour=await ctx.embed_colour()
-                )
+        awaiter = await ctx.send(
+            embed=discord.Embed(
+                description="Getting member names...", colour=await ctx.embed_colour()
             )
-            await asyncio.sleep(1.5)  # taking time to retrieve the names
-            users_in_role = "\n".join(
-                sorted(m.display_name for m in guild.members if role in m.roles)
-            )
-            try:
-                await awaiter.delete()
-            except discord.NotFound:
-                pass
-            embed_list = []
-            for page in cf.pagify(users_in_role, delims=["\n"], page_length=200):
-                embed = discord.Embed(
-                    description="**{1} users found in the {0} role.**\n".format(
-                        role.name, len([m for m in guild.members if role in m.roles])
-                    ),
-                    colour=await ctx.embed_colour(),
-                )
-                embed.add_field(name="Users", value=page)
-                embed_list.append(embed)
-            final_embed_list = []
-            for i, embed in enumerate(embed_list):
-                embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
-                final_embed_list.append(embed)
-            if len(embed_list) == 1:
-                close_control = {"\N{CROSS MARK}": close_menu}
-                await menu(ctx, final_embed_list, close_control)
-            else:
-                await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
-        else:
+        )
+        await asyncio.sleep(1.5)  # taking time to retrieve the names
+        users_in_role = "\n".join(
+            sorted(m.display_name for m in guild.members if role in m.roles)
+        )
+        if len(users_in_role) == 0:
             embed = discord.Embed(
-                description="Role was not found.", colour=await ctx.embed_colour()
+                description=cf.bold(f"0 users found in the {role.name} role."), colour=await ctx.embed_colour()
             )
             await awaiter.edit(embed=embed)
+            return
+        try:
+            await awaiter.delete()
+        except discord.NotFound:
+            pass
+        embed_list = []
+        for page in cf.pagify(users_in_role, delims=["\n"], page_length=200):
+            embed = discord.Embed(
+                description=cf.bold("{1} users found in the {0} role.\n").format(
+                    role.name, len([m for m in guild.members if role in m.roles])
+                ),
+                colour=await ctx.embed_colour(),
+            )
+            embed.add_field(name="Users", value=page)
+            embed_list.append(embed)
+        final_embed_list = []
+        for i, embed in enumerate(embed_list):
+            embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
+            final_embed_list.append(embed)
+        if len(embed_list) == 1:
+            close_control = {"\N{CROSS MARK}": close_menu}
+            await menu(ctx, final_embed_list, close_control)
+        else:
+            await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()
