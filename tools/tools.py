@@ -4,11 +4,12 @@ import discord
 import inspect
 import logging
 import random
+import re
 import os
 import time
 from redbot.core import Config, checks, commands
 from redbot.core.utils import chat_formatting as cf
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS, close_menu
 from tabulate import tabulate
 from contextlib import suppress as sps
 
@@ -278,7 +279,13 @@ class Tools(commands.Cog):
         """Check members in the role specified."""
         guild = ctx.guild
         await ctx.trigger_typing()
-        role = discord.utils.find(lambda r: r.name.lower() == rolename.lower(), guild.roles)
+        if rolename.startswith("<@&"):
+            role_id = int(re.search(r"<@&(.{18})>$", rolename)[1])
+            role = discord.utils.get(ctx.guild.roles, id=role_id)
+        elif len(rolename) in [17, 18] and rolename.isdigit():
+            role = discord.utils.get(ctx.guild.roles, id=int(rolename))
+        else:
+            role = discord.utils.find(lambda r: r.name.lower() == rolename.lower(), guild.roles)
 
         if role is None:
             roles = []
@@ -289,10 +296,13 @@ class Tools(commands.Cog):
             if len(roles) == 1:
                 role = roles[0]
             elif len(roles) < 1:
-                await ctx.send("No roles were found")
+                await ctx.send("No roles were found.")
                 return
             else:
-                msg = "**Roles found with** {} **in the name.**\nType the number of the role you wish to see.\n\n".format(rolename)
+                msg = (
+                    f"**{len(roles)} roles found with** `{rolename}` **in the name.**\n"
+                    f"Type the number of the role you wish to see.\n\n"
+                )
                 tbul8 = []
                 for num, role in enumerate(roles):
                     tbul8.append([num + 1, role.name])
@@ -302,11 +312,12 @@ class Tools(commands.Cog):
                     if (m.author == ctx.author) and (m.channel == ctx.channel):
                         return True
 
-                response = await self.bot.wait_for("message", check=check, timeout=25)
-                if response is None:
+                try:
+                    response = await self.bot.wait_for("message", check=check, timeout=25)
+                except asyncio.TimeoutError:
                     await m1.delete()
                     return
-                elif not response.content.isdigit():
+                if not response.content.isdigit():
                     await m1.delete()
                     return
                 else:
@@ -326,34 +337,32 @@ class Tools(commands.Cog):
                 )
             )
             await asyncio.sleep(1.5)  # taking time to retrieve the names
-            member = discord.Embed(
-                description="**{1} users found in the {0} role.**\n".format(
-                    role.name, len([m for m in guild.members if role in m.roles])
-                ),
-                colour=await ctx.embed_colour(),
+            users_in_role = "\n".join(
+                sorted(m.display_name for m in guild.members if role in m.roles)
             )
-            if len([m for m in guild.members if role in m.roles]) != 0:
-                member.add_field(
-                    name="Users",
-                    value="\n".join(m.display_name for m in guild.members if role in m.roles),
-                )
-            await awaiter.edit(embed=member)
-
-        elif len([m for m in guild.members if role in m.roles]) > 50:
-            awaiter = await ctx.send(
-                embed=discord.Embed(
-                    description="Getting member names...", colour=await ctx.embed_colour()
-                )
-            )
-            await asyncio.sleep(1.5)
-            await awaiter.edit(
-                embed=discord.Embed(
-                    description="List is too long for **{0}** role, **{1}** members found.\n".format(
-                        role.name, len([m.mention for m in guild.members if role in m.roles])
+            try:
+                await awaiter.delete()
+            except discord.NotFound:
+                pass
+            embed_list = []
+            for page in cf.pagify(users_in_role, delims=["\n"], page_length=200):
+                embed = discord.Embed(
+                    description="**{1} users found in the {0} role.**\n".format(
+                        role.name, len([m for m in guild.members if role in m.roles])
                     ),
                     colour=await ctx.embed_colour(),
                 )
-            )
+                embed.add_field(name="Users", value=page)
+                embed_list.append(embed)
+            final_embed_list = []
+            for i, embed in enumerate(embed_list):
+                embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
+                final_embed_list.append(embed)
+            if len(embed_list) == 1:
+                close_control = {"\N{CROSS MARK}": close_menu}
+                await menu(ctx, final_embed_list, close_control)
+            else:
+                await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
         else:
             embed = discord.Embed(
                 description="Role was not found.", colour=await ctx.embed_colour()
@@ -523,7 +532,7 @@ class Tools(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
-    async def rinfo(self, ctx, *, rolename):
+    async def rinfo(self, ctx, *, rolename: discord.Role):
         """Shows role info."""
         channel = ctx.channel
         guild = ctx.guild
@@ -774,7 +783,9 @@ class Tools(commands.Cog):
             data += "[In Voice]:      {}\n".format(
                 user.voice.channel if user.voice is not None else None
             )
-            data += "[AFK]:           {}\n".format(user.voice.afk if user.voice is not None else False)
+            data += "[AFK]:           {}\n".format(
+                user.voice.afk if user.voice is not None else False
+            )
         data += "```"
         await asyncio.sleep(1)
         await waiting.edit(content=data)
