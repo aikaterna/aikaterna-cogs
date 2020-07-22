@@ -14,9 +14,7 @@ class Inspirobot(commands.Cog):
     async def inspireme(self, ctx):
         """Fetch a random "inspirational message" from the bot."""
         try:
-            async with self.session.request(
-                "GET", "http://inspirobot.me/api?generate=true"
-            ) as page:
+            async with self.session.request("GET", "http://inspirobot.me/api?generate=true") as page:
                 pic = await page.text(encoding="utf-8")
                 em = discord.Embed()
                 em.set_image(url=pic)

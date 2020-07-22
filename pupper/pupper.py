@@ -12,7 +12,6 @@ log = logging.getLogger("red.aikaterna.pupper")
 
 
 class Pupper(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2767241393, force_registration=True)
@@ -48,9 +47,7 @@ class Pupper(commands.Cog):
 
             space = "\N{EN SPACE}"
             toggle = "Active" if guild_data["toggle"] else "Inactive"
-            delete_after = (
-                "No deletion" if not guild_data["delete_after"] else guild_data["delete_after"]
-            )
+            delete_after = "No deletion" if not guild_data["delete_after"] else guild_data["delete_after"]
 
             msg = f"[Channels]:       {humanize_list(channel_names)}\n"
             msg += f"[Cooldown]:       {guild_data['cooldown']} seconds\n"
@@ -170,9 +167,7 @@ class Pupper(commands.Cog):
     async def addall(self, ctx):
         """Add all valid channels for the guild that the bot can speak in."""
         bot_text_channels = [
-            c
-            for c in ctx.guild.text_channels
-            if c.permissions_for(ctx.guild.me).send_messages is True
+            c for c in ctx.guild.text_channels if c.permissions_for(ctx.guild.me).send_messages is True
         ]
         channel_list = await self.config.guild(ctx.guild).channel()
         channels_appended = []
@@ -190,13 +185,9 @@ class Pupper(commands.Cog):
         second_msg = ""
         await self.config.guild(ctx.guild).channel.set(channel_list)
         if len(channels_appended) > 0:
-            first_msg = (
-                f"{humanize_list(channels_appended)} added to the valid petting channels.\n"
-            )
+            first_msg = f"{humanize_list(channels_appended)} added to the valid petting channels.\n"
         if len(channels_in_list) > 0:
-            second_msg = (
-                f"{humanize_list(channels_in_list)}: already in the list of petting channels."
-            )
+            second_msg = f"{humanize_list(channels_in_list)}: already in the list of petting channels."
         await ctx.send(f"{first_msg}{second_msg}")
 
     @channel.command()
@@ -238,15 +229,10 @@ class Pupper(commands.Cog):
             if self.pets[message.guild.id]:
                 return
 
-            last_time = datetime.datetime.strptime(
-                str(guild_data["last_pet"]), "%Y-%m-%d %H:%M:%S.%f"
-            )
+            last_time = datetime.datetime.strptime(str(guild_data["last_pet"]), "%Y-%m-%d %H:%M:%S.%f")
             now = datetime.datetime.now(datetime.timezone.utc)
             now = now.replace(tzinfo=None)
-            if (
-                int((now - last_time).total_seconds())
-                > await self.config.guild(message.guild).cooldown()
-            ):
+            if int((now - last_time).total_seconds()) > await self.config.guild(message.guild).cooldown():
                 self._pet_lock(message.guild.id, True)
                 rando_channel = random.choice(guild_data["channel"])
                 await asyncio.sleep(random.randint(60, 480))
@@ -280,9 +266,7 @@ class Pupper(commands.Cog):
                         if not large_bank
                         else guild_data["borf_msg"]
                     )
-                    await rando_channel_obj.send(
-                        content=msg, delete_after=guild_data["delete_after"]
-                    )
+                    await rando_channel_obj.send(content=msg, delete_after=guild_data["delete_after"])
                 else:
                     pass
                 self._pet_lock(message.guild.id, False)

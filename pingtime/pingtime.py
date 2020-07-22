@@ -4,7 +4,6 @@ from redbot.core import commands
 BaseCog = getattr(commands, "Cog", object)
 
 
-
 class Pingtime(BaseCog):
     """🏓"""
 

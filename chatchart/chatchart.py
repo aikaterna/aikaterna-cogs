@@ -84,7 +84,7 @@ class Chatchart(commands.Cog):
         """
         Generates a pie chart, representing the last 5000 messages in the specified channel.
         """
-        e = discord.Embed(description="Loading...", colour=0x00ccff)
+        e = discord.Embed(description="Loading...", colour=0x00CCFF)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk.gif")
         em = await ctx.send(embed=e)
 
@@ -118,9 +118,9 @@ class Chatchart(commands.Cog):
                 msg_data["users"][whole_name]["msgcount"] = 1
                 msg_data["total count"] += 1
 
-        if msg_data['users'] == {}:
+        if msg_data["users"] == {}:
             await em.delete()
-            return await ctx.message.channel.send(f'Only bots have sent messages in {channel.mention}')
+            return await ctx.message.channel.send(f"Only bots have sent messages in {channel.mention}")
 
         for usr in msg_data["users"]:
             pd = float(msg_data["users"][usr]["msgcount"]) / float(msg_data["total count"])
@@ -128,12 +128,7 @@ class Chatchart(commands.Cog):
 
         top_ten = heapq.nlargest(
             20,
-            [
-                (x, msg_data["users"][x][y])
-                for x in msg_data["users"]
-                for y in msg_data["users"][x]
-                if y == "percent"
-            ],
+            [(x, msg_data["users"][x][y]) for x in msg_data["users"] for y in msg_data["users"][x] if y == "percent"],
             key=lambda x: x[1],
         )
         others = 100 - sum(x[1] for x in top_ten)

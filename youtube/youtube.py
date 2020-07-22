@@ -4,9 +4,6 @@ from redbot.core import commands
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-
-
-
 class YouTube(commands.Cog):
     """Search YouTube for videos."""
 
@@ -17,7 +14,9 @@ class YouTube(commands.Cog):
     async def _youtube_results(self, query: str):
         try:
             headers = {"user-agent": "Red-cog/3.0"}
-            async with self.session.get("https://www.youtube.com/results", params={"search_query": query}, headers=headers) as r:
+            async with self.session.get(
+                "https://www.youtube.com/results", params={"search_query": query}, headers=headers
+            ) as r:
                 result = await r.text()
             yt_find = re.findall(r"{\"videoId\":\"(.{11})", result)
             url_list = []

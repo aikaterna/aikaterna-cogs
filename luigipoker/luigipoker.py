@@ -165,8 +165,7 @@ class LuigiPoker(commands.Cog):
             return await self.fold(ctx)
         else:
             log.error(
-                "LuigiPoker: Something broke unexpectedly in _play_response. Please report it.",
-                exc_info=True,
+                "LuigiPoker: Something broke unexpectedly in _play_response. Please report it.", exc_info=True,
             )
 
     async def hit(self, ctx):
@@ -176,9 +175,7 @@ class LuigiPoker(commands.Cog):
             "Examples: `1,3,5` or `4, 5`"
         )
         try:
-            user_resp = await ctx.bot.wait_for(
-                "message", timeout=60, check=MessagePredicate.same_context(ctx)
-            )
+            user_resp = await ctx.bot.wait_for("message", timeout=60, check=MessagePredicate.same_context(ctx))
         except asyncio.TimeoutError:
             await ctx.send("No response.")
             return await self.fold(ctx)

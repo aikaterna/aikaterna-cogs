@@ -75,8 +75,6 @@ class PartyCrash(commands.Cog):
                 try:
                     await self._get_invites(guild, ctx)
                 except discord.errors.Forbidden:
-                    return await ctx.send(
-                        f"I don't have permission to get invites for {guild.name}."
-                    )
+                    return await ctx.send(f"I don't have permission to get invites for {guild.name}.")
             except asyncio.TimeoutError:
                 return await ctx.send("No server number entered, try again later.")

@@ -7,16 +7,11 @@ from typing import Optional, Literal
 from redbot.core import Config, commands, checks
 
 
-
-
 class Timezone(commands.Cog):
     """Gets times across the world..."""
 
     async def red_delete_data_for_user(
-        self,
-        *,
-        requester: Literal["discord", "owner", "user", "user_strict"],
-        user_id: int,
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
     ):
         await self.config.user_from_id(user_id).clear()
 
@@ -55,7 +50,7 @@ class Timezone(commands.Cog):
                         "<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
                     )
                 else:
-                    tz = tz.title() if '/' in tz else tz.upper()
+                    tz = tz.title() if "/" in tz else tz.upper()
                     if tz not in common_timezones:
                         raise Exception(tz)
                     fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
@@ -149,8 +144,7 @@ class Timezone(commands.Cog):
                 fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
                 time = time.strftime(fmt)
                 await ctx.send(
-                    f"{user.name}'s current timezone is: **{usertime}**\n"
-                    f"The current time is: {str(time)}"
+                    f"{user.name}'s current timezone is: **{usertime}**\n" f"The current time is: {str(time)}"
                 )
             else:
                 await ctx.send("That user hasn't set their timezone.")
@@ -184,6 +178,4 @@ class Timezone(commands.Cog):
         position = "ahead of" if user_diff < other_diff else "behind"
         position_text = "" if time_diff == 0 else f" {position} you"
 
-        await ctx.send(
-            f"{user.display_name}'s time is {other_time} which is {time_amt}{position_text}."
-        )
+        await ctx.send(f"{user.display_name}'s time is {other_time} which is {time_amt}{position_text}.")

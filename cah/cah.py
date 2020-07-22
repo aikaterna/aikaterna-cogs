@@ -10,20 +10,15 @@ from redbot.core.data_manager import bundled_data_path
 
 
 class CardsAgainstHumanity(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
         self.games = []
-        self.maxBots = (
-            5  # Max number of bots that can be added to a game - don't count toward max players
-        )
+        self.maxBots = 5  # Max number of bots that can be added to a game - don't count toward max players
         self.maxPlayers = 10  # Max players for ranjom joins
         self.maxDeadTime = 3600  # Allow an hour of dead time before killing a game
         self.checkTime = 300  # 5 minutes between dead time checks
         self.winAfter = 10  # 10 wins for the game
-        self.botWaitMin = (
-            5  # Minimum number of seconds before the bot makes a decision (default 5)
-        )
+        self.botWaitMin = 5  # Minimum number of seconds before the bot makes a decision (default 5)
         self.botWaitMax = 30  # Max number of seconds before a bot makes a decision (default 30)
         self.userTimeout = 500  # 5 minutes to timeout
         self.utCheck = 30  # Check timeout every 30 seconds
@@ -197,8 +192,7 @@ class CardsAgainstHumanity(commands.Cog):
                                 member["Task"] = None
                             continue
                         await self.sendToUser(
-                            member["User"],
-                            f"Game id: *{game['ID']}* has been closed due to inactivity.",
+                            member["User"], f"Game id: *{game['ID']}* has been closed due to inactivity.",
                         )
 
                     # Set running to false
@@ -212,9 +206,7 @@ class CardsAgainstHumanity(commands.Cog):
             return True
         else:
             # Not in PM
-            await message.channel.send(
-                "Cards Against Humanity commands must be run in Direct Messages with the bot."
-            )
+            await message.channel.send("Cards Against Humanity commands must be run in Direct Messages with the bot.")
             return False
 
     def randomID(self, length=8):
@@ -311,8 +303,7 @@ class CardsAgainstHumanity(commands.Cog):
                             if not newCreator["IsBot"]:
                                 newCreator["Creator"] = True
                                 await self.sendToUser(
-                                    newCreator["User"],
-                                    "The creator of this game left.  **YOU** are now the creator.",
+                                    newCreator["User"], "The creator of this game left.  **YOU** are now the creator.",
                                 )
                                 break
 
@@ -331,8 +322,7 @@ class CardsAgainstHumanity(commands.Cog):
                             member["Task"] = None
                     else:
                         await self.sendToUser(
-                            member["User"],
-                            f"**You were removed from game id:** ***{game['ID']}.***",
+                            member["User"], f"**You were removed from game id:** ***{game['ID']}.***",
                         )
                     # Removed, no need to finish the loop
                     break
@@ -457,9 +447,7 @@ class CardsAgainstHumanity(commands.Cog):
                     name=f"Not enough players to continue! ({len(game['Members'])}/{self.minMembers})"
                 )
                 prefix = await self.bot.get_valid_prefixes()
-                stat_embed.set_footer(
-                    text=f"Have other users join with: {prefix[0]}joincah {game['ID']}"
-                )
+                stat_embed.set_footer(text=f"Have other users join with: {prefix[0]}joincah {game['ID']}")
                 await self.sendToUser(member["User"], stat_embed, True)
                 continue
             if member["IsBot"] == True:
@@ -542,13 +530,9 @@ class CardsAgainstHumanity(commands.Cog):
             else:
                 stat_embed.set_author(name=f"{winnerName} won!")
             if len(winner["Cards"]) == 1:
-                msg = "The **Winning** card was:\n\n{}".format(
-                    "{}".format(" - ".join(winner["Cards"]))
-                )
+                msg = "The **Winning** card was:\n\n{}".format("{}".format(" - ".join(winner["Cards"])))
             else:
-                msg = "The **Winning** cards were:\n\n{}".format(
-                    "{}".format(" - ".join(winner["Cards"]))
-                )
+                msg = "The **Winning** cards were:\n\n{}".format("{}".format(" - ".join(winner["Cards"])))
             await self.sendToUser(member["User"], stat_embed, True)
             await self.sendToUser(member["User"], msg)
             await asyncio.sleep(0.1)
@@ -789,13 +773,9 @@ class CardsAgainstHumanity(commands.Cog):
         # Advances the game
         if len(game["Members"]) < self.minMembers:
             stat_embed = discord.Embed(color=discord.Color.red())
-            stat_embed.set_author(
-                name=f"Not enough players to continue! ({len(game['Members'])}/{self.minMembers})"
-            )
+            stat_embed.set_author(name=f"Not enough players to continue! ({len(game['Members'])}/{self.minMembers})")
             prefix = await self.bot.get_valid_prefixes()
-            stat_embed.set_footer(
-                text=f"Have other users join with: {prefix[0]}joincah {game['ID']}"
-            )
+            stat_embed.set_footer(text=f"Have other users join with: {prefix[0]}joincah {game['ID']}")
             for member in game["Members"]:
                 if member["IsBot"]:
                     continue
@@ -820,9 +800,7 @@ class CardsAgainstHumanity(commands.Cog):
                 if member["IsBot"]:
                     stat_embed.set_author(name=f"{self.botName} ({member['ID']}) is the WINNER!!")
                 else:
-                    stat_embed.set_author(
-                        name=f"{self.displayname(member['User'])} is the WINNER!!"
-                    )
+                    stat_embed.set_author(name=f"{self.displayname(member['User'])} is the WINNER!!")
                 stat_embed.set_footer(text="Congratulations!")
                 break
         if winner:
@@ -936,9 +914,7 @@ class CardsAgainstHumanity(commands.Cog):
                 user = member
                 index = userGame["Members"].index(member)
                 if index == userGame["Judge"]:
-                    await self.sendToUser(
-                        ctx.author, "You're the judge.  You don't get to lay cards this round."
-                    )
+                    await self.sendToUser(ctx.author, "You're the judge.  You don't get to lay cards this round.")
                     return
         for submit in userGame["Submitted"]:
             if submit["By"]["User"] == ctx.author:
@@ -955,9 +931,7 @@ class CardsAgainstHumanity(commands.Cog):
             stat_embed.set_author(
                 name=f"Not enough players to continue! ({len(userGame['Members'])}/{self.minMembers})"
             )
-            stat_embed.set_footer(
-                text=f"Have other users join with: {prefix[0]}joincah {userGame['ID']}"
-            )
+            stat_embed.set_footer(text=f"Have other users join with: {prefix[0]}joincah {userGame['ID']}")
             return await self.sendToUser(ctx.author, stat_embed, True)
 
         numberCards = userGame["BlackCard"]["Pick"]
@@ -993,9 +967,7 @@ class CardsAgainstHumanity(commands.Cog):
                     )
                     return await self.showHand(ctx, ctx.author)
                 if c < 1 or c > len(user["Hand"]):
-                    await self.sendToUser(
-                        ctx.author, f"Card numbers must be between 1 and {len(user['Hand'])}."
-                    )
+                    await self.sendToUser(ctx.author, f"Card numbers must be between 1 and {len(user['Hand'])}.")
                     return await self.showHand(ctx, ctx.author)
                 cards.append(user["Hand"][c - 1]["Text"])
             # Remove from user's hand
@@ -1010,14 +982,10 @@ class CardsAgainstHumanity(commands.Cog):
             try:
                 card = int(card)
             except Exception:
-                await self.sendToUser(
-                    ctx.author, f"You need to lay a valid card with `{prefix[0]}lay [card number]`"
-                )
+                await self.sendToUser(ctx.author, f"You need to lay a valid card with `{prefix[0]}lay [card number]`")
                 return await self.showHand(ctx, ctx.author)
             if card < 1 or card > len(user["Hand"]):
-                await self.sendToUser(
-                    ctx.author, f"Card numbers must be between 1 and {len(user['Hand'])}."
-                )
+                await self.sendToUser(ctx.author, f"Card numbers must be between 1 and {len(user['Hand'])}.")
                 return await self.showHand(ctx, ctx.author)
             # Valid card
             newSubmission = {"By": user, "Cards": [user["Hand"].pop(card - 1)["Text"]]}
@@ -1069,9 +1037,7 @@ class CardsAgainstHumanity(commands.Cog):
         except Exception:
             card = -1
         if card < 0 or card >= totalUsers:
-            return await self.sendToUser(
-                ctx.author, f"Your pick must be between 1 and {totalUsers}."
-            )
+            return await self.sendToUser(ctx.author, f"Your pick must be between 1 and {totalUsers}.")
         # Pick is good!
         await self.winningCard(ctx, userGame, card)
 
@@ -1100,9 +1066,7 @@ class CardsAgainstHumanity(commands.Cog):
             embed.set_author(name="**Setting up the game...**")
             await ctx.author.send(embed=embed)
         except discord.errors.Forbidden:
-            return await ctx.send(
-                "You must allow Direct Messages from the bot for this game to work."
-            )
+            return await ctx.send("You must allow Direct Messages from the bot for this game to work.")
 
         # Check if the user is already in game
         userGame = await self.userGame(ctx.author)
@@ -1179,9 +1143,7 @@ class CardsAgainstHumanity(commands.Cog):
             embed.set_author(name="**Setting up the game...**")
             await ctx.author.send(embed=embed)
         except discord.errors.Forbidden:
-            return await ctx.send(
-                "You must allow Direct Messages from the bot for this game to work."
-            )
+            return await ctx.send("You must allow Direct Messages from the bot for this game to work.")
 
         # Check if the user is already in game
         userGame = await self.userGame(ctx.author)
@@ -1254,9 +1216,7 @@ class CardsAgainstHumanity(commands.Cog):
         for member in game["Members"]:
             if member["IsBot"]:
                 continue
-            await self.sendToUser(
-                member["User"], f"***{self.displayname(ctx.author)}*** **joined the game!**"
-            )
+            await self.sendToUser(member["User"], f"***{self.displayname(ctx.author)}*** **joined the game!**")
 
         # We got a user!
         currentTime = int(time.time())
@@ -1329,9 +1289,7 @@ class CardsAgainstHumanity(commands.Cog):
         # We are the creator - let's check the number of bots
         if botCount >= self.maxBots:
             # Too many bots!
-            return await self.sendToUser(
-                ctx.author, f"You already have enough bots (max is {self.maxBots})."
-            )
+            return await self.sendToUser(ctx.author, f"You already have enough bots (max is {self.maxBots}).")
         # We can get another bot!
         botID = self.randomBotID(userGame)
         lobot = {
@@ -1351,9 +1309,7 @@ class CardsAgainstHumanity(commands.Cog):
         for member in userGame["Members"]:
             if member["IsBot"]:
                 continue
-            await self.sendToUser(
-                member["User"], f"***{self.botName} ({botID})*** **joined the game!**"
-            )
+            await self.sendToUser(member["User"], f"***{self.botName} ({botID})*** **joined the game!**")
         # await self.nextPlay(ctx, userGame)
 
         # Check if adding put us at minimum members
@@ -1392,9 +1348,7 @@ class CardsAgainstHumanity(commands.Cog):
             if member["User"] == ctx.author:
                 if not member["Creator"]:
                     # You didn't make this game
-                    return await self.sendToUser(
-                        ctx.author, "Only the player that created the game can add bots."
-                    )
+                    return await self.sendToUser(ctx.author, "Only the player that created the game can add bots.")
                 member["Time"] = int(time.time())
         if number == None:
             # No number specified - let's add the max number of bots
@@ -1408,9 +1362,7 @@ class CardsAgainstHumanity(commands.Cog):
         # We are the creator - let's check the number of bots
         if botCount >= self.maxBots:
             # Too many bots!
-            return await self.sendToUser(
-                ctx.author, f"You already have enough bots (max is {self.maxBots})."
-            )
+            return await self.sendToUser(ctx.author, f"You already have enough bots (max is {self.maxBots}).")
 
         if number > (self.maxBots - botCount):
             number = self.maxBots - botCount
@@ -1484,9 +1436,7 @@ class CardsAgainstHumanity(commands.Cog):
             if member["User"] == ctx.author:
                 if not member["Creator"]:
                     # You didn't make this game
-                    return await self.sendToUser(
-                        ctx.author, "Only the player that created the game can remove bots."
-                    )
+                    return await self.sendToUser(ctx.author, "Only the player that created the game can remove bots.")
                 member["Time"] = int(time.time())
         # We are the creator - let's check the number of bots
         if id == None:
@@ -1762,9 +1712,7 @@ class CardsAgainstHumanity(commands.Cog):
             if member["User"] == ctx.author:
                 if not member["Creator"]:
                     # You didn't make this game
-                    return await self.sendToUser(
-                        ctx.author, "Only the player that created the game can remove bots."
-                    )
+                    return await self.sendToUser(ctx.author, "Only the player that created the game can remove bots.")
         # We are the creator - let's check the number of bots
         if setting == None:
             # Output idle kick status

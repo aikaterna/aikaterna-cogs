@@ -4,15 +4,9 @@ import discord
 from redbot.core import commands, checks, Config
 
 
-
-
 class Otherbot(commands.Cog):
-
     async def red_delete_data_for_user(
-        self,
-        *,
-        requester: Literal["discord", "owner", "user", "user_strict"],
-        user_id: int,
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
     ):
         if requester == "discord":
             # user is deleted, just comply

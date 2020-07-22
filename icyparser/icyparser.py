@@ -69,9 +69,7 @@ class IcyParser(commands.Cog):
                 f"Can't read the stream information for <{player.current.uri if not url else url}>, it may not be an Icecast or Shoutcast radio station or there may be no stream information available."
             )
         song = f"**[{icy[0]}]({player.current.uri if not url else url})**\n"
-        embed = discord.Embed(
-            colour=await ctx.embed_colour(), title="Now Playing", description=song
-        )
+        embed = discord.Embed(colour=await ctx.embed_colour(), title="Now Playing", description=song)
         if icy[2]:
             embed.set_thumbnail(url=icy[1])
         await ctx.send(embed=embed)

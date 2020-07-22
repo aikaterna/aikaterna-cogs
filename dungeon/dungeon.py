@@ -14,10 +14,7 @@ class Dungeon(commands.Cog):
     """Auto-quarantine suspicious users."""
 
     async def red_delete_data_for_user(
-            self,
-            *,
-            requester: Literal["discord", "owner", "user", "user_strict"],
-            user_id: int,
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
     ):
         if requester == "discord":
             # user is deleted, just comply
@@ -76,17 +73,13 @@ class Dungeon(commands.Cog):
             return await ctx.send("No dungeon role set.")
 
         try:
-            await user.edit(
-                roles=[], reason=f"Removing all roles, {ctx.message.author} is banishing user"
-            )
+            await user.edit(roles=[], reason=f"Removing all roles, {ctx.message.author} is banishing user")
         except discord.Forbidden:
             return await ctx.send(
                 "I need permission to manage roles or the role hierarchy might not allow me to do this. I need a role higher than the person you're trying to banish."
             )
 
-        await user.add_roles(
-            dungeon_role_obj, reason=f"Adding dungeon role, {ctx.message.author} is banishing user"
-        )
+        await user.add_roles(dungeon_role_obj, reason=f"Adding dungeon role, {ctx.message.author} is banishing user")
 
         if blacklist:
             blacklist_msg = ", blacklisted from the bot,"
@@ -107,9 +100,7 @@ class Dungeon(commands.Cog):
         """Sets the announcement channel for users moved to the dungeon."""
         await self.config.guild(ctx.guild).announce_channel.set(channel.id)
         announce_channel_id = await self.config.guild(ctx.guild).announce_channel()
-        await ctx.send(
-            f"User announcement channel set to: {self.bot.get_channel(announce_channel_id).mention}."
-        )
+        await ctx.send(f"User announcement channel set to: {self.bot.get_channel(announce_channel_id).mention}.")
 
     @dungeon.command()
     async def autoban(self, ctx):
@@ -124,9 +115,7 @@ class Dungeon(commands.Cog):
         auto_ban = await self.config.guild(ctx.guild).auto_ban()
         if not ban_message:
             await self.config.guild(ctx.guild).auto_ban_message.set(None)
-            return await ctx.send(
-                "Auto-ban message removed. No message will be sent on an auto-ban."
-            )
+            return await ctx.send("Auto-ban message removed. No message will be sent on an auto-ban.")
         await self.config.guild(ctx.guild).auto_ban_message.set(str(ban_message))
         await self.config.guild(ctx.guild).auto_ban.set(True)
         await ctx.send(f"Auto-ban has been turned on.\nMessage to send on ban:\n{ban_message}")
@@ -272,13 +261,10 @@ class Dungeon(commands.Cog):
                 role_check = True
                 try:
                     await user.remove_roles(
-                        dungeon_role_obj,
-                        reason=f"Removing dungeon role, verified by {ctx.message.author}.",
+                        dungeon_role_obj, reason=f"Removing dungeon role, verified by {ctx.message.author}.",
                     )
                     if not user_role_obj:
-                        return await ctx.send(
-                            "Dungeon role removed, but no member role is set so I can't award one."
-                        )
+                        return await ctx.send("Dungeon role removed, but no member role is set so I can't award one.")
                     await user.add_roles(user_role_obj, reason="Adding member role.")
                 except discord.Forbidden:
                     return await ctx.send(
@@ -299,9 +285,7 @@ class Dungeon(commands.Cog):
             try:
                 await user.send(dm_message)
             except discord.Forbidden:
-                await ctx.send(
-                    f"I couldn't DM {user} to let them know they've been verified, they've blocked me."
-                )
+                await ctx.send(f"I couldn't DM {user} to let them know they've been verified, they've blocked me.")
 
     @dungeon.command()
     async def autosetup(self, ctx):
@@ -309,11 +293,7 @@ class Dungeon(commands.Cog):
         You must deny the default role (@ everyone) from viewing or typing in other channels in your server manually.
         """
         try:
-            overwrites = {
-                ctx.guild.default_role: discord.PermissionOverwrite(
-                    send_messages=False, read_messages=False
-                )
-            }
+            overwrites = {ctx.guild.default_role: discord.PermissionOverwrite(send_messages=False, read_messages=False)}
 
             dungeon_role = await ctx.guild.create_role(name="Dungeon")
 
@@ -322,9 +302,7 @@ class Dungeon(commands.Cog):
                 dungeon_role, read_messages=True, send_messages=False, read_message_history=True
             )
 
-            dungeon_channel = await ctx.guild.create_text_channel(
-                "Silenced", category=dungeon_category
-            )
+            dungeon_channel = await ctx.guild.create_text_channel("Silenced", category=dungeon_category)
             await dungeon_channel.set_permissions(
                 dungeon_role, read_messages=True, send_messages=False, read_message_history=True
             )
@@ -427,8 +405,7 @@ class Dungeon(commands.Cog):
             user_role_obj = discord.utils.get(member.guild.roles, id=user_role_id)
             try:
                 await member.add_roles(
-                    user_role_obj,
-                    reason="User has bypassed Dungeon checks. Assigning member role.",
+                    user_role_obj, reason="User has bypassed Dungeon checks. Assigning member role.",
                 )
             except discord.Forbidden:
                 pass
@@ -462,9 +439,7 @@ class Dungeon(commands.Cog):
                             log.debug(perm_msg)
                             return
                 try:
-                    await member.guild.ban(
-                        member, reason="Dungeon auto-ban", delete_message_days=0
-                    )
+                    await member.guild.ban(member, reason="Dungeon auto-ban", delete_message_days=0)
                 except discord.Forbidden:
                     if announce_channel:
                         return await channel_object.send(
@@ -484,14 +459,7 @@ class Dungeon(commands.Cog):
                 else:
                     try:
                         await modlog.create_case(
-                            self.bot,
-                            member.guild,
-                            now,
-                            "ban",
-                            member,
-                            member.guild.me,
-                            until=None,
-                            channel=None,
+                            self.bot, member.guild, now, "ban", member, member.guild.me, until=None, channel=None,
                         )
                     except RuntimeError:
                         log.error(

@@ -14,13 +14,12 @@ from resizeimage import resizeimage
 from redbot.core import Config, commands, checks
 
 blurple = (114, 137, 218)
-blurplehex = 0x7289da
+blurplehex = 0x7289DA
 darkblurple = (78, 93, 148)
 white = (255, 255, 255)
 
 
 class Blurplefy(commands.Cog):
-
     def __init__(self, bot):
         """Blurplefy images and check content of images."""
         self.bot = bot
@@ -38,9 +37,7 @@ class Blurplefy(commands.Cog):
         """Toggle a role award for having a blurple profile picture."""
         blurple_role_id = await self.config.guild(ctx.guild).blurple_role()
         if blurple_role_id is None:
-            await ctx.send(
-                "Enter the role name to award: it needs to be a valid, already existing role."
-            )
+            await ctx.send("Enter the role name to award: it needs to be a valid, already existing role.")
 
             def check(m):
                 return m.author == ctx.author
@@ -140,11 +137,7 @@ class Blurplefy(commands.Cog):
             im = resizeimage.resize_width(im, (imsize[0] * downsizefraction))
             imsize = list(im.size)
             impixels = imsize[0] * imsize[1]
-            await ctx.send(
-                "{}, image resized smaller for easier processing.".format(
-                    ctx.message.author.display_name
-                )
-            )
+            await ctx.send("{}, image resized smaller for easier processing.".format(ctx.message.author.display_name))
 
         image = self.blurple_imager(im, imsize)
         image = discord.File(fp=image, filename="image.png")
@@ -155,19 +148,11 @@ class Blurplefy(commands.Cog):
         percentwhite = round(((noofwhitepixels / noofpixels) * 100), 2)
 
         embed = discord.Embed(title="", colour=0x7289DA)
+        embed.add_field(name="Total amount of Blurple", value="{}%".format(blurplenesspercentage), inline=False)
+        embed.add_field(name="Blurple (rgb(114, 137, 218))", value="{}%".format(percentblurple), inline=True)
+        embed.add_field(name="White (rgb(255, 255, 255))", value="{}\%".format(percentwhite), inline=True)
         embed.add_field(
-            name="Total amount of Blurple", value="{}%".format(blurplenesspercentage), inline=False
-        )
-        embed.add_field(
-            name="Blurple (rgb(114, 137, 218))", value="{}%".format(percentblurple), inline=True
-        )
-        embed.add_field(
-            name="White (rgb(255, 255, 255))", value="{}\%".format(percentwhite), inline=True
-        )
-        embed.add_field(
-            name="Dark Blurple (rgb(78, 93, 148))",
-            value="{}\%".format(percentdblurple),
-            inline=True,
+            name="Dark Blurple (rgb(78, 93, 148))", value="{}\%".format(percentdblurple), inline=True,
         )
         embed.add_field(
             name="Guide",
@@ -247,20 +232,14 @@ class Blurplefy(commands.Cog):
         except Exception:
             isgif = False
 
-        await ctx.send(
-            "{}, image fetched, analyzing image...".format(ctx.message.author.display_name)
-        )
+        await ctx.send("{}, image fetched, analyzing image...".format(ctx.message.author.display_name))
 
         if impixels > maxpixelcount:
             downsizefraction = math.sqrt(maxpixelcount / impixels)
             im = resizeimage.resize_width(im, (imsize[0] * downsizefraction))
             imsize = list(im.size)
             impixels = imsize[0] * imsize[1]
-            await ctx.send(
-                "{}, image resized smaller for easier processing".format(
-                    ctx.message.author.display_name
-                )
-            )
+            await ctx.send("{}, image resized smaller for easier processing".format(ctx.message.author.display_name))
 
         if isgif is False:
             image = self.imager(im, imsize)
@@ -323,9 +302,7 @@ class Blurplefy(commands.Cog):
                 for i in range(3):
                     if not (blurple[i] + colourbuffer > pixel[i] > blurple[i] - colourbuffer):
                         checkblurple = 0
-                    if not (
-                        darkblurple[i] + colourbuffer > pixel[i] > darkblurple[i] - colourbuffer
-                    ):
+                    if not (darkblurple[i] + colourbuffer > pixel[i] > darkblurple[i] - colourbuffer):
                         checkdarkblurple = 0
                     if not (white[i] + colourbuffer > pixel[i] > white[i] - colourbuffer):
                         checkwhite = 0
@@ -397,19 +374,11 @@ class Blurplefy(commands.Cog):
     @commands.command()
     async def countdown(self, ctx):
         """Countdown to Discord's 6th Anniversary."""
-        embed = discord.Embed(name="", colour=0x7289da)
-        timeleft = (
-            datetime.datetime(2020, 5, 13)
-            + datetime.timedelta(hours=7)
-            - datetime.datetime.utcnow()
-        )
+        embed = discord.Embed(name="", colour=0x7289DA)
+        timeleft = datetime.datetime(2020, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
         embed.set_author(name="Time left until Discord's 6th Anniversary")
         if int(timeleft.total_seconds()) < 0:
-            timeleft = (
-                datetime.datetime(2021, 5, 13)
-                + datetime.timedelta(hours=7)
-                - datetime.datetime.utcnow()
-            )
+            timeleft = datetime.datetime(2021, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
             embed.set_author(name="Time left until Discord's 6th Anniversary")
         embed.add_field(
             name="Countdown to midnight, May 13, California time (UTC-7):",

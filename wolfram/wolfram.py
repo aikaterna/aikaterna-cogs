@@ -8,8 +8,6 @@ from redbot.core import Config, commands, checks
 from redbot.core.utils.chat_formatting import box, pagify
 
 
-
-
 class Wolfram(commands.Cog):
     """Ask Wolfram Alpha any question."""
 
@@ -27,9 +25,7 @@ class Wolfram(commands.Cog):
         """Ask Wolfram Alpha any question."""
         api_key = await self.config.WOLFRAM_API_KEY()
         if not api_key:
-            return await ctx.send(
-                "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
-            )
+            return await ctx.send("No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/")
 
         url = "http://api.wolframalpha.com/v2/query?"
         query = " ".join(question)
@@ -59,9 +55,7 @@ class Wolfram(commands.Cog):
             return await ctx.send_help()
         api_key = await self.config.WOLFRAM_API_KEY()
         if not api_key:
-            return await ctx.send(
-                "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
-            )
+            return await ctx.send("No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/")
 
         width = 800
         font_size = 30
@@ -78,14 +72,10 @@ class Wolfram(commands.Cog):
                 img = await r.content.read()
                 if len(img) == 43:
                     # img = b'Wolfram|Alpha did not understand your input'
-                    return await ctx.send(
-                        "There is as yet insufficient data for a meaningful answer."
-                    )
+                    return await ctx.send("There is as yet insufficient data for a meaningful answer.")
                 wolfram_img = BytesIO(img)
                 try:
-                    await ctx.channel.send(
-                        file=discord.File(wolfram_img, f"wolfram{ctx.author.id}.png")
-                    )
+                    await ctx.channel.send(file=discord.File(wolfram_img, f"wolfram{ctx.author.id}.png"))
                 except Exception as e:
                     await ctx.send(f"Oops, there was a problem: {e}")
 
@@ -94,9 +84,7 @@ class Wolfram(commands.Cog):
         """Ask Wolfram Alpha any math question. Returns step by step answers."""
         api_key = await self.config.WOLFRAM_API_KEY()
         if not api_key:
-            return await ctx.send(
-                "No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/"
-            )
+            return await ctx.send("No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/")
 
         url = f"http://api.wolframalpha.com/v2/query"
         params = {
