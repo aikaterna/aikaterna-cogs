@@ -22,8 +22,8 @@ class Otherbot(commands.Cog):
             online_watching=[],
             offline_emoji=DEFAULT_OFFLINE_EMOJI,
             online_emoji=DEFAULT_ONLINE_EMOJI,
-            embed_offline=False,
-            embed_online=False,
+            embed_offline=True,
+            embed_online=True,
         )
 
     async def generate_cache(self):
