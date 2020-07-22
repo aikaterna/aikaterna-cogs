@@ -1,8 +1,33 @@
+from typing import Literal
+
 import discord
 from redbot.core import commands, checks, Config
 
 
 class Otherbot(commands.Cog):
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store end user data. "
+        "This cog does store discord IDs as needed for operation. "
+    )
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        if requester == "discord":
+            # user is deleted, just comply
+
+            data = await self.config.all_guilds()
+            for guild_id, guild_data in data.items():
+                if user_id in guild_data.get("watching", []):
+                    bypass = guild_data.get("watching", [])
+                    bypass = set(bypass)
+                    bypass.discard(user_id)
+                    await self.config.guild_from_id(guild_id).bypass.set(list(bypass))
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2730321001, force_registration=True)

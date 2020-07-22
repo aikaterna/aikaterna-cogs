@@ -1,7 +1,7 @@
 import asyncio
 import contextlib
 import datetime
-from typing import Union
+from typing import Union, Literal
 
 import discord
 import time
@@ -13,6 +13,23 @@ _SCHEMA_VERSION = 2
 
 class Seen(commands.Cog):
     """Shows last time a user was seen in chat."""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store end user data. "
+        "This cog does store discord IDs and last seen timestamp as needed for operation. "
+    )
+
+    async def red_delete_data_for_user(
+            self,
+            *,
+            requester: Literal["discord", "owner", "user", "user_strict"],
+            user_id: int,
+    ):
+        if requester in ["discord", "owner"]:
+            data = await self.config.all_members()
+            for guild_id, members in data.items():
+                if user_id in members:
+                    await self.config.member_from_ids(guild_id, user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot

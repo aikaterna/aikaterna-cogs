@@ -15,5 +15,6 @@
 		"dungeon",
         "autoban"
 	],
-	"type": "COG"
+	"type": "COG",
+	"end_user_data_statement": "This cog does not persistently store end user data. This cog does store discord IDs as needed for operation. "
 }

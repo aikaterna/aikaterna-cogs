@@ -1,7 +1,8 @@
+from typing import Literal
+
 import asyncio
 import discord
 import datetime
-import itertools
 import math
 import random
 import time
@@ -16,6 +17,23 @@ __version__ = "3.1.3"
 
 class Hunting(commands.Cog):
     """Hunting, it hunts birds and things that fly."""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store end user data. "
+        "This cog does store discord IDs as needed for operation. "
+        "This cog does store user stats for the cog such as their score. "
+        "Users may remove their own content without making a data removal request."
+        "This cog does not support data requests, "
+        "but will respect deletion requests."
+    )
+
+    async def red_delete_data_for_user(
+            self,
+            *,
+            requester: Literal["discord", "owner", "user", "user_strict"],
+            user_id: int,
+    ):
+        await self.config.user_from_id(user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot
