@@ -60,6 +60,8 @@ class Otherbot(commands.Cog):
                 online_watching="Online tracking",
                 offline_emoji="Offline emoji",
                 online_emoji="Online emoji",
+                embed_offline="Offline embed",
+                embed_online="Online embed",
             )
             msg = ""
             if ctx.channel.permissions_for(ctx.me).embed_links:
