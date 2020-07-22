@@ -8,6 +8,10 @@ class PartyCrash(commands.Cog):
     """Partycrash inspired by v2 Admin by Will
        Does not generate invites, only lists existing invites."""
 
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         self.bot = bot
 

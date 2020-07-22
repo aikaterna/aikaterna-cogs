@@ -1,8 +1,6 @@
 import aiohttp
-import asyncio
 import discord
 from io import BytesIO
-from PIL import Image
 import xml.etree.ElementTree as ET
 import urllib.parse
 
@@ -12,6 +10,10 @@ from redbot.core.utils.chat_formatting import box, pagify
 
 class Wolfram(commands.Cog):
     """Ask Wolfram Alpha any question."""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
 
     def __init__(self, bot):
         self.bot = bot

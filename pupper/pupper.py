@@ -12,6 +12,11 @@ log = logging.getLogger("red.aikaterna.pupper")
 
 
 class Pupper(commands.Cog):
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2767241393, force_registration=True)

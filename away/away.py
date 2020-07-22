@@ -1,6 +1,6 @@
 import discord
 from redbot.core import Config, commands, checks
-from typing import Optional
+from typing import Optional, Literal
 import datetime
 import re
 
@@ -9,6 +9,17 @@ IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
 class Away(commands.Cog):
     """Le away cog"""
+
+    __end_user_data_statement__ = (
+        "This cog stores data provided by users "
+        "for the express purpose of redisplaying. "
+        "It does not store user data which was not "
+        "provided through a command. "
+        "Users may remove their own content "
+        "without making a data removal request. "
+        "This cog does not support data requests, "
+        "but will respect deletion requests."
+    )
 
     default_global_settings = {"ign_servers": []}
     default_guild_settings = {"TEXT_ONLY": False}
@@ -21,6 +32,14 @@ class Away(commands.Cog):
         "STREAMING_MESSAGE": False,
         "LISTENING_MESSAGE": False,
     }
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        await self._away.user_from_id(user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot

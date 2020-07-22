@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from random import randint
-from redbot.core import commands, checks
+from redbot.core import commands
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -85,6 +85,9 @@ class Deck:
 class LuigiPoker(commands.Cog):
 
     __version__ = "0.1.1"
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
 
     def __init__(self, bot):
         self.bot = bot

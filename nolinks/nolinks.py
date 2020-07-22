@@ -7,6 +7,11 @@ LINKS = re.compile(
         )
 
 class NoLinks(commands.Cog):
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2740131001, force_registration=True)

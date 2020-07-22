@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup as bs
 import discord
 from redbot.core import commands
 from io import BytesIO
-import os
 from random import choice
 import re
 import unicodedata
@@ -14,6 +13,11 @@ import unicodedata
 
 class Retrosign(commands.Cog):
     """Make an 80s retro sign. Originally by Anismash"""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()

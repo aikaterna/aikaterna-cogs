@@ -7,7 +7,6 @@ from PIL import Image, ImageEnhance, ImageSequence
 from io import BytesIO
 import aiohttp
 import asyncio
-import copy
 import datetime
 import io
 import math
@@ -21,6 +20,11 @@ white = (255, 255, 255)
 
 
 class Blurplefy(commands.Cog):
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         """Blurplefy images and check content of images."""
         self.bot = bot

@@ -3,8 +3,7 @@ import discord
 from redbot.core import Config, commands, checks
 from redbot.core.utils import AsyncIter
 from random import choice as rndchoice
-from collections import defaultdict, Counter, Sequence
-import time
+from collections import defaultdict
 import contextlib
 import asyncio
 import logging
@@ -17,6 +16,10 @@ class RndStatus(commands.Cog):
     """Cycles random statuses or displays bot stats.
     If a custom status is already set, it won't change it until
     it's back to none. [p]set game"""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
 
     def __init__(self, bot):
         self.bot = bot

@@ -3,11 +3,8 @@ import datetime
 import discord
 import inspect
 import logging
-import random
 import re
-import os
-import time
-from redbot.core import Config, checks, commands
+from redbot.core import checks, commands
 from redbot.core.utils import chat_formatting as cf
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS, close_menu
 from tabulate import tabulate
@@ -19,6 +16,10 @@ log = logging.getLogger("red.aikaterna.tools")
 
 class Tools(commands.Cog):
     """Mod and Admin tools."""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
 
     def __init__(self, bot):
         self.bot = bot

@@ -7,6 +7,10 @@ from redbot.core.utils.common_filters import filter_mass_mentions
 class PressF(commands.Cog):
     """Pay some respects."""
 
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         self.bot = bot
         self.channels = {}

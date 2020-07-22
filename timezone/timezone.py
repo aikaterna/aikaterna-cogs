@@ -3,12 +3,31 @@ import pytz
 from datetime import datetime
 from pytz import common_timezones
 from pytz import country_timezones
-from typing import Optional
+from typing import Optional, Literal
 from redbot.core import Config, commands, checks
 
 
 class Timezone(commands.Cog):
     """Gets times across the world..."""
+
+    __end_user_data_statement__ = (
+        "This cog stores data provided by users "
+        "for the express purpose of redisplaying. "
+        "It does not store user data which was not "
+        "provided through a command. "
+        "Users may remove their own content "
+        "without making a data removal request. "
+        "This cog does not support data requests, "
+        "but will respect deletion requests."
+    )
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        await self.config.user_from_id(user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot

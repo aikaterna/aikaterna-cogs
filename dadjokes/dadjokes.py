@@ -4,6 +4,10 @@ import aiohttp
 class DadJokes(commands.Cog):
     """Random dad jokes from icanhazdadjoke.com"""
 
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
+
     def __init__(self, bot):
         self.bot = bot
 

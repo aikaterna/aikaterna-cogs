@@ -5,7 +5,6 @@
 #  Thanks to violetnyte for suggesting this cog.
 import discord
 import heapq
-import os
 from io import BytesIO
 from typing import Optional
 import matplotlib
@@ -19,6 +18,10 @@ from redbot.core import commands
 
 class Chatchart(commands.Cog):
     """Show activity."""
+
+    __end_user_data_statement__ = (
+        "This cog does not persistently store data or metadata about users."
+    )
 
     def __init__(self, bot):
         self.bot = bot
