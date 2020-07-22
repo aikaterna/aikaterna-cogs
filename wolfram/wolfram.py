@@ -8,12 +8,10 @@ from redbot.core import Config, commands, checks
 from redbot.core.utils.chat_formatting import box, pagify
 
 
+
+
 class Wolfram(commands.Cog):
     """Ask Wolfram Alpha any question."""
-
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store data or metadata about users."
-    )
 
     def __init__(self, bot):
         self.bot = bot

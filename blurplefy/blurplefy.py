@@ -21,10 +21,6 @@ white = (255, 255, 255)
 
 class Blurplefy(commands.Cog):
 
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store data or metadata about users."
-    )
-
     def __init__(self, bot):
         """Blurplefy images and check content of images."""
         self.bot = bot

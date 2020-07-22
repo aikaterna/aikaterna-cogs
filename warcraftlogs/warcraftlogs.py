@@ -11,19 +11,10 @@ from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
+
+
 class WarcraftLogs(commands.Cog):
     """Access Warcraftlogs stats."""
-
-    __red_end_user_data_statemet__ = (
-        "This cog stores data provided by users "
-        "for the express purpose of redisplaying. "
-        "It does not store user data which was not "
-        "provided through a command. "
-        "Users may remove their own content "
-        "without making a data removal request. "
-        "This cog does not support data requests, "
-        "but will respect deletion requests."
-    )
 
     async def red_delete_data_for_user(
         self,

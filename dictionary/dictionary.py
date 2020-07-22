@@ -12,10 +12,6 @@ class Dictionary(commands.Cog):
     """Word, yo
     Parts of this cog are adapted from the PyDictionary library."""
 
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store data or metadata about users."
-    )
-
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()

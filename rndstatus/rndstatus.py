@@ -12,14 +12,11 @@ import logging
 log = logging.getLogger("red.aikaterna-cogs.rndstatus")
 
 
+
 class RndStatus(commands.Cog):
     """Cycles random statuses or displays bot stats.
     If a custom status is already set, it won't change it until
     it's back to none. [p]set game"""
-
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store data or metadata about users."
-    )
 
     def __init__(self, bot):
         self.bot = bot

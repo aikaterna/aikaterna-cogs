@@ -8,10 +8,6 @@ from redbot.core.utils.chat_formatting import box
 class NoFlippedTables(commands.Cog):
     """For the table sympathizers"""
 
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store data or metadata about users."
-    )
-
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2712290002, force_registration=True)

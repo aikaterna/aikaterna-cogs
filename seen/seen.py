@@ -11,13 +11,10 @@ from redbot.core import Config, commands
 _SCHEMA_VERSION = 2
 
 
+
+
 class Seen(commands.Cog):
     """Shows last time a user was seen in chat."""
-
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store end user data. "
-        "This cog does store discord IDs and last seen timestamp as needed for operation. "
-    )
 
     async def red_delete_data_for_user(
             self,

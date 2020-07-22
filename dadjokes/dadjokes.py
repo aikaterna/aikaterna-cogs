@@ -1,12 +1,9 @@
 from redbot.core import commands
 import aiohttp
 
+
 class DadJokes(commands.Cog):
     """Random dad jokes from icanhazdadjoke.com"""
-
-    __red_end_user_data_statemet__ = (
-        "This cog does not persistently store data or metadata about users."
-    )
 
     def __init__(self, bot):
         self.bot = bot
