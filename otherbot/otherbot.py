@@ -106,7 +106,7 @@ class Otherbot(commands.Cog):
                         else:
                             msg += f"**{name}**: Not set.\n"
                     else:
-                        msg += f"**{name}**: {guild_data[attr]}"
+                        msg += f"**{name}**: {guild_data[attr]}\n"
                 em.description = msg
                 em.set_thumbnail(url=guild.icon_url)
                 await ctx.send(embed=em)
