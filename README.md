@@ -65,4 +65,4 @@ wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
 youtube - A v3 port of Paddo's youtube search cog for v2.
 
-Support for these cogs is via opened issues on the appropriate repo or in the Red - Cog Support server.
+Support for these cogs is via opened issues on the appropriate repo or in the Red - Cog Support server at https://discord.gg/KcAbsvD, in the support-aikaterna-cogs channel.
