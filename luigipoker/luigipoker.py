@@ -85,7 +85,7 @@ class Deck:
 class LuigiPoker(commands.Cog):
 
     __version__ = "0.1.1"
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

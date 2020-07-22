@@ -10,7 +10,7 @@ from redbot.core import Config, commands, checks
 class Timezone(commands.Cog):
     """Gets times across the world..."""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog stores data provided by users "
         "for the express purpose of redisplaying. "
         "It does not store user data which was not "

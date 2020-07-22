@@ -6,7 +6,7 @@ from redbot.core.utils.chat_formatting import humanize_list
 class Region(commands.Cog):
     """Change the guild voice region."""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

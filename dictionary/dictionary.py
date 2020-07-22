@@ -12,7 +12,7 @@ class Dictionary(commands.Cog):
     """Word, yo
     Parts of this cog are adapted from the PyDictionary library."""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

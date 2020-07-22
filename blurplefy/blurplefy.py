@@ -21,7 +21,7 @@ white = (255, 255, 255)
 
 class Blurplefy(commands.Cog):
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

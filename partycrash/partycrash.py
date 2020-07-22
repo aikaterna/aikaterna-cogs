@@ -8,7 +8,7 @@ class PartyCrash(commands.Cog):
     """Partycrash inspired by v2 Admin by Will
        Does not generate invites, only lists existing invites."""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

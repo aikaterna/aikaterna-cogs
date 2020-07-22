@@ -17,7 +17,7 @@ log = logging.getLogger("red.aikaterna.snacktime")
 class Snacktime(commands.Cog):
     """Snackburr's passing out pb jars!"""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

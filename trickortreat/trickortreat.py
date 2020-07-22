@@ -14,7 +14,7 @@ __version__ = "0.0.7"
 
 class TrickOrTreat(commands.Cog):
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store end user data. "
         "This cog does store discord IDs as needed for operation. "
         "This cog does store user stats for the cog such as their score. "

@@ -14,7 +14,7 @@ from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 class WarcraftLogs(commands.Cog):
     """Access Warcraftlogs stats."""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog stores data provided by users "
         "for the express purpose of redisplaying. "
         "It does not store user data which was not "

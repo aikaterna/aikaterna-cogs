@@ -17,7 +17,7 @@ log = logging.getLogger("red.aikaterna.tools")
 class Tools(commands.Cog):
     """Mod and Admin tools."""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

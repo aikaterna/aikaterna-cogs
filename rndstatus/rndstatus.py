@@ -17,7 +17,7 @@ class RndStatus(commands.Cog):
     If a custom status is already set, it won't change it until
     it's back to none. [p]set game"""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 

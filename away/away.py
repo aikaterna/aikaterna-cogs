@@ -10,7 +10,7 @@ IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 class Away(commands.Cog):
     """Le away cog"""
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog stores data provided by users "
         "for the express purpose of redisplaying. "
         "It does not store user data which was not "

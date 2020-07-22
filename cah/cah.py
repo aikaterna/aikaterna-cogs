@@ -11,7 +11,7 @@ from redbot.core.data_manager import bundled_data_path
 
 class CardsAgainstHumanity(commands.Cog):
 
-    __end_user_data_statement__ = (
+    __red_end_user_data_statemet__ = (
         "This cog does not persistently store data or metadata about users."
     )
 
