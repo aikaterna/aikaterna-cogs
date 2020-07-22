@@ -152,7 +152,7 @@ class Otherbot(commands.Cog):
                         else:
                             msg += f"{name}: Not set.\n"
                     else:
-                        msg += f"**{name}**: {guild_data[attr]}"
+                        msg += f"**{name}**: {guild_data[attr]}\n"
                 msg += "```"
                 await ctx.send(msg)
 
