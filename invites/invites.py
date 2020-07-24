@@ -8,10 +8,12 @@ from redbot.core.utils import chat_formatting as cf
 from redbot.vendored.discord.ext import menus
 
 OLD_CODE_RE = re.compile("^[0-9a-zA-Z]{16}$")
-CODE_RE = re.compile("^[0-9a-zA-Z]{6}$")
+CODE_RE = re.compile("^[0-9a-zA-Z]{6,7}$")
 
 FAILURE_MSG = "That invite doesn't seem to be valid."
 PERM_MSG = "I need the Administrator permission on this guild to view invite information."
+
+__version__ = "0.0.2"
 
 
 class Invites(commands.Cog):
@@ -25,13 +27,13 @@ class Invites(commands.Cog):
 
     @commands.guild_only()
     @commands.group()
-    async def invites(self, ctx):
+    async def invites(self, ctx: commands.Context):
         """Invite information."""
         pass
 
     @commands.max_concurrency(1, commands.BucketType.user)
     @invites.command()
-    async def show(self, ctx, invite_code_or_url=None):
+    async def show(self, ctx: commands.Context, invite_code_or_url: str = None):
         """Show the stats for an invite, or show all invites."""
         if not ctx.me.permissions_in(ctx.channel).administrator:
             return await self._send_embed(ctx, PERM_MSG)
@@ -42,10 +44,10 @@ class Invites(commands.Cog):
         else:
             invite_code = await self._find_invite_code(invite_code_or_url)
             if not invite_code:
-                return await self._send_embed(ctx, msg)
+                return await self._send_embed(ctx, FAILURE_MSG)
 
     @invites.command()
-    async def leaderboard(self, ctx, list_all_invites=False):
+    async def leaderboard(self, ctx: commands.Context, list_all_invites: bool = False):
         """List pinned invites or all invites in a leaderboard style."""
         if not ctx.me.permissions_in(ctx.channel).administrator:
             return await self._send_embed(ctx, PERM_MSG)
@@ -73,14 +75,14 @@ class Invites(commands.Cog):
         await ctx.send(embed=embed)
 
     @invites.command(aliases=["listpinned"])
-    async def listpin(self, ctx):
+    async def listpin(self, ctx: commands.Context):
         """List pinned invites."""
         pinned_invites = await self.config.guild(ctx.guild).pinned_invites()
         invite_list = "None." if len(pinned_invites) == 0 else "\n".join(pinned_invites)
         await self._send_embed(ctx, "Pinned Invites", invite_list)
 
     @invites.command()
-    async def pin(self, ctx, invite_code_or_url: str):
+    async def pin(self, ctx: commands.Context, invite_code_or_url: str):
         """Pin an invite to the leaderboard."""
         if not ctx.me.permissions_in(ctx.channel).administrator:
             return await self._send_embed(ctx, PERM_MSG)
@@ -99,7 +101,7 @@ class Invites(commands.Cog):
             await self._send_embed(ctx, f"{invite_code} is already in the pinned list.")
 
     @invites.command()
-    async def unpin(self, ctx, invite_code_or_url: str):
+    async def unpin(self, ctx: commands.Context, invite_code_or_url: str):
         """Unpin an invite from the leaderboard."""
         invite_code = await self._find_invite_code(invite_code_or_url)
         if not invite_code:
@@ -119,7 +121,7 @@ class Invites(commands.Cog):
         await self._send_embed(ctx, self.__version__)
 
     @staticmethod
-    async def _check_invite_code(ctx, invite_code):
+    async def _check_invite_code(ctx: commands.Context, invite_code: str):
         for invite in await ctx.guild.invites():
             if invite.code == invite_code:
                 return invite_code
@@ -145,7 +147,7 @@ class Invites(commands.Cog):
             return None
 
     @staticmethod
-    async def _get_invite_from_code(ctx, invite_code):
+    async def _get_invite_from_code(ctx: commands.Context, invite_code: str):
         for invite in await ctx.guild.invites():
             if invite.code == invite_code:
                 return invite
@@ -155,13 +157,13 @@ class Invites(commands.Cog):
             return None
 
     @classmethod
-    async def get_invite_max_uses(self, ctx, invite_object):
+    async def get_invite_max_uses(self, ctx: commands.Context, invite_object: discord.Invite):
         if invite_object.max_uses == 0:
             return "\N{INFINITY}"
         else:
             return invite_object.max_uses
 
-    async def _menu(self, ctx, pages):
+    async def _menu(self, ctx: commands.Context, pages: List[discord.Embed]):
         # `wait` in this function is whether the menus wait for completion.
         # An example of this is with concurrency:
         # If max_concurrency's wait arg is False (the default):
@@ -172,7 +174,7 @@ class Invites(commands.Cog):
         )
 
     @staticmethod
-    async def _send_embed(ctx, title: str = None, description: str = None):
+    async def _send_embed(ctx: commands.Context, title: str = None, description: str = None):
         title = "\N{ZERO WIDTH SPACE}" if title is None else title
         embed = discord.Embed()
         embed.title = title
@@ -208,7 +210,7 @@ class MenuPages(menus.ListPageSource):
         return embed
 
     @staticmethod
-    def _dynamic_time(time):
+    def _dynamic_time(time: int):
         m, s = divmod(time, 60)
         h, m = divmod(m, 60)
         d, h = divmod(h, 24)
