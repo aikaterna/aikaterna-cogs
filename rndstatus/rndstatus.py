@@ -29,7 +29,7 @@ class RndStatus(commands.Cog):
 
         default_global = {
             "botstats": False,
-            "delay": "300",
+            "delay": 300,
             "statuses": [
                 "her Turn()",
                 "Tomb Raider II",
@@ -184,7 +184,7 @@ class RndStatus(commands.Cog):
                 break
             except Exception as e:
                 log.exception(e, exc_info=e)
-            await asyncio.sleep(delay)
+            await asyncio.sleep(int(delay))
             
 
     def random_status(self, guild, statuses):
