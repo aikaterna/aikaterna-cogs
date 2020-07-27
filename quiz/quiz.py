@@ -22,6 +22,10 @@ def check_global_setting_admin():
     either a bot admin or has the manage_guild permission.
     """
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     async def pred(ctx: commands.Context):
         author = ctx.author
         if not await bank.is_global():

@@ -19,6 +19,10 @@ from redbot.core import commands
 class Chatchart(commands.Cog):
     """Show activity."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
 

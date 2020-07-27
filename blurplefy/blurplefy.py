@@ -20,6 +20,10 @@ white = (255, 255, 255)
 
 
 class Blurplefy(commands.Cog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         """Blurplefy images and check content of images."""
         self.bot = bot

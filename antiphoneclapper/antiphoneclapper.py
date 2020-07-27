@@ -13,6 +13,10 @@ log = logging.getLogger("red.aikaterna.antiphoneclapper")
 class AntiPhoneClapper(commands.Cog):
     """This cog deletes bad GIFs that will crash phone clients."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()

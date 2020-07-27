@@ -8,6 +8,10 @@ LINKS = re.compile(
 
 
 class NoLinks(commands.Cog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2740131001, force_registration=True)

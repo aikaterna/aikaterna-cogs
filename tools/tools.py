@@ -17,6 +17,10 @@ log = logging.getLogger("red.aikaterna.tools")
 class Tools(commands.Cog):
     """Mod and Admin tools."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
 

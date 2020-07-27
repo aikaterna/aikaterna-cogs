@@ -7,6 +7,10 @@ from redbot.core.utils.common_filters import filter_mass_mentions
 class PressF(commands.Cog):
     """Pay some respects."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
         self.channels = {}

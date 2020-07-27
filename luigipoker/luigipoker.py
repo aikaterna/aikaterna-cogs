@@ -83,6 +83,9 @@ class Deck:
 
 
 class LuigiPoker(commands.Cog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
 
     __version__ = "0.1.1"
 

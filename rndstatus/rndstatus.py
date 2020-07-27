@@ -17,6 +17,10 @@ class RndStatus(commands.Cog):
     If a custom status is already set, it won't change it until
     it's back to none. [p]set game"""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
         self.last_change = None

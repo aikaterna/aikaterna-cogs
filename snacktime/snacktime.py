@@ -17,6 +17,10 @@ log = logging.getLogger("red.aikaterna.snacktime")
 class Snacktime(commands.Cog):
     """Snackburr's passing out pb jars!"""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 2712291001, force_registration=True)

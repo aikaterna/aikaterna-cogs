@@ -6,6 +6,10 @@ from redbot.core.utils.chat_formatting import humanize_list
 class Region(commands.Cog):
     """Change the guild voice region."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     @checks.mod_or_permissions(administrator=True)
     @commands.cooldown(1, 60, discord.ext.commands.BucketType.guild)
     @commands.command()

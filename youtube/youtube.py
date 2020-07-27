@@ -7,6 +7,10 @@ from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 class YouTube(commands.Cog):
     """Search YouTube for videos."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
