@@ -26,7 +26,7 @@ class YouTube:
 
         return url_list
 
-    @commands.command()
+    @commands.command(pass_context=True)
     async def youtube(self, ctx, *, query: str):
         """Search on Youtube."""
         result = await self._youtube_results(query)
