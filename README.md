@@ -40,5 +40,6 @@ serverlimit - Limit the bot to joining servers with over 25 members.
 
 wolfram - Paddolicious#8880's old wolfram cog.
 
+youtube - Paddolicious#8880's old youtube cog, backported from my v3 version.
 
 Feel free to join the server for these cogs if you'd like. https://discord.gg/th6eS3T
