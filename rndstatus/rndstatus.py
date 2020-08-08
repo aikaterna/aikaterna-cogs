@@ -32,8 +32,15 @@ class RndStatus(commands.Cog):
 
         default_global = {
             "botstats": False,
-            "delay": "300",
-            "statuses": ["her Turn()", "Tomb Raider II", "Transistor", "NEO Scavenger", "Python", "with your heart.",],
+            "delay": 300,
+            "statuses": [
+                "her Turn()",
+                "Tomb Raider II",
+                "Transistor",
+                "NEO Scavenger",
+                "Python",
+                "with your heart.",
+            ],
             "streamer": "rndstatusstreamer",
             "type": 1,
         }
@@ -170,7 +177,8 @@ class RndStatus(commands.Cog):
                 break
             except Exception as e:
                 log.exception(e, exc_info=e)
-            await asyncio.sleep(delay)
+            await asyncio.sleep(int(delay))
+            
 
     def random_status(self, guild, statuses):
         try:

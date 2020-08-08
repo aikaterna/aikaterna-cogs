@@ -1,0 +1,11 @@
+{
+	"author": ["aikaterna"],
+	"description": "Invite count display and leaderboard.",
+    "install_msg": "Thanks for installing. Use `[p]invites` to get started.",
+	"short": "Invite count display and leaderboard.",
+	"tags": ["invites"],
+	"min_bot_version": "3.3.10",
+	"permissions": ["administrator", "embed_links"],
+	"type": "COG"
+}
+
