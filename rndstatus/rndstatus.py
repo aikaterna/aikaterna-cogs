@@ -192,15 +192,9 @@ class RndStatus(commands.Cog):
             current = str(guild.me.activity.name)
         except AttributeError:
             current = None
-        try:
-            new = str(guild.me.activity.name)
-        except AttributeError:
-            new = None
-        if len(statuses) > 1:
-            while current == new:
-                new = rndchoice(statuses)
-        elif len(statuses) == 1:
-            new = statuses[0]
-        else:
-            new = None
-        return new
+        new_statuses = [s for s in statuses if s != current]
+        if len(new_statuses) > 1:
+            return rndchoice(new_statuses)
+        elif len(new_statuses) == 1:
+            return new_statuses[0]
+        return current
