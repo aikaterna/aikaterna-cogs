@@ -22,6 +22,9 @@ class Chatchart(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        
+    async def red_delete_data_for_user(self,*,requester,user_id):
+        pass #No EUD is stored but this function is needed so the API knows that deletion was "handled"
 
     def create_chart(self, top, others, channel):
         plt.clf()
