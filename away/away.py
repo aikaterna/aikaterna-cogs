@@ -99,22 +99,41 @@ class Away(commands.Cog):
                 em.set_thumbnail(url=thumbnail)
         elif state == "listening":
             em = discord.Embed(color=author.activity.color)
-            artist_title = f"{author.activity.title} by " + ", ".join(a for a in author.activity.artists)
-            limit = 256 - (len(author.display_name) + 27)  # incase we go over the max allowable size
-            em.set_author(
-                name=f"{author.display_name} is currently listening to {artist_title[:limit]}", icon_url=avatar,
+            url = f"https://open.spotify.com/track/{author.activity.track_id}"
+            artist_title = f"{author.activity.title} by " + ", ".join(
+                a for a in author.activity.artists
             )
-            em.description = message + "\n" + self._draw_play(author.activity)
+            limit = 256 - (
+                len(author.display_name) + 27
+            )  # incase we go over the max allowable size
+            em.set_author(
+                name=f"{author.display_name} is currently listening to",
+                icon_url=avatar,
+                url=url,
+            )
+            em.description = (
+                f"{message}\n "
+                f"[{artist_title}]({url})\n"
+                f"{self._draw_play(author.activity)}"
+            )
+
             em.set_thumbnail(url=author.activity.album_cover_url)
         elif state == "listeningcustom":
             activity = [c for c in author.activities if c.type == discord.ActivityType.listening]
             em = discord.Embed(color=activity[0].color)
+            url = f"https://open.spotify.com/track/{activity[0].track_id}"
             artist_title = f"{activity[0].title} by " + ", ".join(a for a in activity[0].artists)
             limit = 256 - (len(author.display_name) + 27)
             em.set_author(
-                name=f"{author.display_name} is currently listening to {artist_title[:limit]}", icon_url=avatar,
+                name=f"{author.display_name} is currently listening to",
+                icon_url=avatar,
+                url=url
             )
-            em.description = message + "\n" + self._draw_play(activity[0])
+            em.description = (
+                f"{message}\n "
+                f"[{artist_title}]({url})\n"
+                f"{self._draw_play(activity[0])}"
+            )
             em.set_thumbnail(url=activity[0].album_cover_url)
         elif state == "streaming":
             color = int("6441A4", 16)
@@ -378,7 +397,7 @@ class Away(commands.Cog):
     async def idle_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're idle.
-        
+
         `delete_after` Optional seconds to delete the automatic reply
         `message` The custom message to display when you're mentioned
         """
@@ -399,7 +418,7 @@ class Away(commands.Cog):
     async def offline_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're offline.
-        
+
         `delete_after` Optional seconds to delete the automatic reply
         `message` The custom message to display when you're mentioned
         """
@@ -480,7 +499,7 @@ class Away(commands.Cog):
     async def gaming_(self, ctx, game: str, delete_after: Optional[int] = None, *, message: str = None):
         """
         Set an automatic reply when you're playing a specified game.
-        
+
         `game` The game you would like automatic responses for
         `delete_after` Optional seconds to delete the automatic reply
         `message` The custom message to display when you're mentioned
@@ -507,7 +526,7 @@ class Away(commands.Cog):
     async def _ignore(self, ctx):
         """
         Toggle away messages on the whole server.
-        
+
         Mods, Admins and Bot Owner are immune to this.
         """
         guild = ctx.message.guild
@@ -528,7 +547,7 @@ class Away(commands.Cog):
     async def awaytextonly(self, ctx):
         """
         Toggle forcing the guild's away messages to be text only.
-        
+
         This overrides the embed_links check this cog uses for message sending.
         """
         text_only = await self._away.guild(ctx.guild).TEXT_ONLY()

@@ -6,6 +6,7 @@ import logging
 import re
 from redbot.core import checks, commands
 from redbot.core.utils import chat_formatting as cf
+from redbot.core.utils.common_filters import filter_invites
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS, close_menu
 from tabulate import tabulate
 from contextlib import suppress as sps
@@ -375,7 +376,13 @@ class Tools(commands.Cog):
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
         all_forms = [
-            form.format(gid=g.id, mems=g.member_count, name=cf.escape(g.name), zpadding=max_zpadding) for g in guilds
+            form.format(
+                gid=g.id,
+                mems=g.member_count,
+                name=filter_invites(cf.escape(g.name)),
+                zpadding=max_zpadding
+            )
+            for g in guilds
         ]
         final = "\n".join(all_forms)
 
