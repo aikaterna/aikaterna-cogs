@@ -1,4 +1,4 @@
-from imaplib import Literal
+from typing import Literal
 
 import aiohttp
 import datetime

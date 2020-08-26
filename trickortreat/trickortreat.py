@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-from imaplib import Literal
+from typing import Literal
 
 import discord
 import random
