@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 
 class TrickOrTreat(commands.Cog):
