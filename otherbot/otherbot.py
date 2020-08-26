@@ -12,7 +12,7 @@ DEFAULT_ONLINE_EMOJI = "\N{WHITE HEAVY CHECK MARK}"
 
 class Otherbot(commands.Cog):
     __author__ = ["aikaterna", "Predä 。#1001"]
-    __version__ = "0.9"
+    __version__ = "0.10"
 
     async def red_delete_data_for_user(
         self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
