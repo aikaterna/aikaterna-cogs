@@ -6,6 +6,10 @@ from redbot.core.utils.chat_formatting import humanize_list
 class Region(commands.Cog):
     """Change the guild voice region."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     @checks.mod_or_permissions(administrator=True)
     @commands.cooldown(1, 60, discord.ext.commands.BucketType.guild)
     @commands.command()
@@ -44,6 +48,4 @@ class Region(commands.Cog):
             return await ctx.send("I don't have permissions to edit this guild's settings.")
         except discord.errors.HTTPException:
             return await ctx.send(f"Error: An invalid server region was passed: `{region}`")
-        await ctx.send(
-            f"The voice server region for `{ctx.guild.name}` has been changed to `{region}`."
-        )
+        await ctx.send(f"The voice server region for `{ctx.guild.name}` has been changed to `{region}`.")

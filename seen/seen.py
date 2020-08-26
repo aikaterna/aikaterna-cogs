@@ -1,7 +1,7 @@
 import asyncio
 import contextlib
 import datetime
-from typing import Union
+from typing import Union, Literal
 
 import discord
 import time
@@ -13,6 +13,15 @@ _SCHEMA_VERSION = 2
 
 class Seen(commands.Cog):
     """Shows last time a user was seen in chat."""
+
+    async def red_delete_data_for_user(
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
+    ):
+        if requester in ["discord", "owner"]:
+            data = await self.config.all_members()
+            for guild_id, members in data.items():
+                if user_id in members:
+                    await self.config.member_from_ids(guild_id, user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,9 +38,7 @@ class Seen(commands.Cog):
 
     async def initialize(self):
         asyncio.ensure_future(
-            self._migrate_config(
-                from_version=await self.config.schema_version(), to_version=_SCHEMA_VERSION
-            )
+            self._migrate_config(from_version=await self.config.schema_version(), to_version=_SCHEMA_VERSION)
         )
 
     async def _migrate_config(self, from_version: int, to_version: int):
@@ -75,9 +82,7 @@ class Seen(commands.Cog):
         member_seen_cache = self._cache.get(author.guild.id, {}).get(author.id, None)
 
         if not member_seen_cache and not member_seen_config:
-            embed = discord.Embed(
-                colour=discord.Color.red(), title="I haven't seen that user yet."
-            )
+            embed = discord.Embed(colour=discord.Color.red(), title="I haven't seen that user yet.")
             return await ctx.send(embed=embed)
 
         if not member_seen_cache:
@@ -132,10 +137,7 @@ class Seen(commands.Cog):
 
     @commands.Cog.listener()
     async def on_typing(
-        self,
-        channel: discord.abc.Messageable,
-        user: Union[discord.User, discord.Member],
-        when: datetime.datetime,
+        self, channel: discord.abc.Messageable, user: Union[discord.User, discord.Member], when: datetime.datetime,
     ):
         if getattr(user, "guild", None):
             if user.guild.id not in self._cache:
@@ -150,18 +152,14 @@ class Seen(commands.Cog):
             self._cache[after.guild.id][after.author.id] = int(time.time())
 
     @commands.Cog.listener()
-    async def on_reaction_remove(
-        self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]
-    ):
+    async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         if getattr(user, "guild", None):
             if user.guild.id not in self._cache:
                 self._cache[user.guild.id] = {}
             self._cache[user.guild.id][user.id] = int(time.time())
 
     @commands.Cog.listener()
-    async def on_reaction_add(
-        self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]
-    ):
+    async def on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         if getattr(user, "guild", None):
             if user.guild.id not in self._cache:
                 self._cache[user.guild.id] = {}

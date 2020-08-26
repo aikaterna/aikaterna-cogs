@@ -22,6 +22,10 @@ def check_global_setting_admin():
     either a bot admin or has the manage_guild permission.
     """
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     async def pred(ctx: commands.Context):
         author = ctx.author
         if not await bank.is_global():
@@ -102,9 +106,7 @@ class Quiz(commands.Cog):
         elif category_name_or_id.isdigit():
             # cat id specified
             if 9 <= int(category_name_or_id) >= 32:
-                return await ctx.send(
-                    f"Invalid category number. Use `{ctx.prefix}quiz categories` to see a list."
-                )
+                return await ctx.send(f"Invalid category number. Use `{ctx.prefix}quiz categories` to see a list.")
             category_id = category_name_or_id
             category_name = await self.category_name_from_id(int(category_name_or_id))
         else:
@@ -112,9 +114,7 @@ class Quiz(commands.Cog):
             try:
                 category_name = await self.category_name_match(category_name_or_id)
             except RuntimeError:
-                return await ctx.send(
-                    f"Invalid category name. Use `{ctx.prefix}quiz categories` to see a list."
-                )
+                return await ctx.send(f"Invalid category name. Use `{ctx.prefix}quiz categories` to see a list.")
             category_id = await self.category_id_from_name(category_name)
 
         if channel.id not in self.playing_channels:
@@ -221,9 +221,7 @@ class Quiz(commands.Cog):
             while True:
                 for channelid in list(self.playing_channels):
                     channelinfo = self.playing_channels[channelid]
-                    since_start = (
-                        datetime.datetime.utcnow() - channelinfo["Start"]
-                    ).total_seconds()
+                    since_start = (datetime.datetime.utcnow() - channelinfo["Start"]).total_seconds()
 
                     if since_start > 30 and not channelinfo["Started"]:
                         channel = self.bot.get_channel(channelid)
@@ -318,9 +316,7 @@ class Quiz(commands.Cog):
             assert answerdict[correct_letter] == html.unescape(dictionary["correct_answer"])
 
             if await self.config.guild(channel.guild).show_answer():
-                message = (
-                    f"Correct answer:```{correct_letter.upper()}. {answerdict[correct_letter]}```"
-                )
+                message = f"Correct answer:```{correct_letter.upper()}. {answerdict[correct_letter]}```"
                 await channel.send(message)
 
             # Assign scores
@@ -350,11 +346,7 @@ class Quiz(commands.Cog):
         """Ends a quiz game."""
         # non-linear credit earning .0002x^{2.9} where x is score/100
         channelinfo = self.playing_channels[channel.id]
-        idlist = sorted(
-            list(channelinfo["Players"]),
-            key=(lambda idnum: channelinfo["Players"][idnum]),
-            reverse=True,
-        )
+        idlist = sorted(list(channelinfo["Players"]), key=(lambda idnum: channelinfo["Players"][idnum]), reverse=True,)
 
         winner = channel.guild.get_member(idlist[0])
         await channel.send(f"Game over! {winner.mention} won!")
@@ -400,11 +392,7 @@ class Quiz(commands.Cog):
         """Returns a scoreboard string to be sent to the text channel."""
         channelinfo = self.playing_channels[channel.id]
         scoreboard = "\n"
-        idlist = sorted(
-            list(channelinfo["Players"]),
-            key=(lambda idnum: channelinfo["Players"][idnum]),
-            reverse=True,
-        )
+        idlist = sorted(list(channelinfo["Players"]), key=(lambda idnum: channelinfo["Players"][idnum]), reverse=True,)
         max_score = channelinfo["Players"][idlist[0]]
         end_len = len(str(max_score)) + 1
         rank = 1
@@ -457,21 +445,15 @@ class Quiz(commands.Cog):
             parameters["difficulty"] = difficulty
         for _ in range(3):
             parameters["token"] = await self.get_token(server)
-            async with self.session.get(
-                "https://opentdb.com/api.php", params=parameters
-            ) as response:
+            async with self.session.get("https://opentdb.com/api.php", params=parameters) as response:
                 response_json = await response.json()
                 response_code = response_json["response_code"]
                 if response_code == 0:
                     return response_json
                 elif response_code == 1:
-                    raise RuntimeError(
-                        "Question retrieval unsuccessful. Response code from OTDB: 1"
-                    )
+                    raise RuntimeError("Question retrieval unsuccessful. Response code from OTDB: 1")
                 elif response_code == 2:
-                    raise RuntimeError(
-                        "Question retrieval unsuccessful. Response code from OTDB: 2"
-                    )
+                    raise RuntimeError("Question retrieval unsuccessful. Response code from OTDB: 2")
                 elif response_code == 3:
                     # Token expired. Obtain new one.
                     log.debug("Quiz: Response code from OTDB: 3")
@@ -487,9 +469,7 @@ class Quiz(commands.Cog):
         and saves one if one doesn't exist."""
         token = await self.config.guild(server).token()
         if not token:
-            async with self.session.get(
-                "https://opentdb.com/api_token.php", params={"command": "request"}
-            ) as response:
+            async with self.session.get("https://opentdb.com/api_token.php", params={"command": "request"}) as response:
                 response_json = await response.json()
                 token = response_json["token"]
                 await self.config.guild(server).token.set(token)
@@ -503,17 +483,13 @@ class Quiz(commands.Cog):
         ) as response:
             response_code = (await response.json())["response_code"]
             if response_code != 0:
-                raise RuntimeError(
-                    f"Token reset was unsuccessful. Response code from OTDB: {response_code}"
-                )
+                raise RuntimeError(f"Token reset was unsuccessful. Response code from OTDB: {response_code}")
 
     async def category_selector(self):
         """Chooses a random category that has enough questions."""
         for _ in range(10):
             category = random.randint(9, 32)
-            async with self.session.get(
-                "https://opentdb.com/api_count.php", params={"category": category}
-            ) as response:
+            async with self.session.get("https://opentdb.com/api_count.php", params={"category": category}) as response:
                 response_json = await response.json()
                 assert response_json["category_id"] == category
                 if response_json["category_question_count"]["total_question_count"] > 39:

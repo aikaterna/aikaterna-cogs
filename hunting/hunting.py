@@ -1,7 +1,8 @@
+from typing import Literal
+
 import asyncio
 import discord
 import datetime
-import itertools
 import math
 import random
 import time
@@ -11,11 +12,16 @@ from redbot.core.utils.chat_formatting import bold, box, humanize_list, humanize
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
-__version__ = "3.1.3"
+__version__ = "3.1.4"
 
 
 class Hunting(commands.Cog):
     """Hunting, it hunts birds and things that fly."""
+
+    async def red_delete_data_for_user(
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
+    ):
+        await self.config.user_from_id(user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot
@@ -92,9 +98,7 @@ class Hunting(commands.Cog):
         header = "{score:{score_len}}{name:2}\n".format(
             score="# Birds Shot",
             score_len=score_len + 5,
-            name="Name"
-            if not str(ctx.author.mobile_status) in ["online", "idle", "dnd"]
-            else "Name",
+            name="Name" if not str(ctx.author.mobile_status) in ["online", "idle", "dnd"] else "Name",
         )
         temp_msg = header
         for account in sorted_acc:
@@ -124,9 +128,7 @@ class Hunting(commands.Cog):
                 colour=await ctx.bot.get_embed_color(location=ctx.channel),
                 description=box(title, lang="prolog") + (box(page, lang="md")),
             )
-            embed.set_footer(
-                text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 800))}"
-            )
+            embed.set_footer(text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 800))}")
             pages += 1
             page_list.append(embed)
         if len(page_list) == 1:
@@ -252,7 +254,9 @@ class Hunting(commands.Cog):
         await self.config.guild(ctx.guild).hunt_interval_minimum.set(interval_min)
         await self.config.guild(ctx.guild).hunt_interval_maximum.set(interval_max)
         await self.config.guild(ctx.guild).wait_for_bang_timeout.set(bang_timeout)
-        message += f"Timing has been set:\nMin time {interval_min}s\nMax time {interval_max}s\nBang timeout {bang_timeout}s"
+        message += (
+            f"Timing has been set:\nMin time {interval_min}s\nMax time {interval_max}s\nBang timeout {bang_timeout}s"
+        )
         await ctx.send(bold(message))
 
     @hunting.command()
@@ -280,9 +284,7 @@ class Hunting(commands.Cog):
         if channel.id not in self.paused_games:
             self.paused_games.append(channel.id)
             await channel.send(
-                bold(
-                    "It seems there are no hunters here. The hunt will be resumed when someone treads here again."
-                )
+                bold("It seems there are no hunters here. The hunt will be resumed when someone treads here again.")
             )
         return False
 
@@ -306,9 +308,7 @@ class Hunting(commands.Cog):
                     return False
                 if channel != message.channel:
                     return False
-                return (
-                    message.content.lower().split(" ")[0] == "bang" if message.content else False
-                )
+                return message.content.lower().split(" ")[0] == "bang" if message.content else False
 
             try:
                 bang_msg = await self.bot.wait_for("message", check=check, timeout=timeout)
@@ -346,9 +346,7 @@ class Hunting(commands.Cog):
 
         bang_now = time.time()
         time_for_bang = "{:.3f}".format(bang_now - now)
-        bangtime = (
-            "" if not await self.config.guild(guild).bang_time() else f" in {time_for_bang}s"
-        )
+        bangtime = "" if not await self.config.guild(guild).bang_time() else f" in {time_for_bang}s"
 
         if random.randrange(0, 17) > 1:
             await self._add_score(guild, author, animal)
@@ -379,9 +377,7 @@ class Hunting(commands.Cog):
             self.in_game.append(message.channel.id)
 
         guild_data = await self.config.guild(message.guild).all()
-        wait_time = random.randrange(
-            guild_data["hunt_interval_minimum"], guild_data["hunt_interval_maximum"]
-        )
+        wait_time = random.randrange(guild_data["hunt_interval_minimum"], guild_data["hunt_interval_maximum"])
         self.next_bang[message.guild.id] = datetime.datetime.fromtimestamp(
             int(time.mktime(datetime.datetime.utcnow().timetuple())) + wait_time
         )

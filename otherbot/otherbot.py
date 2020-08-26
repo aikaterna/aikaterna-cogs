@@ -1,3 +1,5 @@
+from typing import Literal
+
 import discord
 from redbot.core.bot import Red
 from redbot.core import commands, checks, Config
@@ -10,7 +12,21 @@ DEFAULT_ONLINE_EMOJI = "\N{WHITE HEAVY CHECK MARK}"
 
 class Otherbot(commands.Cog):
     __author__ = ["aikaterna", "Predä 。#1001"]
-    __version__ = "0.9"
+    __version__ = "0.10"
+
+    async def red_delete_data_for_user(
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
+    ):
+        if requester == "discord":
+            # user is deleted, just comply
+
+            data = await self.config.all_guilds()
+            for guild_id, guild_data in data.items():
+                if user_id in guild_data.get("watching", []):
+                    bypass = guild_data.get("watching", [])
+                    bypass = set(bypass)
+                    bypass.discard(user_id)
+                    await self.config.guild_from_id(guild_id).bypass.set(list(bypass))
 
     def __init__(self, bot: Red):
         self.bot = bot

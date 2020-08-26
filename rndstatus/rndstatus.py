@@ -3,8 +3,7 @@ import discord
 from redbot.core import Config, commands, checks
 from redbot.core.utils import AsyncIter
 from random import choice as rndchoice
-from collections import defaultdict, Counter, Sequence
-import time
+from collections import defaultdict
 import contextlib
 import asyncio
 import logging
@@ -17,6 +16,10 @@ class RndStatus(commands.Cog):
     """Cycles random statuses or displays bot stats.
     If a custom status is already set, it won't change it until
     it's back to none. [p]set game"""
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
 
     def __init__(self, bot):
         self.bot = bot
@@ -80,9 +83,7 @@ class RndStatus(commands.Cog):
         if statuses == () or "" in statuses:
             return await ctx.send("Current statuses: " + " | ".join(saved_status))
         await self.config.statuses.set(list(statuses))
-        await ctx.send(
-            "Done. Redo this command with no parameters to see the current list of statuses."
-        )
+        await ctx.send("Done. Redo this command with no parameters to see the current list of statuses.")
 
     @rndstatus.command(name="streamer")
     async def _streamer(self, ctx: commands.Context, *, streamer=None):
@@ -91,11 +92,9 @@ class RndStatus(commands.Cog):
 
         saved_streamer = await self.config.streamer()
         if streamer is None:
-            return await ctx.send(f"Current Streamer: {saved_streamer}" )
+            return await ctx.send(f"Current Streamer: {saved_streamer}")
         await self.config.streamer.set(streamer)
-        await ctx.send(
-            "Done. Redo this command with no parameters to see the current streamer."
-        )
+        await ctx.send("Done. Redo this command with no parameters to see the current streamer.")
 
     @rndstatus.command()
     async def botstats(self, ctx, *statuses: str):
@@ -160,22 +159,16 @@ class RndStatus(commands.Cog):
                     botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
                     if (current_game != str(botstatus)) or current_game is None:
                         if _type == 1:
-                            await self.bot.change_presence(
-                                activity=discord.Streaming(name=botstatus, url=url)
-                            )
+                            await self.bot.change_presence(activity=discord.Streaming(name=botstatus, url=url))
                         else:
-                            await self.bot.change_presence(
-                                activity=discord.Activity(name=botstatus, type=_type)
-                            )
+                            await self.bot.change_presence(activity=discord.Activity(name=botstatus, type=_type))
                 else:
                     if len(statuses) > 0:
                         new_status = self.random_status(guild, statuses)
                         if current_game != new_status:
                             if (current_game != new_status) or current_game is None:
                                 if _type == 1:
-                                    await self.bot.change_presence(
-                                        activity=discord.Streaming(name=new_status, url=url)
-                                    )
+                                    await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url))
                                 else:
                                     await self.bot.change_presence(
                                         activity=discord.Activity(name=new_status, type=_type)

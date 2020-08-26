@@ -124,8 +124,6 @@ SNACKBURR_PHRASES = {
         "partakes of",
         "ingests",
     ],
-    "ENABLE": [
-        "Oh you guys want snacks?! Aight, I'll come around every so often to hand some out!"
-    ],
+    "ENABLE": ["Oh you guys want snacks?! Aight, I'll come around every so often to hand some out!"],
     "DISABLE": ["You guys don't want snacks anymore? Alright, I'll stop comin around."],
 }

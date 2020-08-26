@@ -51,9 +51,7 @@ class GuildChannelConverter(converter.IDConverter, converter.Converter):
             else:
                 result = converter._get_from_guilds(bot, "get_channel", channel_id)
 
-        if not isinstance(
-            result, (discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel)
-        ):
+        if not isinstance(result, (discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel)):
             raise BadArgument('Channel "{}" not found.'.format(argument))
 
         return result

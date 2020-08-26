@@ -5,5 +5,6 @@
     "description" : "snackburr will come around every-so-often if you've asked him to.\nI hear snackburr likes to come around more often when people are partyin.",
     "install_msg" : "A snack delivery bear has arrived ʕ•ᴥ• ʔ",
     "tags" : ["snack", "snacktime", "snackburr", "party", "party time"],
-    "disabled" : false
+    "disabled" : false,
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
 }

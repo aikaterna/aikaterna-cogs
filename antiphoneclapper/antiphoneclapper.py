@@ -13,9 +13,13 @@ log = logging.getLogger("red.aikaterna.antiphoneclapper")
 class AntiPhoneClapper(commands.Cog):
     """This cog deletes bad GIFs that will crash phone clients."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession() 
+        self.session = aiohttp.ClientSession()
         self.config = Config.get_conf(self, 2719371001, force_registration=True)
 
         default_guild = {"watching": []}
@@ -60,9 +64,7 @@ class AntiPhoneClapper(commands.Cog):
         else:
             return await ctx.send("Channel is not being watched.")
         await self.config.guild(ctx.guild).watching.set(channel_list)
-        await ctx.send(
-            f"{self.bot.get_channel(channel.id).mention} will not have bad gifs removed."
-        )
+        await ctx.send(f"{self.bot.get_channel(channel.id).mention} will not have bad gifs removed.")
 
     def is_phone_clapper(self, im):
         limit = im.size
@@ -101,9 +103,7 @@ class AntiPhoneClapper(commands.Cog):
             if phone_clapper:
                 try:
                     await m.delete()
-                    await m.channel.send(
-                        f"{m.author.mention} just tried to send a phone-killing GIF and I removed it."
-                    )
+                    await m.channel.send(f"{m.author.mention} just tried to send a phone-killing GIF and I removed it.")
                     return
                 except discord.errors.Forbidden:
                     await m.channel.send(f"Don't send GIFs that do that, {m.author.mention}")

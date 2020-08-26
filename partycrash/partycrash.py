@@ -8,6 +8,10 @@ class PartyCrash(commands.Cog):
     """Partycrash inspired by v2 Admin by Will
        Does not generate invites, only lists existing invites."""
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -75,8 +79,6 @@ class PartyCrash(commands.Cog):
                 try:
                     await self._get_invites(guild, ctx)
                 except discord.errors.Forbidden:
-                    return await ctx.send(
-                        f"I don't have permission to get invites for {guild.name}."
-                    )
+                    return await ctx.send(f"I don't have permission to get invites for {guild.name}.")
             except asyncio.TimeoutError:
                 return await ctx.send("No server number entered, try again later.")

@@ -1,17 +1,23 @@
+from imaplib import Literal
+
 import aiohttp
-import asyncio
 import datetime
 import discord
 import itertools
 import json
 from operator import itemgetter
 from redbot.core import Config, commands, checks
-from redbot.core.utils.chat_formatting import box, humanize_list, pagify
+from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
 class WarcraftLogs(commands.Cog):
     """Access Warcraftlogs stats."""
+
+    async def red_delete_data_for_user(
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
+    ):
+        await self.config.user_from_id(user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot
@@ -89,9 +95,7 @@ class WarcraftLogs(commands.Cog):
         userdata = await self.config.user(ctx.author).all()
         apikey = await self.config.apikey()
         if not apikey:
-            return await ctx.send(
-                "The bot owner needs to set a WarcraftLogs API key before this can be used."
-            )
+            return await ctx.send("The bot owner needs to set a WarcraftLogs API key before this can be used.")
         if not username:
             username = userdata["charname"]
             if not username:
@@ -135,9 +139,7 @@ class WarcraftLogs(commands.Cog):
                     log_data.append(log_info)
 
         # Logged Kill sorting
-        embed1 = discord.Embed(
-            title=f"{username.title()} - {realmname.title()} ({region.upper()})\nLogged Kills"
-        )
+        embed1 = discord.Embed(title=f"{username.title()} - {realmname.title()} ({region.upper()})\nLogged Kills")
         for item in kill_data:
             zone_kills = ""
             for boss_info in list(item.values()):
@@ -155,10 +157,7 @@ class WarcraftLogs(commands.Cog):
         for item in log_data:
             log_page = ""
             for id_data in list(item.values()):
-                sorted_item = {
-                    k: v
-                    for k, v in sorted(id_data.items(), key=lambda item: item[1], reverse=True)
-                }
+                sorted_item = {k: v for k, v in sorted(id_data.items(), key=lambda item: item[1], reverse=True)}
                 short_list = dict(itertools.islice(sorted_item.items(), 5))
                 zone_name, phase_num = self.clean_name(list(item))
                 for log_id, info_list in short_list.items():
@@ -188,9 +187,7 @@ class WarcraftLogs(commands.Cog):
         userdata = await self.config.user(ctx.author).all()
         apikey = await self.config.apikey()
         if not apikey:
-            return await ctx.send(
-                "The bot owner needs to set a WarcraftLogs API key before this can be used."
-            )
+            return await ctx.send("The bot owner needs to set a WarcraftLogs API key before this can be used.")
         if not username:
             username = userdata["charname"]
             if not username:
@@ -328,7 +325,7 @@ class WarcraftLogs(commands.Cog):
 
     @staticmethod
     def get_recent_gear(data):
-        date_sorted_data = sorted(data, key=itemgetter('startTime'), reverse=True) 
+        date_sorted_data = sorted(data, key=itemgetter("startTime"), reverse=True)
         for encounter in date_sorted_data:
             try:
                 item_name = encounter["gear"][0]["name"]

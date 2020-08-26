@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from random import randint
-from redbot.core import commands, checks
+from redbot.core import commands
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -83,8 +83,11 @@ class Deck:
 
 
 class LuigiPoker(commands.Cog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def __init__(self, bot):
         self.bot = bot
@@ -165,8 +168,7 @@ class LuigiPoker(commands.Cog):
             return await self.fold(ctx)
         else:
             log.error(
-                "LuigiPoker: Something broke unexpectedly in _play_response. Please report it.",
-                exc_info=True,
+                "LuigiPoker: Something broke unexpectedly in _play_response. Please report it.", exc_info=True,
             )
 
     async def hit(self, ctx):
@@ -176,9 +178,7 @@ class LuigiPoker(commands.Cog):
             "Examples: `1,3,5` or `4, 5`"
         )
         try:
-            user_resp = await ctx.bot.wait_for(
-                "message", timeout=60, check=MessagePredicate.same_context(ctx)
-            )
+            user_resp = await ctx.bot.wait_for("message", timeout=60, check=MessagePredicate.same_context(ctx))
         except asyncio.TimeoutError:
             await ctx.send("No response.")
             return await self.fold(ctx)

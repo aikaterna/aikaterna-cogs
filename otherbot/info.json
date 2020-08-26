@@ -1,9 +1,16 @@
 {
-  "author": ["aikaterna", "Predä 。#1001"],
-  "description": "Alerts a role when bot(s) go offline.",
-  "install_msg": "Thanks for installing, have fun.",
-  "permissions": ["manage_roles"],
-  "short": "Alerts a role when bot(s) go offline.",
-  "tags": ["bots"],
-  "type": "COG"
+	"author": [
+		"aikaterna", "Predä 。#1001"
+	],
+	"description": "Alerts a role when bot(s) go offline.",
+    "install_msg": "Thanks for installing, have fun.",
+    "permissions" : [
+		"manage_roles"
+	],
+	"short": "Alerts a role when bot(s) go offline.",
+	"tags": [
+		"bots"
+	],
+	"type": "COG",
+	"end_user_data_statement": "This cog does not persistently store end user data. This cog does store discord IDs as needed for operation. "
 }
