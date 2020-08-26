@@ -87,7 +87,7 @@ class LuigiPoker(commands.Cog):
         """ Nothing to delete """
         return
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def __init__(self, bot):
         self.bot = bot
