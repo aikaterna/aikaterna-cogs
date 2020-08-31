@@ -2,6 +2,7 @@ import aiohttp
 import discord
 import io
 import logging
+import re
 from PIL import Image, ImageOps
 from redbot.core import commands
 
