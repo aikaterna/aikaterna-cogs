@@ -26,7 +26,7 @@ class Latex(commands.Cog):
     @staticmethod
     def cleanup_code_block(content):
         # remove ```latex\n```/```tex\n```/``````
-        if content.starswith("```") and content.endswith("```"):
+        if content.startswith("```") and content.endswith("```"):
             return START_CODE_BLOCK_RE.sub("", content)[:-3]
         
         # remove `foo`
