@@ -8,6 +8,8 @@ from redbot.core import commands
 
 log = logging.getLogger("red.aikaterna.latex")
 
+START_CODE_BLOCK_RE = re.compile(r"^((```(la)?tex)(?=\s)|(```))")
+
 
 class Latex(commands.Cog):
     """LaTeX expressions via an image."""
@@ -20,11 +22,21 @@ class Latex(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
+    @staticmethod
+    def cleanup_code_block(content):
+        # remove ```latex\n```/```tex\n```/``````
+        if content.starswith("```") and content.endswith("```"):
+            return START_CODE_BLOCK_RE.sub("", content)[:-3]
+        
+        # remove `foo`
+        return content.strip("` \n")
+
     @commands.guild_only()
     @commands.command()
     async def latex(self, ctx, *, equation):
         """Takes a LaTeX expression and makes it pretty."""
         base_url = "https://latex.codecogs.com/gif.latex?%5Cbg_white%20%5CLARGE%20"
+        equation = self.cleanup_code_block(equation)
         url = f"{base_url}{equation}"
 
         try:
