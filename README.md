@@ -29,6 +29,8 @@ inspirobot - Fetch "inspirational" messages from inspirobot.me with [p]inspireme
 
 invites - Display invites that are available on the server and the information those invites contain. The bot must have the administrator permission granted on the guild to be able to use this cog.
 
+latex - A simple cog originally by Stevy for v2 that displayes LaTeX expressions in an image.
+
 luigipoker - Play the Luigi Poker minigame from New Super Mario Brothers. Ported from the v2 version written by themario30.
 
 noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.

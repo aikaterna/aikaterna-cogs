@@ -1,0 +1,10 @@
+{
+    "author": ["aikaterna", "Stevy"],
+    "description": "Generates an image for a LaTeX expression.",
+    "install_msg": "Thanks for installing, have fun.",
+    "short": "Generates an image for a LaTeX expression.",
+    "tags": ["latex"],
+    "requirements": ["pillow"],
+    "type": "COG",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+}
