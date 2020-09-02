@@ -23,8 +23,8 @@ class WarcraftLogs(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 2713931001, force_registration=True)
         self.session = aiohttp.ClientSession()
-        self.zones = [1003, 1002, 1001, 1000]
-        self.partitions = [2, 1]
+        self.zones = [1005, 1004, 1003, 1002] # Ony and MC removed as we are now in ph 5
+        self.partitions = [3, 2] # No partition 1 needed here now - ZG, AQ, BWL were not present in ph 1 & 2
 
         default_user = {
             "charname": None,
@@ -148,6 +148,7 @@ class WarcraftLogs(commands.Cog):
                     zone_kills += f"{boss_name}: {boss_kills}\n"
             if zone_kills:
                 embed1.add_field(name=f"{zone_name}\n{phase_num}", value=zone_kills)
+        embed1.set_footer(text="Molten Core and Onyxia are not currently displayed as we are now in Phase 5.")
         final_embed_list.append(embed1)
 
         # Log ID sorting
@@ -281,8 +282,14 @@ class WarcraftLogs(commands.Cog):
             zone_name = "Onyxia"
         elif zone == 1002:
             zone_name = "BWL"
-        else:
+        elif zone == 1003:
             zone_name = "ZG"
+        elif zone == 1004:
+            zone_name = "AQ20"
+        elif zone == 1005:
+            zone_name = "AQ40"
+        else:
+            zone_name = None
         return zone_name
 
     @staticmethod
@@ -297,13 +304,19 @@ class WarcraftLogs(commands.Cog):
             zone_name = "Blackwing Lair"
         elif zone_name == "ZG":
             zone_name = "Zul'Gurub"
+        elif zone_name == "AQ20":
+            zone_name = "Ahn'Qiraj Ruins"
+        elif zone_name == "AQ40":
+            zone_name = "Ahn'Qiraj Temple"
         else:
             zone_name = zone_name
 
         if phase_num == "1":
             phase_num = "Phase 1 & 2"
-        else:
+        elif phase_num == "2":
             phase_num = "Phase 3 & 4"
+        else:
+            phase_num = "Phase 5"
         return zone_name, phase_num
 
     @staticmethod
