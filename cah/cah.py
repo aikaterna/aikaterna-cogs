@@ -10,6 +10,8 @@ from redbot.core.data_manager import bundled_data_path
 
 
 class CardsAgainstHumanity(commands.Cog):
+    """Play Cards Against Humanity in DMs."""
+
     async def red_delete_data_for_user(self, **kwargs):
         """ Nothing to delete """
         return
