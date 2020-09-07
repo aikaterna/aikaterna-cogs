@@ -8,6 +8,8 @@ LINKS = re.compile(
 
 
 class NoLinks(commands.Cog):
+    """A heavy-handed hammer for anything that looks like a link."""
+
     async def red_delete_data_for_user(self, **kwargs):
         """ Nothing to delete """
         return
