@@ -22,10 +22,6 @@ def check_global_setting_admin():
     either a bot admin or has the manage_guild permission.
     """
 
-    async def red_delete_data_for_user(self, **kwargs):
-        """ Nothing to delete """
-        return
-
     async def pred(ctx: commands.Context):
         author = ctx.author
         if not await bank.is_global():
@@ -52,6 +48,10 @@ class Quiz(commands.Cog):
     Play a kahoot-like trivia game with questions from Open Trivia Database.
     Originally by Keane for Red v2
     """
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """ Nothing to delete """
+        return
 
     def __init__(self, bot):
         self.bot = bot
