@@ -7,6 +7,8 @@ from redbot.core import commands
 
 
 class IcyParser(commands.Cog):
+    """Icyparser/Shoutcast stream reader."""
+
     async def red_delete_data_for_user(self, **kwargs):
         """ Nothing to delete """
         return
