@@ -83,6 +83,8 @@ class Deck:
 
 
 class LuigiPoker(commands.Cog):
+    """The Luigi Poker minigame from New Super Mario Brothers."""
+
     async def red_delete_data_for_user(self, **kwargs):
         """ Nothing to delete """
         return
