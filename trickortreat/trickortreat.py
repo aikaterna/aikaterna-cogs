@@ -13,6 +13,8 @@ __version__ = "0.0.8"
 
 
 class TrickOrTreat(commands.Cog):
+    """Trick or treating for your server."""
+
     async def red_delete_data_for_user(
         self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
     ):
