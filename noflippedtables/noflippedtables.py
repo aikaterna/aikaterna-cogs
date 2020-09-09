@@ -83,9 +83,9 @@ class NoFlippedTables(commands.Cog):
     async def on_message(self, message):
         channel = message.channel
         user = message.author
-        if not channel.permissions_for(message.guild.me).send_messages:
-            return
         if not message.guild:
+            return
+        if not channel.permissions_for(message.guild.me).send_messages:
             return
         if hasattr(user, "bot") and user.bot is True:
             return
