@@ -52,6 +52,7 @@ class IcyParser(commands.Cog):
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
 
+    @commands.guild_only()
     @commands.command(aliases=["icynp"])
     async def icyparser(self, ctx, url=None):
         """Show Icecast or Shoutcast stream information, if any."""
