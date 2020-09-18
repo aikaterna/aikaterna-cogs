@@ -48,7 +48,7 @@ class RSS(commands.Cog):
         if self._read_feeds_loop:
             self._read_feeds_loop.cancel()
 
-    def _add_content_images(self, bs4_soup: BeautifulSoup, rss_object: feedparser.util.FeedParserDict):
+    def _add_content_images(self, bs4_soup: BeautifulSoup, rss_object: feedparser.FeedParserDict):
         """
         $content_images should always be marked as a special tag as the tags will
         be dynamically generated based on the content included in the latest post.
@@ -99,7 +99,7 @@ class RSS(commands.Cog):
 
         return escape(text)
 
-    async def _append_bs4_tags(self, rss_object: feedparser.util.FeedParserDict, url: str):
+    async def _append_bs4_tags(self, rss_object: feedparser.FeedParserDict, url: str):
         """Append bs4-discovered tags to an rss_feed/feedparser object."""
         rss_object["is_special"] = []
         soup = None
@@ -250,7 +250,7 @@ class RSS(commands.Cog):
 
         return feedparser_obj.entries
 
-    async def _add_to_feedparser_object(self, feedparser_obj: feedparser.util.FeedParserDict, url: str):
+    async def _add_to_feedparser_object(self, feedparser_obj: feedparser.FeedParserDict, url: str):
         """
         Input: A feedparser object
         Process: Append custom tags to the object from the custom formatters
@@ -262,7 +262,7 @@ class RSS(commands.Cog):
         return feedparser_plus_obj
 
     async def _convert_feedparser_to_rssfeed(
-        self, feed_name: str, feedparser_plus_obj: feedparser.util.FeedParserDict, url: str
+        self, feed_name: str, feedparser_plus_obj: feedparser.FeedParserDict, url: str
     ):
         """Converts any feedparser/feedparser_plus object to an RssFeed object."""
         rss_object = RssFeed(
@@ -671,7 +671,7 @@ class RSS(commands.Cog):
         self,
         channel: discord.TextChannel,
         rss_feed: dict,
-        feedparser_plus_obj: feedparser.util.FeedParserDict,
+        feedparser_plus_obj: feedparser.FeedParserDict,
         message: str,
     ):
         embed_list = []
