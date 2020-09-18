@@ -55,6 +55,8 @@ retrosign - A v3 port of Anismash's retrosign cog.
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
+rss - Will's RSS cog ported for v3 with a lot of extra bells and whistles.
+
 snacktime - A v3 port of irdumb's snacktime cog. Now with friends!
 
 timezone - A v3 port of Fishyfing's timezone cog with a few improvements.

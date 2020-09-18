@@ -1,0 +1,10 @@
+﻿{
+    "author": ["aikaterna"],
+    "install_msg": "Thanks for installing.",
+    "short": "Read RSS feeds",
+    "description": "Read RSS feeds",
+    "tags": ["rss"],
+    "permissions": ["embed_links"],
+    "requirements": ["feedparser>=6.0.0", "bs4"],
+    "min_bot_version" : "3.4.0",
+}
