@@ -43,6 +43,7 @@ class RndStatus(commands.Cog):
             ],
             "streamer": "rndstatusstreamer",
             "type": 1,
+            "status": 1,
         }
         self.config.register_global(**default_global)
 
@@ -129,6 +130,21 @@ class RndStatus(commands.Cog):
         else:
             await ctx.send("Type must be between 0 and 3.")
 
+    @rndstatus.command()
+    async def status(self, ctx, status: int):
+        """Define the rndstatus status.
+
+        Type list:
+        0 = Online
+        1 = Idle
+        2 = DND
+        3 = Invisible"""
+        if 0 <= status <= 3:
+            await self.config.type.set(status)
+            await ctx.send("Rndstatus status set.")
+        else:
+            await ctx.send("Status must be between 0 and 3.")
+
     async def maybe_update_presence(self):
         await self.bot.wait_until_ready()
         pattern = re.compile(rf"<@!?{self.bot.user.id}>")
@@ -146,10 +162,20 @@ class RndStatus(commands.Cog):
                 botstats = cog_settings["botstats"]
                 streamer = cog_settings["streamer"]
                 _type = cog_settings["type"]
+                _status = cog_settings["status"]
                 delay = cog_settings["delay"]
 
                 url = f"https://www.twitch.tv/{streamer}"
                 prefix = await self.bot.get_valid_prefixes()
+
+                if _status == 0:
+                    status = discord.Status.online
+                elif _status == 1:
+                    status = discord.Status.idle
+                elif _status == 2:
+                    status = discord.Status.dnd
+                elif _status == 3:
+                    status = discord.Status.offline
 
                 if botstats:
                     me = self.bot.user
@@ -159,19 +185,20 @@ class RndStatus(commands.Cog):
                     botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
                     if (current_game != str(botstatus)) or current_game is None:
                         if _type == 1:
-                            await self.bot.change_presence(activity=discord.Streaming(name=botstatus, url=url))
+                            await self.bot.change_presence(activity=discord.Streaming(name=botstatus, url=url), status=status)
                         else:
-                            await self.bot.change_presence(activity=discord.Activity(name=botstatus, type=_type))
+                            await self.bot.change_presence(activity=discord.Activity(name=botstatus, type=_type), status=status)
                 else:
                     if len(statuses) > 0:
                         new_status = self.random_status(guild, statuses)
                         if current_game != new_status:
                             if (current_game != new_status) or current_game is None:
                                 if _type == 1:
-                                    await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url))
+                                    await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url), status=status)
                                 else:
                                     await self.bot.change_presence(
-                                        activity=discord.Activity(name=new_status, type=_type)
+                                        activity=discord.Activity(name=new_status, type=_type),
+                                        status=status
                                     )
             except asyncio.CancelledError:
                 break
