@@ -185,7 +185,7 @@ class RndStatus(commands.Cog):
                     botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
                     if (current_game != str(botstatus)) or current_game is None:
                         if _type == 1:
-                            await self.bot.change_presence(activity=discord.Streaming(name=botstatus, url=url), status=status)
+                            await self.bot.change_presence(activity=discord.Streaming(name=botstatus, url=url))
                         else:
                             await self.bot.change_presence(activity=discord.Activity(name=botstatus, type=_type), status=status)
                 else:
@@ -194,7 +194,7 @@ class RndStatus(commands.Cog):
                         if current_game != new_status:
                             if (current_game != new_status) or current_game is None:
                                 if _type == 1:
-                                    await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url), status=status)
+                                    await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url))
                                 else:
                                     await self.bot.change_presence(
                                         activity=discord.Activity(name=new_status, type=_type),
