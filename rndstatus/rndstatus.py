@@ -43,7 +43,7 @@ class RndStatus(commands.Cog):
             ],
             "streamer": "rndstatusstreamer",
             "type": 1,
-            "status": 1,
+            "status": 0,
         }
         self.config.register_global(**default_global)
 
