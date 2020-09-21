@@ -686,7 +686,7 @@ class RSS(commands.Cog):
             # force: bool
             #     True if the update was forced (through `[p]rss force`), False otherwise.
             self.bot.dispatch(
-                "on_aikaternacogs_rss_message",
+                "aikaternacogs_rss_message",
                 channel=channel,
                 feed_data=RecursiveMappingProxyType(rss_feed),
                 feedparser_dict=RecursiveMappingProxyType(feedparser_plus_obj),
