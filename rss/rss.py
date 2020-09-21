@@ -11,7 +11,7 @@ import io
 import logging
 import re
 import time
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from urllib.parse import urlparse
 
 from redbot.core import checks, commands, Config
@@ -24,7 +24,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 
 class RSS(commands.Cog):
@@ -485,13 +485,8 @@ class RSS(commands.Cog):
             await ctx.send("That feed name doesn't exist in this channel.")
             return
 
-        feed_copy = copy.deepcopy(feeds[ctx.channel.id]["feeds"][feed_name])
-        # clear out the last_title attrib because the feed fetcher
-        # compares titles to know whether the next feed is valid
-        # and that it can be posted - this is a force so we want it
-        # to post no matter what
-        feed_copy["last_title"] = ""
-        await self.get_current_feed(ctx.channel, feed_name, feed_copy)
+        rss_feed = feeds[ctx.channel.id]["feeds"][feed_name]
+        await self.get_current_feed(ctx.channel, feed_name, rss_feed, force=True)
 
     @rss.command(name="list")
     async def _rss_list(self, ctx, channel: discord.TextChannel = None):
@@ -604,11 +599,17 @@ class RSS(commands.Cog):
         """Show the RSS version."""
         await ctx.send(f"RSS version {__version__}")
 
-    async def get_current_feed(self, channel: discord.TextChannel, name: str, rss_feed: dict):
+    async def get_current_feed(self, channel: discord.TextChannel, name: str, rss_feed: dict, *, force: bool = False):
         """Takes an RSS feed and builds an object with all extra tags"""
         log.debug(f"getting feed {name} on cid {channel.id}")
         url = rss_feed["url"]
         last_title = rss_feed["last_title"]
+        if force:
+            # clear out the last_title attrib because the feed fetcher
+            # compares titles to know whether the next feed is valid
+            # and that it can be posted - this is a force so we want it
+            # to post no matter what
+            last_title = ""
         template = rss_feed["template"]
         message = None
 
@@ -619,10 +620,10 @@ class RSS(commands.Cog):
 
         feedparser_plus_objects = []
         for entry in feedparser_obj:
-            fuzzy_title_compare = fuzz.ratio(rss_feed["last_title"], entry.title)
+            fuzzy_title_compare = fuzz.ratio(last_title, entry.title)
 
             # we only need one feed entry if this is from rss force or if this is a brand new feed
-            if rss_feed["last_title"] == "":
+            if last_title == "":
                 feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                 feedparser_plus_objects.append(feedparser_plus_obj)
                 break
@@ -666,6 +667,30 @@ class RSS(commands.Cog):
             else:
                 for page in pagify(message, delims=["\n"]):
                     await channel.send(page)
+
+            # This event can be used in 3rd-party using listeners.
+            # This may (and most likely will) get changes in the future
+            # so I suggest accepting **kwargs in the listeners using this event.
+            #
+            # channel: discord.TextChannel
+            #     The channel feed alert went to.
+            # feed_data: Mapping[str, Any]
+            #     Read-only mapping with feed's data.
+            #     The available data depends on what this cog needs
+            #     and there most likely will be changes here in future.
+            #     Available keys include: `name`, `template`, `url`, `embed`, etc.
+            # feedparser_dict: Mapping[str, Any]
+            #     Read-only mapping with parsed data from the feed.
+            #     See documentation of feedparser.FeedParserDict for more information.
+            # force: bool
+            #     True if the update was forced (through `[p]rss force`), False otherwise.
+            self.bot.dispatch(
+                "aikaternacogs_rss_message",
+                channel=channel,
+                feed_data=MappingProxyType(rss_feed),
+                feedparser_dict=MappingProxyType(feedparser_plus_obj),
+                force=force,
+            )
 
     async def _get_current_feed_embed(
         self,
