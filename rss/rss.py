@@ -11,14 +11,13 @@ import io
 import logging
 import re
 import time
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from urllib.parse import urlparse
 
 from redbot.core import checks, commands, Config
 from redbot.core.utils.chat_formatting import bold, box, escape, pagify
 
 from .quiet_template import QuietTemplate
-from .recursive_mappingproxy import RecursiveMappingProxyType
 from .rss_feed import RssFeed
 from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 
@@ -688,8 +687,8 @@ class RSS(commands.Cog):
             self.bot.dispatch(
                 "aikaternacogs_rss_message",
                 channel=channel,
-                feed_data=RecursiveMappingProxyType(rss_feed),
-                feedparser_dict=RecursiveMappingProxyType(feedparser_plus_obj),
+                feed_data=MappingProxyType(rss_feed),
+                feedparser_dict=MappingProxyType(feedparser_plus_obj),
                 force=force,
             )
 
