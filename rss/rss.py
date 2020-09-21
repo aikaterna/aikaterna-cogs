@@ -18,6 +18,7 @@ from redbot.core import checks, commands, Config
 from redbot.core.utils.chat_formatting import bold, box, escape, pagify
 
 from .quiet_template import QuietTemplate
+from .recursive_mappingproxy import RecursiveMappingProxyType
 from .rss_feed import RssFeed
 from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 
@@ -667,6 +668,30 @@ class RSS(commands.Cog):
             else:
                 for page in pagify(message, delims=["\n"]):
                     await channel.send(page)
+
+            # This event can be used in 3rd-party using listeners.
+            # This may (and most likely will) get changes in the future
+            # so I suggest accepting **kwargs in the listeners using this event.
+            #
+            # channel: discord.TextChannel
+            #     The channel feed alert went to.
+            # feed_data: Mapping[str, Any]
+            #     Read-only mapping with feed's data.
+            #     The available data depends on what this cog needs
+            #     and there most likely will be changes here in future.
+            #     Available keys include: `name`, `template`, `url`, `embed`, etc.
+            # feedparser_dict: Mapping[str, Any]
+            #     Read-only mapping with parsed data from the feed.
+            #     See documentation of feedparser.FeedParserDict for more information.
+            # force: bool
+            #     True if the update was forced (through `[p]rss force`), False otherwise.
+            self.bot.dispatch(
+                "on_aikaternacogs_rss_message",
+                channel=channel,
+                feed_data=RecursiveMappingProxyType(rss_feed),
+                feedparser_dict=RecursiveMappingProxyType(feedparser_plus_obj),
+                force=force,
+            )
 
     async def _get_current_feed_embed(
         self,
