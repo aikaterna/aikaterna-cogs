@@ -140,7 +140,7 @@ class RndStatus(commands.Cog):
         2 = DND
         3 = Invisible"""
         if 0 <= status <= 3:
-            await self.config.type.set(status)
+            await self.config.status.set(status)
             await ctx.send("Rndstatus status set.")
         else:
             await ctx.send("Status must be between 0 and 3.")
