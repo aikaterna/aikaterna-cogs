@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 
 class RSS(commands.Cog):
@@ -376,6 +376,14 @@ class RSS(commands.Cog):
 
         color = color.replace(" ", "_")
         hex_code = await Color()._color_converter(color)
+        if not hex_code:
+            await ctx.send(
+                "Not a valid color code. Use a hex code like #990000, a "
+                "Discord color name or a CSS3 color name.\n"
+                "<https://discordpy.readthedocs.io/en/latest/api.html#colour>\n"
+                "<https://www.w3.org/TR/2018/REC-css-color-3-20180619/#svg-color>"
+            )
+            return
         user_facing_hex = hex_code.replace("0x", "#")
         color_name = await Color()._hex_to_css3_name(hex_code)
 

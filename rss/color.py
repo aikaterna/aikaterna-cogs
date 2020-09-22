@@ -1,4 +1,5 @@
 import discord
+import re
 from scipy.spatial import KDTree
 import webcolors
 
@@ -6,25 +7,17 @@ import webcolors
 class Color:
     """Helper for color handling."""
 
-    @staticmethod
-    async def _color_converter(hex_code_or_color_word: str):
+    async def _color_converter(self, hex_code_or_color_word: str):
         """
         Used for user input on rss embed color
         Input:    discord.Color name, CSS3 color name, 0xFFFFFF, #FFFFFF, FFFFFF
         Output:   0xFFFFFF
         """
-        # #FFFFFF to 0xFFFFFF
-        hex_code = hex_code_or_color_word.replace("#", "0x")
-
-        # FFFFFF to 0xFFFFFF
-        # 0xFFFFFF checking
-        try:
-            int(hex_code, 16)
-            if hex_code[:2] != "0x":
-                if len(hex_code) == 6:
-                    hex_code = f"0x{hex_code}"
-        except ValueError:
-            pass
+        # #FFFFFF and FFFFFF to 0xFFFFFF
+        hex_match = re.match(r"#?[a-f0-9]{6}", hex_code_or_color_word.lower())
+        if hex_match:
+            hex_code = f"0x{hex_code_or_color_word.lstrip('#')}"
+            return hex_code
 
         # discord.Color checking
         if hasattr(discord.Color, hex_code_or_color_word):
@@ -40,7 +33,7 @@ class Color:
         except ValueError:
             pass
 
-        return hex_code
+        return None
 
     async def _hex_to_css3_name(self, hex_code: str):
         """
