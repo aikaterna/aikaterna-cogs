@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from redbot.core import checks, commands, Config
 from redbot.core.utils.chat_formatting import bold, box, escape, pagify
 
+from .color import Color
 from .quiet_template import QuietTemplate
 from .rss_feed import RssFeed
 from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
@@ -24,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 
 class RSS(commands.Cog):
@@ -343,12 +344,13 @@ class RSS(commands.Cog):
         pass
 
     @_rss_embed.command(name="color", aliases=["colour"])
-    async def _rss_embed_color(self, ctx, feed_name: str, *, color: discord.Color = None):
+    async def _rss_embed_color(self, ctx, feed_name: str, *, color: str):
         """
         Set an embed color for a feed.
 
         Use this command with no color to reset to the default.
-        `color` must be a hex code like #990000 or a [Discord color name](https://discordpy.readthedocs.io/en/latest/api.html#colour)
+        `color` must be a hex code like #990000, a [Discord color name](https://discordpy.readthedocs.io/en/latest/api.html#colour),
+        or a [CSS3 color name](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#svg-color).
         """
         rss_feed = await self.config.channel(ctx.channel).feeds.get_raw(feed_name, default=None)
         if not rss_feed:
@@ -370,13 +372,23 @@ class RSS(commands.Cog):
                 f"{embed_state_message}The color for {bold(feed_name)} has been reset. "
                 "Use this command with a color argument to set a color for this feed."
             )
-
             return
 
-        async with self.config.channel(ctx.channel).feeds() as feed_data:
-            feed_data[feed_name]["embed_color"] = f"0x{str(color).lstrip('#')}"
+        color = color.replace(" ", "_")
+        hex_code = await Color()._color_converter(color)
+        user_facing_hex = hex_code.replace("0x", "#")
+        color_name = await Color()._hex_to_css3_name(hex_code)
 
-        await ctx.send(f"Embed color for {bold(feed_name)} set to {str(color)}.")
+        # 0xFFFFFF actually doesn't show up as white in an embed
+        # so let's make it close enough to count
+        if hex_code == "0xFFFFFF":
+            hex_code = "0xFFFFFE"
+
+        async with self.config.channel(ctx.channel).feeds() as feed_data:
+            # data is always a 0xFFFFFF style value
+            feed_data[feed_name]["embed_color"] = hex_code
+
+        await ctx.send(f"Embed color for {bold(feed_name)} set to {user_facing_hex} ({color_name}).")
 
     @_rss_embed.command(name="image")
     async def _rss_embed_image(self, ctx, feed_name: str, image_tag_name: str = None):
@@ -563,21 +575,31 @@ class RSS(commands.Cog):
             return
 
         space = "\N{SPACE}"
-        embed_toggle = "[ ] Embed off" if not rss_feed["embed"] else "[X] Embed on"
+        embed_toggle = f"[ ] Embed:{space*16}Off" if not rss_feed["embed"] else f"[X] Embed:{space*16}On"
         embed_image = (
-            "[ ] Embed image off"
+            f"[ ] Embed image tag:{space*6}None"
             if not rss_feed["embed_image"]
             else f"[X] Embed image tag:{space*6}${rss_feed['embed_image']}"
         )
         embed_thumbnail = (
-            "[ ] Embed thumbnail off"
+            f"[ ] Embed thumbnail tag:{space*2}None"
             if not rss_feed["embed_thumbnail"]
             else f"[X] Embed thumbnail tag:{space*2}${rss_feed['embed_thumbnail']}"
         )
+        hex_color = rss_feed.get("embed_color", None)
+        if hex_color:
+            color_name = await Color()._hex_to_css3_name(hex_color)
+            hex_color = hex_color.lstrip("0x")
+        embed_color = (
+            f"[ ] Embed hex color:{space*6}None"
+            if not hex_color
+            else f"[X] Embed hex color:{space*6}{hex_color} ({color_name})"
+        )
 
-        template_info = f"{embed_toggle}\n{embed_image}\n{embed_thumbnail}"
+        embed_settings = f"{embed_toggle}\n{embed_color}\n{embed_image}\n{embed_thumbnail}"
         rss_template = rss_feed["template"].replace("\n", "\\n").replace("\t", "\\t")
-        await ctx.send(f"Template for {bold(feed_name)}:\n\n`{rss_template}`\n{box(template_info, lang='ini')}")
+
+        await ctx.send(f"Template for {bold(feed_name)}:\n\n`{rss_template}`\n{box(embed_settings, lang='ini')}")
 
     @rss.command(name="template")
     async def _rss_template(self, ctx, feed_name: str, *, template: str):
