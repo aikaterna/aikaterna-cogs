@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 
 class RSS(commands.Cog):
@@ -790,6 +790,11 @@ class RSS(commands.Cog):
                     log.debug(f"Waiting {wait}s before starting...")
                     await asyncio.sleep(wait)
                     await self._put_feeds_in_queue()
+                    if self._post_queue.qsize() > self._post_queue_size:
+                        # there's been more feeds added so let's update the total size
+                        # so feeds have the proper wait time @ > 300 feeds
+                        log.debug(f"Updating total queue size to {self._post_queue.qsize()}")
+                        self._post_queue_size = self._post_queue.qsize()
                     continue
                 else:
                     try:
