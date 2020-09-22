@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 
 
 class RSS(commands.Cog):
@@ -281,7 +281,11 @@ class RSS(commands.Cog):
     async def _update_last_scraped(self, channel: discord.TextChannel, feed_name: str, current_feed_title: str):
         """Updates last title seen for comparison on next feed pull."""
         async with self.config.channel(channel).feeds() as feed_data:
-            feed_data[feed_name]["last_title"] = current_feed_title
+            try:
+                feed_data[feed_name]["last_title"] = current_feed_title
+            except KeyError:
+                # the feed was deleted during a _get_current_feed execution
+                pass
 
     async def _valid_url(self, url: str):
         """Helper for rss add."""
@@ -634,31 +638,29 @@ class RSS(commands.Cog):
         log.debug(f"getting feed {name} on cid {channel.id}")
         url = rss_feed["url"]
         last_title = rss_feed["last_title"]
-        if force:
-            # clear out the last_title attrib because the feed fetcher
-            # compares titles to know whether the next feed is valid
-            # and that it can be posted - this is a force so we want it
-            # to post no matter what
-            last_title = ""
         template = rss_feed["template"]
         message = None
 
         feedparser_obj = await self._fetch_feedparser_object(url)
         if not feedparser_obj:
             return
-        await self._update_last_scraped(channel, name, feedparser_obj[0].title)
+        if not force:
+            await self._update_last_scraped(channel, name, feedparser_obj[0].title)
 
         feedparser_plus_objects = []
         for entry in feedparser_obj:
             fuzzy_title_compare = fuzz.ratio(last_title, entry.title)
 
-            # we only need one feed entry if this is from rss force or if this is a brand new feed
-            if last_title == "":
+            # we only need one feed entry if this is from rss force
+            if force:
                 feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                 feedparser_plus_objects.append(feedparser_plus_obj)
                 break
 
             # we want all the feeds we missed since the last title was recorded
+            # brand new feeds should be caught here as they will have the title saved that was
+            # present in the top entry at save time. this means a brand new rss feed that's 
+            # added will not post on its own until there is a new post since the feed was added
             elif fuzzy_title_compare < 98:
                 log.debug(f"New entry found for feed {name} on cid {channel.id}")
                 feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
