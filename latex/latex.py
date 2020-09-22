@@ -4,6 +4,7 @@ import io
 import logging
 import re
 from PIL import Image, ImageOps
+import urllib.parse as parse
 from redbot.core import commands
 
 
@@ -38,6 +39,7 @@ class Latex(commands.Cog):
         """Takes a LaTeX expression and makes it pretty."""
         base_url = "https://latex.codecogs.com/gif.latex?%5Cbg_white%20%5CLARGE%20"
         equation = self.cleanup_code_block(equation)
+        equation = parse.quote(equation)
         url = f"{base_url}{equation}"
 
         try:
