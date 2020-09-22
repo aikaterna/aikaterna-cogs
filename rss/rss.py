@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.4"
+__version__ = "1.1.5"
 
 
 class RSS(commands.Cog):
@@ -269,6 +269,7 @@ class RSS(commands.Cog):
         rss_object = RssFeed(
             name=feed_name.lower(),
             last_title=feedparser_plus_obj["title"],
+            last_link=feedparser_plus_obj["link"],
             template="$title\n$link",
             url=url,
             template_tags=feedparser_plus_obj["template_tags"],
@@ -278,11 +279,12 @@ class RSS(commands.Cog):
 
         return rss_object
 
-    async def _update_last_scraped(self, channel: discord.TextChannel, feed_name: str, current_feed_title: str):
-        """Updates last title seen for comparison on next feed pull."""
+    async def _update_last_scraped(self, channel: discord.TextChannel, feed_name: str, current_feed_title: str, current_feed_link: str):
+        """Updates last title and last link seen for comparison on next feed pull."""
         async with self.config.channel(channel).feeds() as feed_data:
             try:
                 feed_data[feed_name]["last_title"] = current_feed_title
+                feed_data[feed_name]["last_link"] = current_feed_link
             except KeyError:
                 # the feed was deleted during a _get_current_feed execution
                 pass
@@ -638,6 +640,8 @@ class RSS(commands.Cog):
         log.debug(f"getting feed {name} on cid {channel.id}")
         url = rss_feed["url"]
         last_title = rss_feed["last_title"]
+        # last_link is a get for feeds saved before RSS 1.1.5 which won't have this attrib till it's checked once
+        last_link = rss_feed.get("last_link", None) 
         template = rss_feed["template"]
         message = None
 
@@ -645,7 +649,7 @@ class RSS(commands.Cog):
         if not feedparser_obj:
             return
         if not force:
-            await self._update_last_scraped(channel, name, feedparser_obj[0].title)
+            await self._update_last_scraped(channel, name, feedparser_obj[0].title, feedparser_obj[0].link)
 
         feedparser_plus_objects = []
         for entry in feedparser_obj:
@@ -665,6 +669,15 @@ class RSS(commands.Cog):
                 log.debug(f"New entry found for feed {name} on cid {channel.id}")
                 feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                 feedparser_plus_objects.append(feedparser_plus_obj)
+
+            # unfortunately also there are feeds that have no title for every post title
+            # so there is now link comparison as theoretically every feed should have a link...
+            # not every feed seems to have a published_parsed or time published attrib
+            elif last_title == "" and entry.title == "":
+                if last_link != entry.link:
+                    log.debug(f"New entry found for feed {name} on cid {channel.id} via a post link change")
+                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                    feedparser_plus_objects.append(feedparser_plus_obj)
 
             # we found a match for a previous feed post
             else:
