@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.5"
+__version__ = "1.1.6"
 
 
 class RSS(commands.Cog):
@@ -674,7 +674,10 @@ class RSS(commands.Cog):
             # so there is now link comparison as theoretically every feed should have a link...
             # not every feed seems to have a published_parsed or time published attrib
             elif last_title == "" and entry.title == "":
-                if last_link != entry.link:
+                if last_link == entry.link:
+                    log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
+                    break
+                else:
                     log.debug(f"New entry found for feed {name} on cid {channel.id} via a post link change")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
