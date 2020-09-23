@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.6"
+__version__ = "1.1.7"
 
 
 class RSS(commands.Cog):
@@ -666,9 +666,10 @@ class RSS(commands.Cog):
             # present in the top entry at save time. this means a brand new rss feed that's 
             # added will not post on its own until there is a new post since the feed was added
             elif fuzzy_title_compare < 98:
-                log.debug(f"New entry found for feed {name} on cid {channel.id}")
-                feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
-                feedparser_plus_objects.append(feedparser_plus_obj)
+                if last_link != entry.link:
+                    log.debug(f"New entry found for feed {name} on cid {channel.id}")
+                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                    feedparser_plus_objects.append(feedparser_plus_obj)
 
             # unfortunately also there are feeds that have no title for every post title
             # so there is now link comparison as theoretically every feed should have a link...
@@ -688,6 +689,10 @@ class RSS(commands.Cog):
                     f"Breaking rss entry loop for {name} on {channel.id}, we found where we are supposed to be caught up to"
                 )
                 break
+
+        # the saved title/link doesn't match anything in the entire feed post list so let's just post 1 instead of all of them
+        if len(feedparser_plus_objects) == len(feedparser_obj):
+            feedparser_plus_objects = [feedparser_plus_objects[0]]
 
         # post oldest first
         feedparser_plus_objects.reverse()
