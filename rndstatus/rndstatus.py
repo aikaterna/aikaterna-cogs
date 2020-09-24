@@ -203,14 +203,13 @@ class RndStatus(commands.Cog):
         else:
             if len(statuses) > 0:
                 new_status = self.random_status(guild, statuses)
-                if current_game != new_status:
-                    if (current_game != new_status) or current_game is None:
-                        if _type == 1:
-                            await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url))
-                        else:
-                            await self.bot.change_presence(
-                                activity=discord.Activity(name=new_status, type=_type), status=status
-                            )
+                if (current_game != new_status) or (current_game is None) or (len(statuses) == 1):
+                    if _type == 1:
+                        await self.bot.change_presence(activity=discord.Streaming(name=new_status, url=url))
+                    else:
+                        await self.bot.change_presence(
+                            activity=discord.Activity(name=new_status, type=_type), status=status
+                        )
 
     def random_status(self, guild, statuses):
         try:
