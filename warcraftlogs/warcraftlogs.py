@@ -181,63 +181,63 @@ class WarcraftLogs(commands.Cog):
 
         await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
 
-    @commands.command()
-    @commands.guild_only()
-    async def wclgear(self, ctx, username=None, realmname=None, region=None):
-        """Fetch gear info about a player."""
-        userdata = await self.config.user(ctx.author).all()
-        apikey = await self.config.apikey()
-        if not apikey:
-            return await ctx.send("The bot owner needs to set a WarcraftLogs API key before this can be used.")
-        if not username:
-            username = userdata["charname"]
-            if not username:
-                return await ctx.send("Please specify a character name with this command.")
-        if not realmname:
-            realmname = userdata["realm"]
-            if not realmname:
-                return await ctx.send("Please specify a realm name with this command.")
-        if not region:
-            region = userdata["region"]
-            if not region:
-                return await ctx.send("Please specify a region name with this command.")
+    # @commands.command()
+    # @commands.guild_only()
+    # async def wclgear(self, ctx, username=None, realmname=None, region=None):
+        # """Fetch gear info about a player."""
+        # userdata = await self.config.user(ctx.author).all()
+        # apikey = await self.config.apikey()
+        # if not apikey:
+            # return await ctx.send("The bot owner needs to set a WarcraftLogs API key before this can be used.")
+        # if not username:
+            # username = userdata["charname"]
+            # if not username:
+                # return await ctx.send("Please specify a character name with this command.")
+        # if not realmname:
+            # realmname = userdata["realm"]
+            # if not realmname:
+                # return await ctx.send("Please specify a realm name with this command.")
+        # if not region:
+            # region = userdata["region"]
+            # if not region:
+                # return await ctx.send("Please specify a region name with this command.")
 
-        all_encounters = []
-        for zone, phase in [(x, y) for x in self.zones for y in self.partitions]:
-            url = f"https://classic.warcraftlogs.com/v1/parses/character/{username}/{realmname}/{region}?zone={zone}&partition={phase}&api_key={apikey}"
+        # all_encounters = []
+        # for zone, phase in [(x, y) for x in self.zones for y in self.partitions]:
+            # url = f"https://classic.warcraftlogs.com/v1/parses/character/{username}/{realmname}/{region}?zone={zone}&partition={phase}&api_key={apikey}"
 
-            async with self.session.request("GET", url) as page:
-                data = await page.text()
-                data = json.loads(data)
-                if "error" in data:
-                    return await ctx.send(
-                        f"{username.title()} - {realmname.title()} ({region.upper()}) doesn't have any valid logs that I can see.\nError {data['status']}: {data['error']}"
-                    )
-                if data:
-                    encounter = self.get_recent_gear(data)
-                    if encounter:
-                        all_encounters.append(encounter)
-        final = self.get_recent_gear(all_encounters)
+            # async with self.session.request("GET", url) as page:
+                # data = await page.text()
+                # data = json.loads(data)
+                # if "error" in data:
+                    # return await ctx.send(
+                        # f"{username.title()} - {realmname.title()} ({region.upper()}) doesn't have any valid logs that I can see.\nError {data['status']}: {data['error']}"
+                    # )
+                # if data:
+                    # encounter = self.get_recent_gear(data)
+                    # if encounter:
+                        # all_encounters.append(encounter)
+        # final = self.get_recent_gear(all_encounters)
 
-        wowhead_url = "https://classic.wowhead.com/item={}"
-        wcl_url = "https://classic.warcraftlogs.com/reports/{}"
-        itempage = ""
+        # wowhead_url = "https://classic.wowhead.com/item={}"
+        # wcl_url = "https://classic.warcraftlogs.com/reports/{}"
+        # itempage = ""
 
-        for item in final["gear"]:
-            if item["id"] == 0:
-                continue
-            rarity = self.get_rarity(item)
-            itempage += f"{rarity} [{item['name']}]({wowhead_url.format(item['id'])})\n"
-        itempage += f"\nAverage ilvl: {final['ilvlKeyOrPatch']}"
+        # for item in final["gear"]:
+            # if item["id"] == 0:
+                # continue
+            # rarity = self.get_rarity(item)
+            # itempage += f"{rarity} [{item['name']}]({wowhead_url.format(item['id'])})\n"
+        # itempage += f"\nAverage ilvl: {final['ilvlKeyOrPatch']}"
 
-        embed = discord.Embed(
-            title=f"{final['characterName']} - {final['server']} ({region.upper()})\n{final['class']} ({final['spec']})",
-            description=itempage,
-        )
-        embed.set_footer(
-            text=f"Gear data pulled from {wcl_url.format(final['reportID'])}\nEncounter: {final['encounterName']}\nLog Date/Time: {self.time_convert(final['startTime'])} UTC"
-        )
-        await ctx.send(embed=embed)
+        # embed = discord.Embed(
+            # title=f"{final['characterName']} - {final['server']} ({region.upper()})\n{final['class']} ({final['spec']})",
+            # description=itempage,
+        # )
+        # embed.set_footer(
+            # text=f"Gear data pulled from {wcl_url.format(final['reportID'])}\nEncounter: {final['encounterName']}\nLog Date/Time: {self.time_convert(final['startTime'])} UTC"
+        # )
+        # await ctx.send(embed=embed)
 
     @staticmethod
     def get_rarity(item):
