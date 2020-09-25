@@ -5,7 +5,6 @@ import copy
 import datetime
 import discord
 import feedparser
-from fuzzywuzzy import fuzz
 import imghdr
 import io
 import logging
@@ -25,7 +24,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.7"
+__version__ = "1.1.8"
 
 
 class RSS(commands.Cog):
@@ -279,12 +278,31 @@ class RSS(commands.Cog):
 
         return rss_object
 
-    async def _update_last_scraped(self, channel: discord.TextChannel, feed_name: str, current_feed_title: str, current_feed_link: str):
+    async def _time_tag_validation(self, entry: feedparser.util.FeedParserDict):
+        """Gets a post time if it's available from a single feedparser post entry."""
+        entry_time = entry.get("published_parsed", None)
+        if not entry_time:
+            entry_time = entry.get("updated_parsed", None)
+        if isinstance(entry_time, time.struct_time):
+            entry_time = time.mktime(entry_time)
+        if entry_time:
+            return int(entry_time)
+        return None
+
+    async def _update_last_scraped(
+        self,
+        channel: discord.TextChannel,
+        feed_name: str,
+        current_feed_title: str,
+        current_feed_link: str,
+        current_feed_time: int,
+    ):
         """Updates last title and last link seen for comparison on next feed pull."""
         async with self.config.channel(channel).feeds() as feed_data:
             try:
                 feed_data[feed_name]["last_title"] = current_feed_title
                 feed_data[feed_name]["last_link"] = current_feed_link
+                feed_data[feed_name]["last_time"] = current_feed_time
             except KeyError:
                 # the feed was deleted during a _get_current_feed execution
                 pass
@@ -641,7 +659,9 @@ class RSS(commands.Cog):
         url = rss_feed["url"]
         last_title = rss_feed["last_title"]
         # last_link is a get for feeds saved before RSS 1.1.5 which won't have this attrib till it's checked once
-        last_link = rss_feed.get("last_link", None) 
+        last_link = rss_feed.get("last_link", None)
+        # last_time is a get for feeds saved before RSS 1.1.7 which won't have this attrib till it's checked once
+        last_time = rss_feed.get("last_time", None)
         template = rss_feed["template"]
         message = None
 
@@ -649,11 +669,14 @@ class RSS(commands.Cog):
         if not feedparser_obj:
             return
         if not force:
-            await self._update_last_scraped(channel, name, feedparser_obj[0].title, feedparser_obj[0].link)
+            entry_time = await self._time_tag_validation(feedparser_obj[0])
+            await self._update_last_scraped(channel, name, feedparser_obj[0].title, feedparser_obj[0].link, entry_time)
 
         feedparser_plus_objects = []
         for entry in feedparser_obj:
-            fuzzy_title_compare = fuzz.ratio(last_title, entry.title)
+
+            # find the published_parsed (checked first) or an updatated_parsed tag if they are present
+            entry_time = await self._time_tag_validation(entry)
 
             # we only need one feed entry if this is from rss force
             if force:
@@ -661,19 +684,27 @@ class RSS(commands.Cog):
                 feedparser_plus_objects.append(feedparser_plus_obj)
                 break
 
-            # we want all the feeds we missed since the last title was recorded
-            # brand new feeds should be caught here as they will have the title saved that was
-            # present in the top entry at save time. this means a brand new rss feed that's 
-            # added will not post on its own until there is a new post since the feed was added
-            elif fuzzy_title_compare < 98:
-                if last_link != entry.link:
+            # if this feed has a published_parsed or an updatated_parsed tag, it will use
+            # that time value present in entry_time to verify that the post is new.
+            # this block also compares the post title and link to what was saved for the
+            # last entry to make extra sure that the post is new.
+            elif entry_time is not None:
+                if last_time is not None:
+                    if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
+                        log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
+                        feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                        feedparser_plus_objects.append(feedparser_plus_obj) 
+
+            # this is a post that has no time information attached to it and we can only
+            # verify that the title and link did not match the previously posted entry
+            elif (entry_time or last_time) is None:
+                if (last_title != entry.title) and (last_link != entry.link):
                     log.debug(f"New entry found for feed {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
 
-            # unfortunately also there are feeds that have no title for every post title
-            # so there is now link comparison as theoretically every feed should have a link...
-            # not every feed seems to have a published_parsed or time published attrib
+            # this is a post that has no title and/or previous posts had no title for this feed
+            # so we verify it through comparing the saved link from the last post
             elif last_title == "" and entry.title == "":
                 if last_link == entry.link:
                     log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
@@ -690,7 +721,8 @@ class RSS(commands.Cog):
                 )
                 break
 
-        # the saved title/link doesn't match anything in the entire feed post list so let's just post 1 instead of all of them
+        # the saved title/link doesn't match anything in the entire feed post list and the time
+        # value didn't help so let's just post 1 instead of every post available in the entire feed
         if len(feedparser_plus_objects) == len(feedparser_obj):
             feedparser_plus_objects = [feedparser_plus_objects[0]]
 

@@ -5,6 +5,8 @@ class RssFeed():
         super().__init__()
         self.name: str = kwargs.get("name", None)
         self.last_title: str = kwargs.get("last_title", None)
+        self.last_link: str = kwargs.get("last_link", None)
+        self.last_time: str = kwargs.get("last_time", None)
         self.template: str = kwargs.get("template", None)
         self.url: str = kwargs.get("url", None)
         self.template_tags: List[str] = kwargs.get("template_tags", [])
@@ -18,6 +20,8 @@ class RssFeed():
         return {
             "name": self.name,
             "last_title": self.last_title,
+            "last_link": self.last_link,
+            "last_time": self.last_time,
             "template": self.template,
             "url": self.url,
             "template_tags": self.template_tags,
@@ -33,6 +37,8 @@ class RssFeed():
         return cls(
             name=data["name"] if data["name"] else None,
             last_title=data["last_title"] if data["last_title"] else None,
+            last_link=data["last_link"] if data["last_link"] else None,
+            last_time=data["last_time"] if data["last_time"] else None,
             template=data["template"] if data["template"] else None,
             url=data["url"] if data["url"] else None,
             template_tags=data["template_tags"] if data["template_tags"] else [],
