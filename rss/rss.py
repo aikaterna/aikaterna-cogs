@@ -24,7 +24,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.8"
+__version__ = "1.1.9"
 
 
 class RSS(commands.Cog):
@@ -138,10 +138,12 @@ class RSS(commands.Cog):
         # if media_thumbnail or media_content exists, return the first friendly url
         try:
             rss_object["media_content_plaintext"] = rss_object["media_content"][0]["url"]
+            rss_object["is_special"].append("media_content_plaintext")
         except KeyError:
             pass
         try:
             rss_object["media_thumbnail_plaintext"] = rss_object["media_thumbnail"][0]["url"]
+            rss_object["is_special"].append("media_thumbnail_plaintext")
         except KeyError:
             pass
 
@@ -235,8 +237,11 @@ class RSS(commands.Cog):
                 async with session.get(url) as resp:
                     html = await resp.read()
             return html
+        except aiohttp.client_exceptions.ClientConnectorError:
+            log.error(f"aiohttp failure accessing feed at url:\n\t{url}", exc_info=True)
+            return None
         except Exception:
-            log.error(f"Failure accessing feed at url:\n\t{url}", exc_info=True)
+            log.error(f"General failure accessing feed at url:\n\t{url}", exc_info=True)
             return None
 
     async def _fetch_feedparser_object(self, url: str):
@@ -668,12 +673,17 @@ class RSS(commands.Cog):
         feedparser_obj = await self._fetch_feedparser_object(url)
         if not feedparser_obj:
             return
+
+        # sorting the entire feedparser object by published_parsed time if it exists
+        # certain feeds can be rearranged by a user, causing all posts to be out of sequential post order
+        sorted_feed_by_post_time = sorted(feedparser_obj, key=lambda x: x.get("published_parsed", 0), reverse=True)
+
         if not force:
-            entry_time = await self._time_tag_validation(feedparser_obj[0])
-            await self._update_last_scraped(channel, name, feedparser_obj[0].title, feedparser_obj[0].link, entry_time)
+            entry_time = await self._time_tag_validation(sorted_feed_by_post_time[0])
+            await self._update_last_scraped(channel, name, sorted_feed_by_post_time[0].title, sorted_feed_by_post_time[0].link, entry_time)
 
         feedparser_plus_objects = []
-        for entry in feedparser_obj:
+        for entry in sorted_feed_by_post_time:
 
             # find the published_parsed (checked first) or an updatated_parsed tag if they are present
             entry_time = await self._time_tag_validation(entry)
@@ -723,7 +733,7 @@ class RSS(commands.Cog):
 
         # the saved title/link doesn't match anything in the entire feed post list and the time
         # value didn't help so let's just post 1 instead of every post available in the entire feed
-        if len(feedparser_plus_objects) == len(feedparser_obj):
+        if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
             feedparser_plus_objects = [feedparser_plus_objects[0]]
 
         # post oldest first
