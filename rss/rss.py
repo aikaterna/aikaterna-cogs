@@ -95,9 +95,7 @@ class RSS(commands.Cog):
             )
             await ctx.send(msg)
         else:
-            await ctx.send(
-                f"There is already an existing feed named {bold(feed_name)} in {channel.mention}"
-            )
+            await ctx.send(f"There is already an existing feed named {bold(feed_name)} in {channel.mention}")
             return
 
     def _add_generic_html_plaintext(self, bs4_soup: BeautifulSoup):
@@ -117,7 +115,9 @@ class RSS(commands.Cog):
         return escape(text)
 
     async def _append_bs4_tags(
-        self, rss_object: feedparser.util.FeedParserDict, url: str
+        self,
+        rss_object: feedparser.util.FeedParserDict,
+        url: str,
     ):
         """Append bs4-discovered tags to an rss_feed/feedparser object."""
         rss_object["is_special"] = []
