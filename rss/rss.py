@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.12"
+__version__ = "1.1.13"
 
 
 class RSS(commands.Cog):
@@ -328,12 +328,14 @@ class RSS(commands.Cog):
         return sorted_feed_by_post_time
 
     async def _time_tag_validation(self, entry: feedparser.util.FeedParserDict):
-        """Gets a post time if it's available from a single feedparser post entry."""
+        """Gets a unix timestamp if it's available from a single feedparser post entry."""
         entry_time = entry.get("published_parsed", None)
         if not entry_time:
             entry_time = entry.get("updated_parsed", None)
         if isinstance(entry_time, time.struct_time):
             entry_time = time.mktime(entry_time)
+        if isinstance(entry_time, datetime.datetime):
+            entry_time = (entry_time - datetime.datetime(1970, 1, 1)).total_seconds()
         if entry_time:
             return int(entry_time)
         return None
