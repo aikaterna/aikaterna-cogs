@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.14"
+__version__ = "1.1.15"
 
 
 class RSS(commands.Cog):
@@ -103,6 +103,8 @@ class RSS(commands.Cog):
                 text += "\n"
         text = re.sub("\\n+", "\n", text)
         text = text.replace("*", "\\*")
+        text = text.replace("SC_OFF", "").replace("SC_ON", "\n")
+        text = text.replace("[link]", "").replace("[comments]", "")
 
         return escape(text)
 
