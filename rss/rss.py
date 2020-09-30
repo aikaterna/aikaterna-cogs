@@ -1042,6 +1042,9 @@ class RSS(commands.Cog):
                     await self.config.channel_from_id(int(channel_id)).clear()  # Remove entries from dead channel
                     continue
 
+                if await self.bot.cog_disabled_in_guild(self, channel.guild):
+                    continue
+
                 for feed_key, feed in channel_feed_list.items():
                     for feed_name, feed_data in feed.items():
                         rss_feed = SimpleNamespace(channel=channel, feed_name=feed_name, feed_data=feed_data)
