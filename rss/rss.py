@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.10"
+__version__ = "1.1.11"
 
 
 class RSS(commands.Cog):
@@ -70,7 +70,12 @@ class RSS(commands.Cog):
             if not feedparser_obj:
                 await ctx.send("Couldn't fetch that feed for some reason.")
                 return
-            feedparser_plus_obj = await self._add_to_feedparser_object(feedparser_obj[0], url)
+
+            # sort everything by time if a time value is present
+            sorted_feed_by_post_time = await self._sort_by_post_time(feedparser_obj)
+
+            # add additional tags/images/clean html
+            feedparser_plus_obj = await self._add_to_feedparser_object(sorted_feed_by_post_time[0], url)
             rss_object = await self._convert_feedparser_to_rssfeed(feed_name, feedparser_plus_obj, url)
 
             async with self.config.channel(channel).feeds() as feed_data:
@@ -149,12 +154,14 @@ class RSS(commands.Cog):
         except KeyError:
             pass
 
-        # change published_parsed into a datetime object for embed footers
-        try:
-            if isinstance(rss_object["published_parsed"], time.struct_time):
-                rss_object["published_parsed"] = datetime.datetime(*rss_object["published_parsed"][:6])
-        except KeyError:
-            pass
+        # change published_parsed or updated_parsed into a datetime object for embed footers
+        for time_tag in ["published_parsed", "updated_parsed"]:
+            try:
+                if isinstance(rss_object[time_tag], time.struct_time):
+                    rss_object[time_tag] = datetime.datetime(*rss_object[time_tag][:6])
+                    break 
+            except KeyError:
+                pass
 
         if soup:
             rss_object = self._add_content_images(soup, rss_object)
@@ -290,11 +297,17 @@ class RSS(commands.Cog):
     async def _convert_feedparser_to_rssfeed(
         self, feed_name: str, feedparser_plus_obj: feedparser.util.FeedParserDict, url: str
     ):
-        """Converts any feedparser/feedparser_plus object to an RssFeed object."""
+        """
+        Converts any feedparser/feedparser_plus object to an RssFeed object.
+        Used in rss add when saving a new feed.
+        """
+        entry_time = await self._time_tag_validation(feedparser_plus_obj)
+
         rss_object = RssFeed(
             name=feed_name.lower(),
             last_title=feedparser_plus_obj["title"],
             last_link=feedparser_plus_obj["link"],
+            last_time=entry_time,
             template="$title\n$link",
             url=url,
             template_tags=feedparser_plus_obj["template_tags"],
@@ -303,6 +316,16 @@ class RSS(commands.Cog):
         )
 
         return rss_object
+
+    async def _sort_by_post_time(self, feedparser_obj: feedparser.util.FeedParserDict):
+        for time_tag in ["published_parsed", "updated_parsed"]:
+            try:
+                sorted_feed_by_post_time = sorted(feedparser_obj, key=lambda x: x.get(time_tag), reverse=True)
+                break
+            except TypeError:
+                sorted_feed_by_post_time = feedparser_obj
+
+        return sorted_feed_by_post_time
 
     async def _time_tag_validation(self, entry: feedparser.util.FeedParserDict):
         """Gets a post time if it's available from a single feedparser post entry."""
@@ -746,9 +769,10 @@ class RSS(commands.Cog):
         if not feedparser_obj:
             return
 
-        # sorting the entire feedparser object by published_parsed time if it exists
+        # sorting the entire feedparser object by published_parsed time if it exists, if not then updated_parsed
         # certain feeds can be rearranged by a user, causing all posts to be out of sequential post order
-        sorted_feed_by_post_time = sorted(feedparser_obj, key=lambda x: x.get("published_parsed", 0), reverse=True)
+        # or some feeds are out of time order by default
+        sorted_feed_by_post_time = await self._sort_by_post_time(feedparser_obj)
 
         if not force:
             entry_time = await self._time_tag_validation(sorted_feed_by_post_time[0])
@@ -768,31 +792,20 @@ class RSS(commands.Cog):
 
             # if this feed has a published_parsed or an updatated_parsed tag, it will use
             # that time value present in entry_time to verify that the post is new.
-            # this block also compares the post title and link to what was saved for the
-            # last entry to make extra sure that the post is new.
-            elif entry_time is not None:
-                if last_time is not None:
-                    if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
-                        log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
-                        feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
-                        feedparser_plus_objects.append(feedparser_plus_obj)
+            elif entry_time and last_time is not None:
+                if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
+                    log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
+                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                    feedparser_plus_objects.append(feedparser_plus_obj)
 
             # this is a post that has no time information attached to it and we can only
             # verify that the title and link did not match the previously posted entry
             elif (entry_time or last_time) is None:
-                if (last_title != entry.title) and (last_link != entry.link):
-                    log.debug(f"New entry found for feed {name} on cid {channel.id}")
-                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
-                    feedparser_plus_objects.append(feedparser_plus_obj)
-
-            # this is a post that has no title and/or previous posts had no title for this feed
-            # so we verify it through comparing the saved link from the last post
-            elif last_title == "" and entry.title == "":
-                if last_link == entry.link:
+                if last_title == entry.title and last_link == entry.link:
                     log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
                     break
                 else:
-                    log.debug(f"New entry found for feed {name} on cid {channel.id} via a post link change")
+                    log.debug(f"New entry found for feed {name} on cid {channel.id} via new link or title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
 
@@ -804,9 +817,12 @@ class RSS(commands.Cog):
                 break
 
         # the saved title/link doesn't match anything in the entire feed post list and the time
-        # value didn't help so let's just post 1 instead of every post available in the entire feed
-        if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
-            feedparser_plus_objects = [feedparser_plus_objects[0]]
+        # value didn't help because it doesn't exist so let's just post 1 instead of every post 
+        # available in the entire feed
+        if not entry_time:
+            if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
+                log.debug(f"Couldn't match anything for feed {name} on cid {channel.id}, only posting 1 post")
+                feedparser_plus_objects = [feedparser_plus_objects[0]]
 
         # post oldest first
         feedparser_plus_objects.reverse()
@@ -875,12 +891,15 @@ class RSS(commands.Cog):
             embed_list.append(embed)
 
         # Add published timestamp to the last footer if it exists
-        try:
-            published_time = feedparser_plus_obj["published_parsed"]
-            embed = embed_list[-1]
-            embed.timestamp = published_time
-        except KeyError:
-            pass
+        time_tags = ["published_parsed", "updated_parsed"]
+        for time_tag in time_tags:
+            try:
+                published_time = feedparser_plus_obj[time_tag]
+                embed = embed_list[-1]
+                embed.timestamp = published_time
+                break
+            except KeyError:
+                pass
 
         # Add embed image to last embed if it's set
         try:
