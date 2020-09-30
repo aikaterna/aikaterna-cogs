@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.11"
+__version__ = "1.1.12"
 
 
 class RSS(commands.Cog):
@@ -792,8 +792,8 @@ class RSS(commands.Cog):
 
             # if this feed has a published_parsed or an updatated_parsed tag, it will use
             # that time value present in entry_time to verify that the post is new.
-            elif entry_time and last_time is not None:
-                if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
+            elif (entry_time and last_time) is not None:
+                if (last_link != entry.link) and (last_time < entry_time):
                     log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
