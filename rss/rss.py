@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.13"
+__version__ = "1.1.14"
 
 
 class RSS(commands.Cog):
@@ -158,7 +158,7 @@ class RSS(commands.Cog):
         for time_tag in ["published_parsed", "updated_parsed"]:
             try:
                 if isinstance(rss_object[time_tag], time.struct_time):
-                    rss_object[time_tag] = datetime.datetime(*rss_object[time_tag][:6])
+                    rss_object[f"{time_tag}_datetime"] = datetime.datetime(*rss_object[time_tag][:6])
                     break 
             except KeyError:
                 pass
@@ -334,8 +334,6 @@ class RSS(commands.Cog):
             entry_time = entry.get("updated_parsed", None)
         if isinstance(entry_time, time.struct_time):
             entry_time = time.mktime(entry_time)
-        if isinstance(entry_time, datetime.datetime):
-            entry_time = (entry_time - datetime.datetime(1970, 1, 1)).total_seconds()
         if entry_time:
             return int(entry_time)
         return None
@@ -795,8 +793,12 @@ class RSS(commands.Cog):
             # if this feed has a published_parsed or an updatated_parsed tag, it will use
             # that time value present in entry_time to verify that the post is new.
             elif (entry_time and last_time) is not None:
-                if (last_link != entry.link) and (last_time < entry_time):
+                if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
                     log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
+                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                    feedparser_plus_objects.append(feedparser_plus_obj)
+                if (last_title == "" and entry.title == "") and (last_link != entry.link) and (last_time < entry_time):
+                    log.debug(f"New entry found via time validation for feed {name} on cid {channel.id} - no title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
 
@@ -893,7 +895,7 @@ class RSS(commands.Cog):
             embed_list.append(embed)
 
         # Add published timestamp to the last footer if it exists
-        time_tags = ["published_parsed", "updated_parsed"]
+        time_tags = ["published_parsed_datetime", "updated_parsed_datetime"]
         for time_tag in time_tags:
             try:
                 published_time = feedparser_plus_obj[time_tag]
