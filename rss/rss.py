@@ -1,7 +1,6 @@
 import asyncio
 import aiohttp
-from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
-import contextlib
+from bs4 import BeautifulSoup
 import copy
 import datetime
 import discord
@@ -26,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.16"
+__version__ = "1.1.17"
 
 
 class RSS(commands.Cog):
@@ -154,11 +153,17 @@ class RSS(commands.Cog):
                         list_tags = ["value", "href"]
                         for tag in list_tags:
                             try:
-                                with contextlib.suppress(MarkupResemblesLocatorWarning):
-                                    soup = BeautifulSoup(list_item, "html.parser")
+                                url_check = await self._valid_url(list_item[tag], feed_check=False)
+                                if not url_check:
+                                    # bs4 will cry if you try to give it a url to parse, so let's only
+                                    # parse non-url content
+                                    tag_content = BeautifulSoup(list_item[tag], "html.parser")
+                                    tag_content = self._add_generic_html_plaintext(tag_content)
+                                else:
+                                    tag_content = list_item[tag]
                                 list_html_content_counter += 1
                                 name = f"{tag_name}_plaintext{str(list_html_content_counter).zfill(2)}"
-                                rss_object[name] = self._add_generic_html_plaintext(soup)
+                                rss_object[name] = tag_content
                                 rss_object["is_special"].append(name)
                             except (KeyError, TypeError):
                                 pass
@@ -390,7 +395,7 @@ class RSS(commands.Cog):
                 # the feed was deleted during a _get_current_feed execution
                 pass
 
-    async def _valid_url(self, url: str):
+    async def _valid_url(self, url: str, feed_check=True):
         """Helper for rss add."""
         try:
             result = urlparse(url)
@@ -399,19 +404,21 @@ class RSS(commands.Cog):
             return False
 
         if all([result.scheme, result.netloc, result.path]):
-            text = await self._get_url_content(url)
-            if not text:
-                log.debug(f"no text from _get_url_content: {url}")
-                return False
+            if feed_check:
+                text = await self._get_url_content(url)
+                if not text:
+                    log.debug(f"no text from _get_url_content: {url}")
+                    return False
 
-            rss = feedparser.parse(text)
-            if rss.bozo:
-                log.debug(f"bozo feed at {url}")
-                return False
+                rss = feedparser.parse(text)
+                if rss.bozo:
+                    log.debug(f"bozo feed at {url}")
+                    return False
+                else:
+                    return True
             else:
                 return True
         else:
-            log.debug(f"failed to urlparse {url}")
             return False
 
     async def _validate_image(self, url: str):
