@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
+import contextlib
 import copy
 import datetime
 import discord
@@ -25,7 +26,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.15"
+__version__ = "1.1.16"
 
 
 class RSS(commands.Cog):
@@ -121,7 +122,6 @@ class RSS(commands.Cog):
             tag_content_check = await self._get_tag_content_type(tag_content)
 
             if tag_content_check == TagType.HTML:
-
                 # this is a tag that is only html content
                 try:
                     soup = BeautifulSoup(tag_content, "html.parser")
@@ -143,6 +143,38 @@ class RSS(commands.Cog):
                     pass
 
                 rss_object[f"{tag_name}_plaintext"] = self._add_generic_html_plaintext(soup)
+
+            if tag_content_check == TagType.LIST:
+                for list_item in tag_content:
+                    list_item_check = await self._get_tag_content_type(list_item)
+
+                    # for common "links" format or when "content" is a list
+                    list_html_content_counter = 0
+                    if list_item_check == TagType.HTML:
+                        list_tags = ["value", "href"]
+                        for tag in list_tags:
+                            try:
+                                with contextlib.suppress(MarkupResemblesLocatorWarning):
+                                    soup = BeautifulSoup(list_item, "html.parser")
+                                list_html_content_counter += 1
+                                name = f"{tag_name}_plaintext{str(list_html_content_counter).zfill(2)}"
+                                rss_object[name] = self._add_generic_html_plaintext(soup)
+                                rss_object["is_special"].append(name)
+                            except (KeyError, TypeError):
+                                pass
+
+                    # common "author" tag format
+                    list_dict_content_counter = 0
+                    if list_item_check == TagType.DICT:
+                        list_tags = ["name"]
+                        for tag in list_tags:
+                            try:
+                                list_dict_content_counter += 1
+                                name = f"{tag_name}_plaintext{str(list_dict_content_counter).zfill(2)}"
+                                rss_object[name] = list_item[tag]
+                                rss_object["is_special"].append(name)
+                            except (KeyError, TypeError):
+                                pass
 
         # if media_thumbnail or media_content exists, return the first friendly url
         try:
