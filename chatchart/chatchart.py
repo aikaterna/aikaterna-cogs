@@ -28,8 +28,8 @@ class Chatchart(commands.Cog):
 
     def create_chart(self, top, others, channel):
         plt.clf()
-        sizes = [x[1] for x in top]
-        labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
+        sizes = [x[1] for x in top if x[1] > 0]
+        labels = ["{} {:g}%".format(x[0], x[1]) for x in top if x[1] > 0]
         if len(top) >= 20:
             sizes = sizes + [others]
             labels = labels + ["Others {:g}%".format(others)]
