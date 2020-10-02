@@ -28,8 +28,8 @@ class Chatchart(commands.Cog):
 
     def create_chart(self, top, others, channel):
         plt.clf()
-        sizes = [x[1] for x in top if x[1] > 0]
-        labels = ["{} {:g}%".format(x[0], x[1]) for x in top if x[1] > 0]
+        sizes = [x[1] for x in top]
+        labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
         if len(top) >= 20:
             sizes = sizes + [others]
             labels = labels + ["Others {:g}%".format(others)]
@@ -84,6 +84,7 @@ class Chatchart(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.channel)
     @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.bot_has_permissions(attach_files=True)
     async def chatchart(self, ctx, channel: Optional[discord.TextChannel] = None, messages=5000):
         """
         Generates a pie chart, representing the last 5000 messages in the specified channel.
@@ -124,7 +125,7 @@ class Chatchart(commands.Cog):
 
         if msg_data["users"] == {}:
             await em.delete()
-            return await ctx.message.channel.send(f"Only bots have sent messages in {channel.mention}")
+            return await ctx.message.channel.send(f"Only bots have sent messages in {channel.mention} or I can't read message history.")
 
         for usr in msg_data["users"]:
             pd = float(msg_data["users"][usr]["msgcount"]) / float(msg_data["total count"])
@@ -132,7 +133,7 @@ class Chatchart(commands.Cog):
 
         top_ten = heapq.nlargest(
             20,
-            [(x, msg_data["users"][x][y]) for x in msg_data["users"] for y in msg_data["users"][x] if y == "percent"],
+            [(x, msg_data["users"][x][y]) for x in msg_data["users"] for y in msg_data["users"][x] if (y == "percent" and msg_data["users"][x][y] > 0)],
             key=lambda x: x[1],
         )
         others = 100 - sum(x[1] for x in top_ten)
