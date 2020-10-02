@@ -302,7 +302,7 @@ class TrickOrTreat(commands.Cog):
     @commands.guild_only()
     @commands.cooldown(1, 600, discord.ext.commands.BucketType.user)
     @commands.command()
-    async def steal(self, ctx, user: discord.Member = None):
+    async def stealcandy(self, ctx, user: discord.Member = None):
         """Steal some candy."""
         guild_users = [m.id for m in ctx.guild.members if m is not m.bot and not m == ctx.author]
         candy_users = await self.config._all_from_scope(scope="USER")
