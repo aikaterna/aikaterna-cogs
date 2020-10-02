@@ -40,7 +40,7 @@ class TrickOrTreat(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
-    async def eat(self, ctx, number: int = 1, candy_type=None):
+    async def eatcandy(self, ctx, number: int = 1, candy_type=None):
         """Eat some candy.
         
         Valid types: candies, lollipops, stars"""
