@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 import discord
 import random
@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 
 class TrickOrTreat(commands.Cog):
@@ -40,7 +40,7 @@ class TrickOrTreat(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
-    async def eatcandy(self, ctx, number: int = 1, candy_type=None):
+    async def eatcandy(self, ctx, number: Optional[int] = 1, candy_type=None):
         """Eat some candy.
         
         Valid types: candies, lollipops, stars"""
