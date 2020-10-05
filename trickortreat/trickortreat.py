@@ -9,14 +9,17 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.0.10"
+__version__ = "0.1.0"
 
 
 class TrickOrTreat(commands.Cog):
     """Trick or treating for your server."""
 
     async def red_delete_data_for_user(
-        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
+        self,
+        *,
+        requester: Literal["discord", "owner", "user", "user_strict"],
+        user_id: int,
     ):
         await self.config.user_from_id(user_id).clear()
 
@@ -28,6 +31,7 @@ class TrickOrTreat(commands.Cog):
 
         default_user = {
             "candies": 0,
+            "chocolate": 0,
             "eaten": 0,
             "last_tot": "2018-01-01 00:00:00.000001",
             "lollipops": 0,
@@ -39,11 +43,28 @@ class TrickOrTreat(commands.Cog):
         self.config.register_guild(**default_guild)
 
     @commands.guild_only()
+    @commands.cooldown(1, 1, commands.BucketType.channel)
     @commands.command()
     async def eatcandy(self, ctx, number: Optional[int] = 1, candy_type=None):
         """Eat some candy.
-        
-        Valid types: candies, lollipops, stars"""
+
+        Valid types: candy/candie(s), chocolate(s), lollipop(s), star(s)
+        Examples:
+            `[p]eatcandy 3 lollipops`
+            `[p]eatcandy star`
+
+        \N{CANDY}
+        The star of this competition. You should try to eat all of these, but don't get too sick.
+
+        \N{CHOCOLATE BAR}
+        Reduces sickness by 10.
+
+        \N{LOLLIPOP}
+        Reduces sickness by 20.
+
+        \N{WHITE MEDIUM STAR}
+        Resets sickness to 0.
+        """
         userdata = await self.config.user(ctx.author).all()
         pick = await self.config.guild(ctx.guild).pick()
         if not candy_type:
@@ -58,7 +79,9 @@ class TrickOrTreat(commands.Cog):
             candy_type = "lollipops"
         if candy_type in ["stars", "star"]:
             candy_type = "stars"
-        candy_list = ["candies", "lollipops", "stars"]
+        if candy_type in ["chocolate", "chocolates"]:
+            candy_type = "chocolate"
+        candy_list = ["candies", "chocolate", "lollipops", "stars"]
         if candy_type not in candy_list:
             return await ctx.send("That's not a candy type! Use the inventory command to see what you have.")
         if userdata[candy_type] < number:
@@ -75,6 +98,10 @@ class TrickOrTreat(commands.Cog):
             "You gobble up",
             "You make a meal of",
             "You devour",
+            "You monstrously pig out on",
+            "You hastily chomp down on",
+            "You daintily partake of",
+            "You earnestly consume",
         ]
         if candy_type in ["candies", "candy"]:
             if (userdata["sickness"] + number * 2) in range(70, 95):
@@ -134,6 +161,19 @@ class TrickOrTreat(commands.Cog):
             await self.config.user(ctx.author).sickness.set(userdata["sickness"] + (number * 2))
             await self.config.user(ctx.author).candies.set(userdata["candies"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
+
+        if candy_type in ["chocolates", "chocolate"]:
+            pluralchoc = "chocolate" if number == 1 else "chocolates"
+            await ctx.send(
+                f"{random.choice(eat_phrase)} {number} {pluralchoc}. You feel slightly better!\n*Sickness has gone down by {number * 10}*"
+            )
+            new_sickness = userdata["sickness"] - (number * 10)
+            if new_sickness < 0:
+                new_sickness = 0
+            await self.config.user(ctx.author).sickness.set(new_sickness)
+            await self.config.user(ctx.author).chocolate.set(userdata["chocolate"] - number)
+            await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
+
         if candy_type in ["lollipops", "lollipop"]:
             pluralpop = "lollipop" if number == 1 else "lollipops"
             await ctx.send(
@@ -145,6 +185,7 @@ class TrickOrTreat(commands.Cog):
             await self.config.user(ctx.author).sickness.set(new_sickness)
             await self.config.user(ctx.author).lollipops.set(userdata["lollipops"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
+
         if candy_type in ["stars", "star"]:
             pluralstar = "star" if number == 1 else "stars"
             await ctx.send(
@@ -164,7 +205,7 @@ class TrickOrTreat(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
-    async def buy(self, ctx, pieces: int):
+    async def buycandy(self, ctx, pieces: int):
         """Buy some candy. Prices could vary at any time."""
         candy_now = await self.config.user(ctx.author).candies()
         credits_name = await bank.get_currency_name(ctx.guild)
@@ -447,20 +488,22 @@ class TrickOrTreat(commands.Cog):
         await ctx.send(msg)
 
     @commands.guild_only()
-    @commands.command()
+    @commands.command(hidden=True)
     async def totversion(self, ctx):
         """Trick or Treat version."""
-        await ctx.send(
-            f"Trick or Treat, version {__version__}\n\n*0.0.6 updates:*\n**cooldown -> totcooldown\nGeneral cleanup for 2019**\n\n*0.0.5 updates:*\n**Save values before waiting on messages:\nQuick commands will not overwrite other values**\n\n*0.0.4 updates:*\n**+2% star chance on trick or treat (6% total)\n+5% lollipop chance on trick or treat (25% total)\nMore RP messages\nFix for steal mechanic freezing\n**"
-        )
+        await ctx.send(f"Trick or Treat version {__version__}")
+
+    async def has_perm(self, user):
+        return await self.bot.allowed_by_whitelist_blacklist(user)
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message_without_command(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
         if message.author.bot:
             return
-        content = (message.content).lower()
+        if not await self.has_perm(message.author):
+            return
 
         chance = random.randint(1, 12)
         if chance % 4 == 0:
@@ -472,6 +515,13 @@ class TrickOrTreat(commands.Cog):
                     new_sickness = 0
                 await self.config.user(message.author).sickness.set(new_sickness)
 
+        pick_chance = random.randint(1, 12)
+        if pick_chance % 4 == 0:
+            random_candies = random.randint(1, 3)
+            guild_pool = await self.config.guild(message.guild).pick()
+            await self.config.guild(message.guild).pick.set(guild_pool + random_candies)
+
+        content = (message.content).lower()
         if not content.startswith("trick or treat"):
             return
         toggle = await self.config.guild(message.guild).toggle()
@@ -501,12 +551,42 @@ class TrickOrTreat(commands.Cog):
         candy = random.randint(1, 25)
         lollipop = random.randint(0, 100)
         star = random.randint(0, 100)
-
+        chocolate = random.randint(0, 100)
+        win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
         await self.config.user(message.author).candies.set(userdata["candies"] + candy)
-        if lollipop > 75:
+
+        if chocolate == 100:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 4)
+            win_message += "\n**BONUS**: 5 \N{CHOCOLATE BAR}"
+        elif 99 >= chocolate >= 95:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 3)
+            win_message += "\n**BONUS**: 4 \N{CHOCOLATE BAR}"
+        elif 94 >= chocolate >= 90:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 2)
+            win_message += "\n**BONUS**: 2 \N{CHOCOLATE BAR}"
+        elif 89 >= chocolate >= 65:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 1)
+            win_message += "\n**BONUS**: 1 \N{CHOCOLATE BAR}"
+
+        if lollipop == 100:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 3)
+            win_message += "\n**BONUS**: 3 \N{LOLLIPOP}"
+        elif 99 >= lollipop >= 90:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 2)
+            win_message += "\n**BONUS**: 2 \N{LOLLIPOP}"
+        elif 89 >= lollipop >= 65:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
-        if star > 94:
+            win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
+
+        if star == 100:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 3)
+            win_message += "\n**BONUS**: 3 \N{WHITE MEDIUM STAR}"
+        elif 99 >= star >= 90:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 2)
+            win_message += "\n**BONUS**: 2 \N{WHITE MEDIUM STAR}"
+        elif 89 >= star >= 65:
             await self.config.user(message.author).stars.set(userdata["stars"] + 1)
+            win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
 
         walking_messages = [
             "*You hear footsteps...*",
@@ -548,10 +628,4 @@ class TrickOrTreat(commands.Cog):
         ]
         await bot_talking.edit(content=random.choice(greet_messages))
         await asyncio.sleep(2)
-        win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
-        if lollipop > 75:
-            win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
-        if star > 94:
-            win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
-
         await message.channel.send(win_message)
