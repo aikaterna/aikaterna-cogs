@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 
 class TrickOrTreat(commands.Cog):
@@ -566,27 +566,27 @@ class TrickOrTreat(commands.Cog):
         elif 94 >= chocolate >= 90:
             await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 2)
             win_message += "\n**BONUS**: 2 \N{CHOCOLATE BAR}"
-        elif 89 >= chocolate >= 65:
+        elif 89 >= chocolate >= 80:
             await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 1)
             win_message += "\n**BONUS**: 1 \N{CHOCOLATE BAR}"
 
         if lollipop == 100:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 3)
             win_message += "\n**BONUS**: 3 \N{LOLLIPOP}"
-        elif 99 >= lollipop >= 90:
+        elif 99 >= lollipop >= 95:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 2)
             win_message += "\n**BONUS**: 2 \N{LOLLIPOP}"
-        elif 89 >= lollipop >= 65:
+        elif 94 >= lollipop >= 80:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
             win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
 
         if star == 100:
             await self.config.user(message.author).stars.set(userdata["stars"] + 3)
             win_message += "\n**BONUS**: 3 \N{WHITE MEDIUM STAR}"
-        elif 99 >= star >= 90:
+        elif 99 >= star >= 97:
             await self.config.user(message.author).stars.set(userdata["stars"] + 2)
             win_message += "\n**BONUS**: 2 \N{WHITE MEDIUM STAR}"
-        elif 89 >= star >= 65:
+        elif 96 >= star >= 80:
             await self.config.user(message.author).stars.set(userdata["stars"] + 1)
             win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
 
