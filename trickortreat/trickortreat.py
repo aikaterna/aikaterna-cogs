@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 class TrickOrTreat(commands.Cog):
@@ -292,6 +292,8 @@ class TrickOrTreat(commands.Cog):
         msg = f"{ctx.author.mention}'s Candy Bag:"
         em = discord.Embed(color=await ctx.embed_color())
         em.description = f"{userdata['candies']} \N{CANDY}"
+        if userdata["chocolate"]:
+            em.description += f"\n{userdata['chocolate']} \N{CHOCOLATE BAR}"
         if userdata["lollipops"]:
             em.description += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
         if userdata["stars"]:
