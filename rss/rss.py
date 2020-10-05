@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.17"
+__version__ = "1.1.18"
 
 
 class RSS(commands.Cog):
@@ -861,13 +861,10 @@ class RSS(commands.Cog):
                 )
                 break
 
-        # the saved title/link doesn't match anything in the entire feed post list and the time
-        # value didn't help because it doesn't exist so let's just post 1 instead of every post 
-        # available in the entire feed
-        if not entry_time:
-            if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
-                log.debug(f"Couldn't match anything for feed {name} on cid {channel.id}, only posting 1 post")
-                feedparser_plus_objects = [feedparser_plus_objects[0]]
+        # nothing in the whole feed matched to what was saved, so let's only post 1 instead of every single post
+        if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
+            log.debug(f"Couldn't match anything for feed {name} on cid {channel.id}, only posting 1 post")
+            feedparser_plus_objects = [feedparser_plus_objects[0]]
 
         # post oldest first
         feedparser_plus_objects.reverse()
