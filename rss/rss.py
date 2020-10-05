@@ -879,6 +879,9 @@ class RSS(commands.Cog):
             to_fill = QuietTemplate(template)
             message = to_fill.quiet_safe_substitute(name=bold(name), **feedparser_plus_obj)
 
+            if len(message.strip(" ")) == 0:
+                message = None
+
             if not message:
                 log.debug(f"{name} feed in {channel.name} ({channel.id}) has no valid tags, not posting anything.")
                 return
