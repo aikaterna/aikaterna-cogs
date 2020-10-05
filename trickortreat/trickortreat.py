@@ -43,7 +43,7 @@ class TrickOrTreat(commands.Cog):
         self.config.register_guild(**default_guild)
 
     @commands.guild_only()
-    @commands.cooldown(1, 1, commands.BucketType.channel)
+    @commands.cooldown(1, 1, commands.BucketType.user)
     @commands.command()
     async def eatcandy(self, ctx, number: Optional[int] = 1, candy_type=None):
         """Eat some candy.
