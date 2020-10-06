@@ -25,9 +25,7 @@ class RndStatus(commands.Cog):
         self.bot = bot
         self.last_change = None
         self.config = Config.get_conf(self, 2752521001, force_registration=True)
-        self._user_count = 0
 
-        self.user_task = asyncio.create_task(self._get_user_count())
         self.presence_task = asyncio.create_task(self.maybe_update_presence())
 
         default_global = {
@@ -41,22 +39,7 @@ class RndStatus(commands.Cog):
         self.config.register_global(**default_global)
 
     def cog_unload(self):
-        self.user_task.cancel()
         self.presence_task.cancel()
-
-    async def _get_user_count(self):
-        await self.bot.wait_until_ready()
-        with contextlib.suppress(asyncio.CancelledError):
-            self._user_count = len(self.bot.users)
-            while True:
-                temp_data = defaultdict(set)
-                async for s in AsyncIter(self.bot.guilds):
-                    if s.unavailable:
-                        continue
-                    async for m in AsyncIter(s.members):
-                        temp_data["Unique Users"].add(m.id)
-                self._user_count = len(temp_data["Unique Users"])
-                await asyncio.sleep(30)
 
     @commands.group(autohelp=True)
     @commands.guild_only()
@@ -192,7 +175,7 @@ class RndStatus(commands.Cog):
         if botstats:
             me = self.bot.user
             clean_prefix = pattern.sub(f"@{me.name}", prefix[0])
-            total_users = self._user_count
+            total_users = len(self.bot.users)
             servers = str(len(self.bot.guilds))
             botstatus = f"{clean_prefix}help | {total_users} users | {servers} servers"
             if (current_game != str(botstatus)) or current_game is None:
