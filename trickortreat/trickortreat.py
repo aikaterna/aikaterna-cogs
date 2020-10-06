@@ -447,7 +447,8 @@ class TrickOrTreat(commands.Cog):
         channel_msg = "Trick or Treat Channels:\n"
         for chan in channel_list:
             channel_obj = self.bot.get_channel(chan)
-            channel_msg += f"{channel_obj.name}\n"
+            if channel_obj:
+                channel_msg += f"{channel_obj.name}\n"
         await ctx.send(box(channel_msg))
 
     @commands.guild_only()
