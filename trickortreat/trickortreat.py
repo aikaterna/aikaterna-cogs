@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 
 class TrickOrTreat(commands.Cog):
@@ -447,7 +447,8 @@ class TrickOrTreat(commands.Cog):
         channel_msg = "Trick or Treat Channels:\n"
         for chan in channel_list:
             channel_obj = self.bot.get_channel(chan)
-            channel_msg += f"{channel_obj.name}\n"
+            if channel_obj:
+                channel_msg += f"{channel_obj.name}\n"
         await ctx.send(box(channel_msg))
 
     @commands.guild_only()
