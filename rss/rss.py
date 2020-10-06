@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.18"
+__version__ = "1.1.19"
 
 
 class RSS(commands.Cog):
@@ -314,6 +314,9 @@ class RSS(commands.Cog):
     async def _fetch_feedparser_object(self, url: str):
         """Get all feedparser entries from a url."""
         html = await self._get_url_content(url)
+        if not html:
+            return None
+
         feedparser_obj = feedparser.parse(html)
 
         if feedparser_obj.bozo:
