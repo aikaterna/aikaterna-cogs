@@ -19,14 +19,11 @@ class Away(commands.Cog):
         "OFFLINE_MESSAGE": False,
         "GAME_MESSAGE": {},
         "STREAMING_MESSAGE": False,
-        "LISTENING_MESSAGE": False,
+        "LISTENING_MESSAGE": False
     }
 
     async def red_delete_data_for_user(
-        self,
-        *,
-        requester: Literal["discord", "owner", "user", "user_strict"],
-        user_id: int,
+        self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
     ):
         await self._away.user_from_id(user_id).clear()
 
@@ -61,7 +58,7 @@ class Away(commands.Cog):
 
     async def make_embed_message(self, author, message, state=None):
         """
-        Makes the embed reply
+            Makes the embed reply
         """
         avatar = author.avatar_url_as()  # This will return default avatar if no avatar is present
         color = author.color
@@ -84,8 +81,7 @@ class Away(commands.Cog):
         elif state == "gaming":
             em = discord.Embed(description=message, color=color)
             em.set_author(
-                name=f"{author.display_name} is currently playing {author.activity.name}",
-                icon_url=avatar,
+                name=f"{author.display_name} is currently playing {author.activity.name}", icon_url=avatar,
             )
             em.title = getattr(author.activity, "details", None)
             thumbnail = getattr(author.activity, "large_image_url", None)
@@ -95,8 +91,7 @@ class Away(commands.Cog):
             status = [c for c in author.activities if c.type == discord.ActivityType.playing]
             em = discord.Embed(description=message, color=color)
             em.set_author(
-                name=f"{author.display_name} is currently playing {status[0].name}",
-                icon_url=avatar,
+                name=f"{author.display_name} is currently playing {status[0].name}", icon_url=avatar,
             )
             em.title = getattr(status[0], "details", None)
             thumbnail = getattr(status[0], "large_image_url", None)
@@ -105,14 +100,22 @@ class Away(commands.Cog):
         elif state == "listening":
             em = discord.Embed(color=author.activity.color)
             url = f"https://open.spotify.com/track/{author.activity.track_id}"
-            artist_title = f"{author.activity.title} by " + ", ".join(a for a in author.activity.artists)
-            limit = 256 - (len(author.display_name) + 27)  # incase we go over the max allowable size
+            artist_title = f"{author.activity.title} by " + ", ".join(
+                a for a in author.activity.artists
+            )
+            limit = 256 - (
+                len(author.display_name) + 27
+            )  # incase we go over the max allowable size
             em.set_author(
                 name=f"{author.display_name} is currently listening to",
                 icon_url=avatar,
                 url=url,
             )
-            em.description = f"{message}\n " f"[{artist_title}]({url})\n" f"{self._draw_play(author.activity)}"
+            em.description = (
+                f"{message}\n "
+                f"[{artist_title}]({url})\n"
+                f"{self._draw_play(author.activity)}"
+            )
 
             em.set_thumbnail(url=author.activity.album_cover_url)
         elif state == "listeningcustom":
@@ -121,8 +124,16 @@ class Away(commands.Cog):
             url = f"https://open.spotify.com/track/{activity[0].track_id}"
             artist_title = f"{activity[0].title} by " + ", ".join(a for a in activity[0].artists)
             limit = 256 - (len(author.display_name) + 27)
-            em.set_author(name=f"{author.display_name} is currently listening to", icon_url=avatar, url=url)
-            em.description = f"{message}\n " f"[{artist_title}]({url})\n" f"{self._draw_play(activity[0])}"
+            em.set_author(
+                name=f"{author.display_name} is currently listening to",
+                icon_url=avatar,
+                url=url
+            )
+            em.description = (
+                f"{message}\n "
+                f"[{artist_title}]({url})\n"
+                f"{self._draw_play(activity[0])}"
+            )
             em.set_thumbnail(url=activity[0].album_cover_url)
         elif state == "streaming":
             color = int("6441A4", 16)
@@ -130,8 +141,7 @@ class Away(commands.Cog):
             em.description = message + "\n" + author.activity.url
             em.title = getattr(author.activity, "details", None)
             em.set_author(
-                name=f"{author.display_name} is currently streaming {author.activity.name}",
-                icon_url=avatar,
+                name=f"{author.display_name} is currently streaming {author.activity.name}", icon_url=avatar,
             )
         elif state == "streamingcustom":
             activity = [c for c in author.activities if c.type == discord.ActivityType.streaming]
@@ -140,8 +150,7 @@ class Away(commands.Cog):
             em.description = message + "\n" + activity[0].url
             em.title = getattr(author.activity, "details", None)
             em.set_author(
-                name=f"{author.display_name} is currently streaming {activity[0].name}",
-                icon_url=avatar,
+                name=f"{author.display_name} is currently streaming {activity[0].name}", icon_url=avatar,
             )
         else:
             em = discord.Embed(color=color)
@@ -152,7 +161,7 @@ class Away(commands.Cog):
 
     async def find_user_mention(self, message):
         """
-        Replaces user mentions with their username
+            Replaces user mentions with their username
         """
         for word in message.split():
             match = re.search(r"<@!?([0-9]+)>", word)
@@ -163,7 +172,7 @@ class Away(commands.Cog):
 
     async def make_text_message(self, author, message, state=None):
         """
-        Makes the message to display if embeds aren't available
+            Makes the message to display if embeds aren't available
         """
         message = await self.find_user_mention(message)
 
@@ -515,9 +524,9 @@ class Away(commands.Cog):
 
     @commands.command(name="toggleaway")
     @checks.admin_or_permissions(administrator=True)
-    async def _ignore(self, ctx, member: discord.Member = None):
+    async def _ignore(self, ctx, member: discord.Member=None):
         """
-        Toggle away messages on the whole server or a guild member.
+        Toggle away messages on the whole server or a specific guild member.
 
         Mods, Admins and Bot Owner are immune to this.
         """
