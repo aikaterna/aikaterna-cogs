@@ -3,10 +3,13 @@
 #  Big thanks to Redjumpman for changing the beta version from
 #  Imagemagick/cairosvg to matplotlib.
 #  Thanks to violetnyte for suggesting this cog.
-import discord
+import asyncio
+import functools
 import heapq
 from io import BytesIO
 from typing import Optional
+
+import discord
 import matplotlib
 
 matplotlib.use("agg")
@@ -137,6 +140,16 @@ class Chatchart(commands.Cog):
             key=lambda x: x[1],
         )
         others = 100 - sum(x[1] for x in top_ten)
-        img = self.create_chart(top_ten, others, channel)
-        await em.delete()
-        await ctx.message.channel.send(file=discord.File(img, "chart.png"))
+        task = functools.partial(self.create_chart, top_ten, others, channel)
+        task = self.bot.loop.run_in_executor(None, task)
+        try:
+            chart = await asyncio.wait_for(task, timeout=60)
+        except asyncio.TimeoutError:
+            return await ctx.send(
+                "An error occurred while generating this image. Try again later."
+            )
+        try:
+            await em.delete()
+        except discord.NotFound:
+            pass
+        await ctx.message.channel.send(file=discord.File(chart, "chart.png"))
