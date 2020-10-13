@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.20"
+__version__ = "1.1.21"
 
 
 class RSS(commands.Cog):
@@ -875,6 +875,10 @@ class RSS(commands.Cog):
         # post oldest first
         feedparser_plus_objects.reverse()
 
+        # list of feedparser_plus_objects wrapped in MappingProxyType
+        # filled during the loop below
+        proxied_dicts = []
+
         for feedparser_plus_obj in feedparser_plus_objects:
             try:
                 curr_title = feedparser_plus_obj.title
@@ -918,13 +922,40 @@ class RSS(commands.Cog):
             #     See documentation of feedparser.FeedParserDict for more information.
             # force: bool
             #     True if the update was forced (through `[p]rss force`), False otherwise.
+            feedparser_dict_proxy = MappingProxyType(feedparser_plus_obj)
+            proxied_dicts.append(feedparser_dict_proxy)
             self.bot.dispatch(
                 "aikaternacogs_rss_message",
                 channel=channel,
                 feed_data=MappingProxyType(rss_feed),
-                feedparser_dict=MappingProxyType(feedparser_plus_obj),
+                feedparser_dict=feedparser_dict_proxy,
                 force=force,
             )
+
+        # This event can be used in 3rd-party using listeners.
+        # This may (and most likely will) get changes in the future
+        # so I suggest accepting **kwargs in the listeners using this event.
+        #
+        # channel: discord.TextChannel
+        #     The channel feed alerts went to.
+        # feed_data: Mapping[str, Any]
+        #     Read-only mapping with feed's data.
+        #     The available data depends on what this cog needs
+        #     and there most likely will be changes here in future.
+        #     Available keys include: `name`, `template`, `url`, `embed`, etc.
+        # feedparser_dicts: List[Mapping[str, Any]]
+        #     List of read-only mappings with parsed data
+        #     from each **new** entry in the feed.
+        #     See documentation of feedparser.FeedParserDict for more information.
+        # force: bool
+        #     True if the update was forced (through `[p]rss force`), False otherwise.
+        self.bot.dispatch(
+            "aikaternacogs_rss_feed_update",
+            channel=channel,
+            feed_data=MappingProxyType(rss_feed),
+            feedparser_dicts=proxied_dicts,
+            force=force,
+        )
 
     async def _get_current_feed_embed(
         self,
