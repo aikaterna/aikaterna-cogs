@@ -58,8 +58,11 @@ class RSS(commands.Cog):
         if content_images:
             for i, image in enumerate(content_images):
                 tag_name = f"content_image{str(i + 1).zfill(2)}"
-                rss_object[tag_name] = image["src"]
-                rss_object["is_special"].append(tag_name)
+                try:
+                    rss_object[tag_name] = image["src"]
+                    rss_object["is_special"].append(tag_name)
+                except KeyError:
+                    pass
         return rss_object
 
     async def _add_feed(self, ctx, feed_name: str, channel: discord.TextChannel, url: str):

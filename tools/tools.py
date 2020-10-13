@@ -476,7 +476,7 @@ class Tools(commands.Cog):
         perms = iter(ctx.channel.permissions_for(user))
         perms_we_have = ""
         perms_we_dont = ""
-        for x in perms:
+        for x in sorted(perms):
             if "True" in str(x):
                 perms_we_have += "+\t{0}\n".format(str(x).split("'")[1])
             else:
@@ -521,7 +521,7 @@ class Tools(commands.Cog):
             perms = iter(role.permissions)
             perms_we_have = ""
             perms_we_dont = ""
-            for x in perms:
+            for x in sorted(perms):
                 if "True" in str(x):
                     perms_we_have += "{0}\n".format(str(x).split("'")[1])
                 else:
@@ -543,8 +543,8 @@ class Tools(commands.Cog):
             em.add_field(name="ID", value=role.id)
             em.add_field(name="Color", value=role.color)
             em.add_field(name="Position", value=role.position)
-            em.add_field(name="Valid Permissons", value="{}".format(perms_we_have))
-            em.add_field(name="Invalid Permissons", value="{}".format(perms_we_dont))
+            em.add_field(name="Valid Permissions", value="{}".format(perms_we_have))
+            em.add_field(name="Invalid Permissions", value="{}".format(perms_we_dont))
             em.set_thumbnail(url=role.guild.icon_url)
         try:
             await loadingmsg.edit(embed=em)
@@ -558,7 +558,7 @@ class Tools(commands.Cog):
                 perms = iter(role.permissions)
                 perms_we_have2 = ""
                 perms_we_dont2 = ""
-                for x in perms:
+                for x in sorted(perms):
                     if "True" in str(x):
                         perms_we_have2 += "+{0}\n".format(str(x).split("'")[1])
                     else:
