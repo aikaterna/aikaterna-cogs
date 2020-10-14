@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.1.21"
+__version__ = "1.1.22"
 
 
 class RSS(commands.Cog):
@@ -871,6 +871,10 @@ class RSS(commands.Cog):
         if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
             log.debug(f"Couldn't match anything for feed {name} on cid {channel.id}, only posting 1 post")
             feedparser_plus_objects = [feedparser_plus_objects[0]]
+
+        if not feedparser_plus_objects:
+            # early-exit so that we don't dispatch when there's no updates
+            return
 
         # post oldest first
         feedparser_plus_objects.reverse()
