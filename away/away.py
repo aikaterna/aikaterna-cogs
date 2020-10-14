@@ -11,7 +11,7 @@ class Away(commands.Cog):
     """Le away cog"""
 
     default_global_settings = {"ign_servers": []}
-    default_guild_settings = {"TEXT_ONLY": False}
+    default_guild_settings = {"TEXT_ONLY": False, "BLACKLISTED_MEMBERS": []}
     default_user_settings = {
         "MESSAGE": False,
         "IDLE_MESSAGE": False,
@@ -19,7 +19,7 @@ class Away(commands.Cog):
         "OFFLINE_MESSAGE": False,
         "GAME_MESSAGE": {},
         "STREAMING_MESSAGE": False,
-        "LISTENING_MESSAGE": False,
+        "LISTENING_MESSAGE": False
     }
 
     async def red_delete_data_for_user(
@@ -239,8 +239,9 @@ class Away(commands.Cog):
         if message.author.bot:
             return
 
+        bl_members = await self._away.guild(guild).BLACKLISTED_MEMBERS()
         for author in message.mentions:
-            if guild.id in list_of_guilds_ign and not await self.is_mod_or_admin(author):
+            if (guild.id in list_of_guilds_ign and not await self.is_mod_or_admin(author)) or author.id in bl_members:
                 continue
             user_data = await self._away.user(author).all()
             text_only = await self._away.guild(guild).TEXT_ONLY()
@@ -523,13 +524,26 @@ class Away(commands.Cog):
 
     @commands.command(name="toggleaway")
     @checks.admin_or_permissions(administrator=True)
-    async def _ignore(self, ctx):
+    async def _ignore(self, ctx, member: discord.Member=None):
         """
-        Toggle away messages on the whole server.
+        Toggle away messages on the whole server or a specific guild member.
 
         Mods, Admins and Bot Owner are immune to this.
         """
         guild = ctx.message.guild
+        if member:
+            bl_mems = await self._away.guild(guild).BLACKLISTED_MEMBERS()
+            if member.id not in bl_mems:
+                bl_mems.append(member.id)
+                await self._away.guild(guild).BLACKLISTED_MEMBERS.set(bl_mems)
+                msg = f"Away messages will not appear when {member.display_name} is mentioned in this guild."
+                await ctx.send(msg)
+            elif member.id in bl_mems:
+                bl_mems.remove(member.id)
+                await self._away.guild(guild).BLACKLISTED_MEMBERS.set(bl_mems)
+                msg = f"Away messages will appear when {member.display_name} is mentioned in this guild."
+                await ctx.send(msg)
+            return
         if guild.id in (await self._away.ign_servers()):
             guilds = await self._away.ign_servers()
             guilds.remove(guild.id)
