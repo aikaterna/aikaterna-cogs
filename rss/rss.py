@@ -872,6 +872,10 @@ class RSS(commands.Cog):
             log.debug(f"Couldn't match anything for feed {name} on cid {channel.id}, only posting 1 post")
             feedparser_plus_objects = [feedparser_plus_objects[0]]
 
+        if not feedparser_plus_objects:
+            # early-exit so that we don't dispatch when there's no updates
+            return
+
         # post oldest first
         feedparser_plus_objects.reverse()
 
