@@ -62,6 +62,7 @@ class Away(commands.Cog):
         """
         avatar = author.avatar_url_as()  # This will return default avatar if no avatar is present
         color = author.color
+        link = None
         if message:
             link = IMAGE_LINKS.search(message)
             if link:
@@ -174,7 +175,14 @@ class Away(commands.Cog):
         """
             Makes the message to display if embeds aren't available
         """
-        message = await self.find_user_mention(message)
+        url = None
+        if message:
+            message = await self.find_user_mention(message)
+            link = IMAGE_LINKS.search(message)
+            if link:
+                url_loc = message.index(link.group(0))
+                url = message[url_loc:]
+                message = message.replace(link.group(0), " ")
 
         if state == "away":
             msg = f"{author.display_name} is currently away"
@@ -206,11 +214,13 @@ class Away(commands.Cog):
         else:
             msg = f"{author.display_name} is currently away"
 
-        if message != " " and state != "listeningcustom":
-            msg += f" and has set the following message: `{message}`"
-        elif message != " " and state == "listeningcustom":
-            msg += f"\n\nCustom message: `{message}`"
+        if message and state != "listeningcustom":
+            msg += f" and has set the following message: `{message.rstrip()}`"
+        elif message and state == "listeningcustom":
+            msg += f"\n\nCustom message: `{message.rstrip()}`"
 
+        if url:
+            msg += f"\n{url}"
         return msg
 
     async def is_mod_or_admin(self, member: discord.Member):
@@ -387,9 +397,17 @@ class Away(commands.Cog):
             await self._away.user(author).MESSAGE.set(False)
             msg = "You're now back."
         else:
-            if message is None:
+            if message is None and len(ctx.message.attachments) == 0:
                 await self._away.user(author).MESSAGE.set((" ", delete_after))
             else:
+                if len(ctx.message.attachments) > 0:
+                    link = IMAGE_LINKS.search(ctx.message.attachments[0].url)
+                    url = link.group(0)
+                    if link:
+                        if message:
+                            message = f"{message} {url}"
+                        else:
+                            message = url
                 await self._away.user(author).MESSAGE.set((message, delete_after))
             msg = "You're now set as away."
         await ctx.send(msg)
