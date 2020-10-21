@@ -125,7 +125,7 @@ class Chatchart(commands.Cog):
                 await asyncio.sleep(0.005)
                 if history_counter % 250 == 0:
                     new_embed = discord.Embed(
-                        description=f"This might take a while...\n{history_counter}/5000 messages gathered",
+                        description=f"This might take a while...\n{history_counter}/{messages} messages gathered",
                         colour=await self.bot.get_embed_colour(location=channel),
                     )
                     await em.edit(embed=new_embed)
