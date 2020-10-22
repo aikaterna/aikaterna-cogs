@@ -388,7 +388,11 @@ class Dungeon(commands.Cog):
             return
         if member.avatar_url == member.default_avatar_url:
             default_avatar = True
-        join_date = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
+        try:
+            join_date = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            member_created_at = f"{str(member.created_at)}.0"
+            join_date = datetime.datetime.strptime(member_created_at, "%Y-%m-%d %H:%M:%S.%f")
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         since_join = now - join_date
         join_days = await self.config.guild(member.guild).join_days()
