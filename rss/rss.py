@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 
 class RSS(commands.Cog):
@@ -799,14 +799,17 @@ class RSS(commands.Cog):
         if not allowed_tags:
             tag_msg = "[ ] No restrictions\n\tAll tags are allowed."
         else:
-            tag_msg = "[X] Feed is restricted to posts that include:\n\t"
+            tag_msg = "[X] Feed is restricted to posts that include:"
             for tag in allowed_tags:
-                tag_msg += f"{await self._title_case(tag)}\n\t"
+                tag_msg += f"\n\t{await self._title_case(tag)}"
 
         embed_settings = f"{embed_toggle}\n{embed_color}\n{embed_image}\n{embed_thumbnail}"
         rss_template = rss_feed["template"].replace("\n", "\\n").replace("\t", "\\t")
 
-        await ctx.send(f"Template for {bold(feed_name)}:\n\n`{rss_template}`\n\n{box(embed_settings, lang='ini')}\n{box(tag_msg, lang='ini')}")
+        msg = f"Template for {bold(feed_name)}:\n\n`{rss_template}`\n\n{box(embed_settings, lang='ini')}\n{box(tag_msg, lang='ini')}"
+
+        for page in pagify(msg, delims=["\n"], page_length=1800):
+            await ctx.send(page)
 
     @rss.group(name="tag")
     async def _rss_tag(self, ctx):
