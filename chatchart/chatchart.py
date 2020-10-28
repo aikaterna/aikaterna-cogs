@@ -128,7 +128,12 @@ class Chatchart(commands.Cog):
                         description=f"This might take a while...\n{history_counter}/{messages} messages gathered",
                         colour=await self.bot.get_embed_colour(location=channel),
                     )
-                    await em.edit(embed=new_embed)
+                    await channel.trigger_typing()
+                    try:
+                        await em.edit(embed=new_embed)
+                    except discord.NotFound:
+                        pass # for cases where the embed was deleted preventing the edit
+
         except discord.errors.Forbidden:
             try:
                 await em.delete()
