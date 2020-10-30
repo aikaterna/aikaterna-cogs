@@ -765,21 +765,20 @@ class Tools(commands.Cog):
         date_now = date_now.replace(tzinfo=None)
         since_join = date_now - date_join
 
-        m, s = divmod(int(since_join.total_seconds()), 60)
-        h, m = divmod(m, 60)
-        d, h = divmod(h, 24)
+        mins, secs = divmod(int(since_join.total_seconds()), 60)
+        hrs, mins = divmod(mins, 60)
+        days, hrs = divmod(hrs, 24)
+        wks, days = divmod(days, 7)
+        mths, wks = divmod(wks, 4)
+        yrs, mths = divmod(mths, 12)
 
-        if d > 0:
-            msg = "{0}d {1}h ago"
-        elif d == 0 and h > 0:
-            msg = "{1}h {2}m ago"
-        elif d == 0 and h == 0 and m > 0:
-            msg = "{2}m {3}s ago"
-        elif d == 0 and h == 0 and m == 0 and s > 0:
-            msg = "{3}s ago"
+        m = f"{yrs}y {mths}mth {wks}w {days}d {hrs}h {mins}m {secs}s"
+        m2 = [x for x in m.split() if x[0] != '0']
+        s = ' '.join(m2[:2])
+        if s:
+            return f'{s} ago'
         else:
-            msg = ""
-        return msg.format(d, h, m, s)
+            return ''
 
     def fetch_joined_at(self, user, guild):
         return user.joined_at
