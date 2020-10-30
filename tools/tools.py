@@ -97,7 +97,8 @@ class Tools(commands.Cog):
             len(author_only_v), ", ".join([c.name for c in author_only_v])
         )
         msg += "```"
-        await ctx.send(msg)
+        for page in cf.pagify(msg, delims=["\n"], shorten_by=16):
+            await ctx.send(page)
 
     @access.command()
     async def text(self, ctx, user: discord.Member = None, guild: int = None):
@@ -122,7 +123,8 @@ class Tools(commands.Cog):
 
         msg += "[ACCESS]:\n{}\n\n".format(", ".join(can_access))
         msg += "[NO ACCESS]:\n{}\n```".format(", ".join(list(set(text_channels) - set(can_access))))
-        await ctx.send(msg)
+        for page in cf.pagify(msg, delims=["\n"], shorten_by=16):
+            await ctx.send(page)
 
     @access.command()
     async def voice(self, ctx, user: discord.Member = None, guild: int = None):
@@ -147,7 +149,8 @@ class Tools(commands.Cog):
 
         msg += "[ACCESS]:\n{}\n\n".format(", ".join(can_access))
         msg += "[NO ACCESS]:\n{}\n```".format(", ".join(list(set(voice_channels) - set(can_access))))
-        await ctx.send(msg)
+        for page in cf.pagify(msg, delims=["\n"], shorten_by=16):
+            await ctx.send(page)
 
     @commands.guild_only()
     @commands.command()
