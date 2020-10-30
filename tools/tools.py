@@ -661,9 +661,6 @@ class Tools(commands.Cog):
     @commands.command()
     async def uinfo(self, ctx, user: discord.Member = None):
         """Shows user information. Defaults to author."""
-        with sps(discord.Forbidden):
-            await ctx.message.delete()
-
         if user is None:
             user = ctx.author
 
