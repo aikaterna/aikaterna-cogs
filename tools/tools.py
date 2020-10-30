@@ -670,9 +670,13 @@ class Tools(commands.Cog):
         with sps(Exception):
             caller = inspect.currentframe().f_back.f_code.co_name
 
-        roles = [x.name for x in user.roles if x.name != "@everyone"]
-        if not roles:
-            roles = ["None"]
+        try:
+            roles = [r for r in user.roles if r.name != "@everyone"]
+            _roles = [roles[0].name,] + [f'{r.name:>{len(r.name)+17}}' for r in roles[1:]]
+        except IndexError:
+            # if there are no roles then roles[0] will raise the IndexError here
+            _roles = ["None"]
+
         seen = str(len(set([member.guild.name for member in self.bot.get_all_members() if member.id == user.id])))
 
         load = "```\nLoading user info...```"
@@ -705,7 +709,9 @@ class Tools(commands.Cog):
         joined_at = self.fetch_joined_at(user, ctx.guild)
         if caller != "invoke":
             data += "[Joined]:        {}\n".format(self._dynamic_time(joined_at))
-            data += "[Roles]:         {}\n".format(", ".join(roles))
+            data += "[Roles]:         {}\n".format("\n".join(_roles))
+            if len(_roles) > 1:
+                data += "\n"
             data += "[In Voice]:      {}\n".format(user.voice.channel if user.voice is not None else None)
             data += "[AFK]:           {}\n".format(user.voice.afk if user.voice is not None else False)
         data += "```"
