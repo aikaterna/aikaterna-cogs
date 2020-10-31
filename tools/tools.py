@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import discord
 import inspect
+import itertools
 import logging
 import re
 from redbot.core import checks, commands
@@ -774,8 +775,7 @@ class Tools(commands.Cog):
         mins, secs = divmod(int(since_join.total_seconds()), 60)
         hrs, mins = divmod(mins, 60)
         days, hrs = divmod(hrs, 24)
-        wks, days = divmod(days, 7)
-        mths, wks = divmod(wks, 4)
+        mths, wks, days = Tools._count_months(days)
         yrs, mths = divmod(mths, 12)
 
         m = f"{yrs}y {mths}mth {wks}w {days}d {hrs}h {mins}m {secs}s"
@@ -785,6 +785,25 @@ class Tools(commands.Cog):
             return f'{s} ago'
         else:
             return ''
+
+    @staticmethod
+    def _count_months(days):
+        lens = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        cy = itertools.cycle(lens)
+        months = 0
+        m_temp = 0
+        mo_len = next(cy)
+        for i in range(1, days+1):
+            m_temp += 1
+            if m_temp == mo_len:
+                months += 1
+                m_temp = 0
+                mo_len = next(cy)
+                if mo_len == 28 and months >= 48:
+                    mo_len += 1
+
+        weeks, days = divmod(m_temp, 7)
+        return months, weeks, days
 
     def fetch_joined_at(self, user, guild):
         return user.joined_at
