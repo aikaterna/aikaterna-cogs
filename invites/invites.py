@@ -9,12 +9,13 @@ from redbot.vendored.discord.ext import menus
 
 OLD_CODE_RE = re.compile("^[0-9a-zA-Z]{16}$")
 CODE_RE = re.compile("^[0-9a-zA-Z]{6,7}$")
-NEWER_CODE_RE = re.compile("^[0-9a-zA-Z]{10}$")
+NEW10_CODE_RE = re.compile("^[0-9a-zA-Z]{10}$")
+NEW8_CODE_RE = re.compile("^[0-9a-zA-Z]{8}$")
 
 FAILURE_MSG = "That invite doesn't seem to be valid."
 PERM_MSG = "I need the Administrator permission on this guild to view invite information."
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 class Invites(commands.Cog):
@@ -136,7 +137,8 @@ class Invites(commands.Cog):
         invite_match = (
             re.fullmatch(OLD_CODE_RE, invite_code_or_url)
             or re.fullmatch(CODE_RE, invite_code_or_url)
-            or re.fullmatch(NEWER_CODE_RE, invite_code_or_url)
+            or re.fullmatch(NEW10_CODE_RE, invite_code_or_url)
+            or re.fullmatch(NEW8_CODE_RE, invite_code_or_url)
         )
         if invite_match:
             return invite_code_or_url
