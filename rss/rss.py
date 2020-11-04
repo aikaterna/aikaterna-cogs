@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
 
 class RSS(commands.Cog):
@@ -678,6 +678,46 @@ class RSS(commands.Cog):
         rss_feed = feeds[channel.id]["feeds"][feed_name]
         await self.get_current_feed(channel, feed_name, rss_feed, force=True)
 
+    @rss.command(name="limit")
+    async def _rss_limit(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, character_limit: int = None):
+        """
+        Set a character limit for feed posts. Use 0 for unlimited.
+
+        RSS posts are naturally split at around 2000 characters to fit within the Discord character limit per message.
+        If you only want the first embed or first message in a post feed to show, use 2000 or less characters for this setting.
+
+        Note that this setting applies the character limit to the entire post, for all template values on the feed together.
+        For example, if the template is `$title\\n$content\\n$link`, and title + content + link is longer than the limit, the link will not show.
+        """
+        extra_msg = ""
+
+        if character_limit is None:
+            await ctx.send_help()
+            return
+
+        if character_limit < 0:
+            await ctx.send("Character limit cannot be less than zero.")
+            return
+
+        if character_limit > 20000:
+            character_limit = 0
+
+        if 0 < character_limit < 20:
+            extra_msg = "Character limit has a 20 character minimum.\n"
+            character_limit = 20
+
+        channel = channel or ctx.channel
+        rss_feed = await self.config.channel(channel).feeds.get_raw(feed_name, default=None)
+        if not rss_feed:
+            await ctx.send("That feed name doesn't exist in this channel.")
+            return
+        
+        async with self.config.channel(channel).feeds() as feed_data:
+            feed_data[feed_name]["limit"] = character_limit
+
+        characters = f"approximately {character_limit}" if character_limit > 0 else "an unlimited amount of"
+        await ctx.send(f"{extra_msg}Character limit for {bold(feed_name)} is now {characters} characters.")
+
     @rss.command(name="list")
     async def _rss_list(self, ctx, channel: discord.TextChannel = None):
         """List saved feeds for this channel or a specific channel."""
@@ -803,10 +843,16 @@ class RSS(commands.Cog):
             for tag in allowed_tags:
                 tag_msg += f"\n\t{await self._title_case(tag)}"
 
+        character_limit = rss_feed.get("limit", 0)
+        if character_limit == 0:
+            length_msg = "[ ] Feed length is unlimited."
+        else:
+            length_msg = f"[X] Feed length is capped at {character_limit} characters."
+
         embed_settings = f"{embed_toggle}\n{embed_color}\n{embed_image}\n{embed_thumbnail}"
         rss_template = rss_feed["template"].replace("\n", "\\n").replace("\t", "\\t")
 
-        msg = f"Template for {bold(feed_name)}:\n\n`{rss_template}`\n\n{box(embed_settings, lang='ini')}\n{box(tag_msg, lang='ini')}"
+        msg = f"Template for {bold(feed_name)}:\n\n`{rss_template}`\n\n{box(embed_settings, lang='ini')}\n{box(tag_msg, lang='ini')}\n{box(length_msg, lang='ini')}"
 
         for page in pagify(msg, delims=["\n"], page_length=1800):
             await ctx.send(page)
@@ -1023,6 +1069,11 @@ class RSS(commands.Cog):
             embed_toggle = rss_feed["embed"]
             red_embed_settings = await self.bot.embed_requested(channel, None)
             embed_permissions = channel.permissions_for(channel.guild.me).embed_links
+
+            rss_limit = rss_feed.get("limit", 0)
+            if rss_limit > 0:
+                # rss_limit needs + 8 characters for pagify counting codeblock characters
+                message = list(pagify(message, delims=["\n", " "], priority=True, page_length=(rss_limit + 8)))[0]
 
             if embed_toggle and red_embed_settings and embed_permissions:
                 await self._get_current_feed_embed(channel, rss_feed, feedparser_plus_obj, message)
