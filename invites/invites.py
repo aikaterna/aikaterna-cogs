@@ -15,7 +15,7 @@ NEW8_CODE_RE = re.compile("^[0-9a-zA-Z]{8}$")
 FAILURE_MSG = "That invite doesn't seem to be valid."
 PERM_MSG = "I need the Administrator permission on this guild to view invite information."
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 
 class Invites(commands.Cog):
@@ -42,11 +42,12 @@ class Invites(commands.Cog):
 
         if not invite_code_or_url:
             pages = MenuPages(await ctx.guild.invites())
-            await self._menu(ctx, pages)
         else:
             invite_code = await self._find_invite_code(invite_code_or_url)
             if not invite_code:
                 return await self._send_embed(ctx, FAILURE_MSG)
+            pages = MenuPages([x for x in await ctx.guild.invites() if x.code == invite_code])
+        await self._menu(ctx, pages)
 
     @invites.command()
     async def leaderboard(self, ctx: commands.Context, list_all_invites: bool = False):
@@ -120,7 +121,7 @@ class Invites(commands.Cog):
     @invites.command(hidden=True)
     async def version(self, ctx):
         """Invites version."""
-        await self._send_embed(ctx, self.__version__)
+        await self._send_embed(ctx, __version__)
 
     @staticmethod
     async def _check_invite_code(ctx: commands.Context, invite_code: str):
