@@ -146,7 +146,7 @@ class Chatchart(commands.Cog):
             if len(msg.author.display_name) >= 20:
                 short_name = "{}...".format(msg.author.display_name[:20]).replace("$", "\\$")
             else:
-                short_name = msg.author.display_name.replace("$", "\\$")
+                short_name = msg.author.display_name.replace("$", "\\$").replace("_", "\\_ ").replace("*", "\\*")
             whole_name = "{}#{}".format(short_name, msg.author.discriminator)
             if msg.author.bot:
                 pass
