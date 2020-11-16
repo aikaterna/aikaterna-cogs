@@ -110,7 +110,7 @@ class RndStatus(commands.Cog):
             await ctx.send(f"Rndstatus activity type set to {rnd_type[status_type]}.")
         else:
             await ctx.send(
-                f"Status activity type must be between 0 and 3 or 5."
+                f"Status activity type must be between 0 and 3 or 5. "
                 f"See `{ctx.prefix}help rndstatus type` for more information."
             )
 
