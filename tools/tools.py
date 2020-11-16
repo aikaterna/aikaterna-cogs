@@ -751,7 +751,7 @@ class Tools(commands.Cog):
         if isinstance(it_is, discord.Guild):
             await ctx.invoke(self.sinfo, id)
         elif isinstance(it_is, discord.abc.GuildChannel):
-            await ctx.invoke(self.cinfo, id)
+            await ctx.invoke(self.chinfo, id)
         elif isinstance(it_is, (discord.User, discord.Member)):
             await ctx.invoke(self.uinfo, it_is)
         elif isinstance(it_is, discord.Role):
