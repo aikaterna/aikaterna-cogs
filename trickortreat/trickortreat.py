@@ -186,7 +186,10 @@ class TrickOrTreat(commands.Cog):
             await self.config.user(ctx.author).lollipops.set(userdata["lollipops"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
 
-        if candy_type in ["stars", "star"]:
+        if candy_type in ["
+                          
+                          
+                          ", "star"]:
             pluralstar = "star" if number == 1 else "stars"
             await ctx.send(
                 f"{random.choice(eat_phrase)} {number} {pluralstar}. You feel great!\n*Sickness has been reset*"
@@ -335,12 +338,50 @@ class TrickOrTreat(commands.Cog):
         candies = await self.config.user(ctx.author).candies()
         to_pick = await self.config.guild(ctx.guild).pick()
         chance = random.randint(1, 100)
+        lollipop = random.randint(0, 100)
+        star = random.randint(0, 100)
+        chocolate = random.randint(0, 100)
+        win_message = None
+
+        if chocolate == 100:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 4)
+            win_message += "\n**BONUS**: 5 \N{CHOCOLATE BAR}"
+        elif 99 >= chocolate >= 95:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 3)
+            win_message += "\n**BONUS**: 4 \N{CHOCOLATE BAR}"
+        elif 94 >= chocolate >= 90:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 2)
+            win_message += "\n**BONUS**: 2 \N{CHOCOLATE BAR}"
+        elif 89 >= chocolate >= 80:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 1)
+            win_message += "\n**BONUS**: 1 \N{CHOCOLATE BAR}"
+
+        if lollipop == 100:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 3)
+            win_message += "\n**BONUS**: 3 \N{LOLLIPOP}"
+        elif 99 >= lollipop >= 95:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 2)
+            win_message += "\n**BONUS**: 2 \N{LOLLIPOP}"
+        elif 94 >= lollipop >= 80:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
+            win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
+
+        if star == 100:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 3)
+            win_message += "\n**BONUS**: 3 \N{WHITE MEDIUM STAR}"
+        elif 99 >= star >= 97:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 2)
+            win_message += "\n**BONUS**: 2 \N{WHITE MEDIUM STAR}"
+        elif 96 >= star >= 80:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 1)
+            win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
+            
         found = round((chance / 100) * to_pick)
         await self.config.user(ctx.author).candies.set(candies + found)
         await self.config.guild(ctx.guild).pick.set(to_pick - found)
         message = await ctx.send("You start searching the area for candy...")
         await asyncio.sleep(3)
-        await message.edit(content=f"You found {found} \N{CANDY}!")
+        await message.edit(content=f"You found {found} \N{CANDY}!" + win_message)
 
     @commands.guild_only()
     @commands.cooldown(1, 600, discord.ext.commands.BucketType.user)
@@ -498,137 +539,3 @@ class TrickOrTreat(commands.Cog):
 
     async def has_perm(self, user):
         return await self.bot.allowed_by_whitelist_blacklist(user)
-
-    @commands.Cog.listener()
-    async def on_message_without_command(self, message):
-        if isinstance(message.channel, discord.abc.PrivateChannel):
-            return
-        if message.author.bot:
-            return
-        if not await self.has_perm(message.author):
-            return
-
-        chance = random.randint(1, 12)
-        if chance % 4 == 0:
-            sickness_now = await self.config.user(message.author).sickness()
-            sick_chance = random.randint(1, 12)
-            if sick_chance % 3 == 0:
-                new_sickness = sickness_now - sick_chance
-                if new_sickness < 0:
-                    new_sickness = 0
-                await self.config.user(message.author).sickness.set(new_sickness)
-
-        pick_chance = random.randint(1, 12)
-        if pick_chance % 4 == 0:
-            random_candies = random.randint(1, 3)
-            guild_pool = await self.config.guild(message.guild).pick()
-            await self.config.guild(message.guild).pick.set(guild_pool + random_candies)
-
-        content = (message.content).lower()
-        if not content.startswith("trick or treat"):
-            return
-        toggle = await self.config.guild(message.guild).toggle()
-        if not toggle:
-            return
-        channel = await self.config.guild(message.guild).channel()
-        if message.channel.id not in channel:
-            return
-        userdata = await self.config.user(message.author).all()
-
-        last_time = datetime.datetime.strptime(str(userdata["last_tot"]), "%Y-%m-%d %H:%M:%S.%f")
-        now = datetime.datetime.now(datetime.timezone.utc)
-        now = now.replace(tzinfo=None)
-        if int((now - last_time).total_seconds()) < await self.config.guild(message.guild).cooldown():
-            messages = [
-                "The thought of candy right now doesn't really sound like a good idea.",
-                "All the lights on this street are dark...",
-                "It's starting to get late.",
-                "The wind howls through the trees. Does it seem darker all of a sudden?",
-                "You start to walk the long distance to the next house...",
-                "You take a moment to count your candy before moving on.",
-                "The house you were approaching just turned the light off.",
-                "The wind starts to pick up as you look for the next house...",
-            ]
-            return await message.channel.send(random.choice(messages))
-        await self.config.user(message.author).last_tot.set(str(now))
-        candy = random.randint(1, 25)
-        lollipop = random.randint(0, 100)
-        star = random.randint(0, 100)
-        chocolate = random.randint(0, 100)
-        win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
-        await self.config.user(message.author).candies.set(userdata["candies"] + candy)
-
-        if chocolate == 100:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 4)
-            win_message += "\n**BONUS**: 5 \N{CHOCOLATE BAR}"
-        elif 99 >= chocolate >= 95:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 3)
-            win_message += "\n**BONUS**: 4 \N{CHOCOLATE BAR}"
-        elif 94 >= chocolate >= 90:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 2)
-            win_message += "\n**BONUS**: 2 \N{CHOCOLATE BAR}"
-        elif 89 >= chocolate >= 80:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 1)
-            win_message += "\n**BONUS**: 1 \N{CHOCOLATE BAR}"
-
-        if lollipop == 100:
-            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 3)
-            win_message += "\n**BONUS**: 3 \N{LOLLIPOP}"
-        elif 99 >= lollipop >= 95:
-            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 2)
-            win_message += "\n**BONUS**: 2 \N{LOLLIPOP}"
-        elif 94 >= lollipop >= 80:
-            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
-            win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
-
-        if star == 100:
-            await self.config.user(message.author).stars.set(userdata["stars"] + 3)
-            win_message += "\n**BONUS**: 3 \N{WHITE MEDIUM STAR}"
-        elif 99 >= star >= 97:
-            await self.config.user(message.author).stars.set(userdata["stars"] + 2)
-            win_message += "\n**BONUS**: 2 \N{WHITE MEDIUM STAR}"
-        elif 96 >= star >= 80:
-            await self.config.user(message.author).stars.set(userdata["stars"] + 1)
-            win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
-
-        walking_messages = [
-            "*You hear footsteps...*",
-            "*You're left alone with your thoughts as you wait for the door to open...*",
-            "*The wind howls through the trees...*",
-            "*Does it feel colder out here all of a sudden?*",
-            "*Somewhere inside the house, you hear wood creaking...*",
-            "*You walk up the path to the door and knock...*",
-            "*You knock on the door...*",
-            "*There's a movement in the shadows by the side of the house...*",
-        ]
-        bot_talking = await message.channel.send(random.choice(walking_messages))
-        await asyncio.sleep(random.randint(5, 8))
-        door_messages = [
-            "*The door slowly opens...*",
-            "*The ancient wooden door starts to open...*",
-            "*A light turns on overhead...*",
-            "*You hear a scuffling noise...*",
-            "*There's someone talking inside...*",
-            "*The wind whips around your feet...*",
-            "*A crow caws ominously...*",
-            "*You hear an owl hooting in the distance...*",
-        ]
-        await bot_talking.edit(content=random.choice(door_messages))
-        await asyncio.sleep(random.randint(5, 8))
-        greet_messages = [
-            "Oh, hello. What a cute costume. Here, have some candy.",
-            "Look at that costume. Here you go.",
-            "Out this late at night?",
-            "Here's a little something for you.",
-            "The peppermint ones are my favorite.",
-            "Come back again later if you see the light on still.",
-            "Go ahead, take a few.",
-            "Here you go.",
-            "Aww, look at you. Here, take this.",
-            "Don't eat all those at once!",
-            "Well, I think this is the last of it. Go ahead and take it.",
-            "*I hear the next door neighbors have some pretty good candy too, this year.*",
-        ]
-        await bot_talking.edit(content=random.choice(greet_messages))
-        await asyncio.sleep(2)
-        await message.channel.send(win_message)
