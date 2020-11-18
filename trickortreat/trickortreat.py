@@ -186,10 +186,7 @@ class TrickOrTreat(commands.Cog):
             await self.config.user(ctx.author).lollipops.set(userdata["lollipops"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
 
-        if candy_type in ["
-                          
-                          
-                          ", "star"]:
+        if candy_type in ["stars", "star"]:
             pluralstar = "star" if number == 1 else "stars"
             await ctx.send(
                 f"{random.choice(eat_phrase)} {number} {pluralstar}. You feel great!\n*Sickness has been reset*"
