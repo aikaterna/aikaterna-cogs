@@ -196,6 +196,10 @@ class Tools(commands.Cog):
             channel = ctx.channel
         else:
             channel = self.bot.get_channel(channel)
+
+        if channel is None:
+            return await ctx.send("Not a valid channel.")
+
         if channel:
             guild = channel.guild
 
