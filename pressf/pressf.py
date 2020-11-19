@@ -42,7 +42,7 @@ class PressF(commands.Cog):
             answer = pressf.content[:1900]
 
         message = await ctx.send(
-            f"Everyone, let's pay respects to **{filter_mass_mentions(answer)}**! Press the f reaction on the this message to pay respects."
+            f"Everyone, let's pay respects to **{filter_mass_mentions(answer)}**! Press the f reaction on this message to pay respects."
         )
         await message.add_reaction("\U0001f1eb")
         self.channels[str(ctx.channel.id)] = {"msg_id": message.id, "reacted": []}
