@@ -50,13 +50,8 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("ul", {"class": "css-1ytlws2 et6tpn80"})
-        try:
-            section[1]
-        except IndexError:
-            return
-        spans = section[1].findAll("li")
-        antonyms = [span.text for span in spans[:50]]
+        section = data.find_all("a", {"class": "css-itvgb eh475bn1"})
+        antonyms = [item.text.rstrip() for item in section]
         return antonyms
 
     @commands.command()
@@ -116,13 +111,8 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("ul", {"class": "css-1ytlws2 et6tpn80"})
-        try:
-            section[1]
-        except IndexError:
-            return
-        spans = section[0].findAll("li")
-        synonyms = [span.text for span in spans[:50]]
+        section = data.find_all("a", {"class": "css-1s3v085 eh475bn1"})
+        synonyms = [item.text.rstrip() for item in section]
         return synonyms
 
     @commands.command()
