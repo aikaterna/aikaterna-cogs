@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 plt.switch_backend("agg")
 
-from redbot.core import commands, Config
+from redbot.core import checks, commands, Config
 
 
 class Chatchart(commands.Cog):
@@ -32,8 +32,10 @@ class Chatchart(commands.Cog):
         self.config = Config.get_conf(self, 2766691001, force_registration=True)
 
         default_guild = {"channel_deny": []}
+        default_global = {"limit": 0}
 
         self.config.register_guild(**default_guild)
+        self.config.register_global(**default_global)
 
     @staticmethod
     async def create_chart(top, others, channel):
@@ -104,6 +106,11 @@ class Chatchart(commands.Cog):
         deny = await self.config.guild(ctx.guild).channel_deny()
         if channel.id in deny:
             return await ctx.send(f"I am not allowed to create a chatchart of {channel.mention}.")
+
+        message_limit = await self.config.limit()
+        if (message_limit is not 0) and (messages > message_limit):
+            messages = message_limit
+
         e = discord.Embed(
             description="This might take a while...", colour=await self.bot.get_embed_colour(location=channel)
         )
@@ -188,6 +195,8 @@ class Chatchart(commands.Cog):
             pass
         await ctx.send(file=discord.File(chart, "chart.png"))
 
+    @checks.mod_or_permissions(manage_channels=True)
+    @commands.guild_only()
     @commands.command()
     async def ccdeny(self, ctx, channel: discord.TextChannel):
         """Add a channel to deny chatchart use."""
@@ -197,6 +206,8 @@ class Chatchart(commands.Cog):
         await self.config.guild(ctx.guild).channel_deny.set(channel_list)
         await ctx.send(f"{channel.mention} was added to the deny list for chatchart.")
 
+    @checks.mod_or_permissions(manage_channels=True)
+    @commands.guild_only()
     @commands.command()
     async def ccdenylist(self, ctx):
         """List the channels that are denied."""
@@ -220,6 +231,8 @@ class Chatchart(commands.Cog):
                     msg = no_channels_msg
         await ctx.send(msg)
 
+    @checks.mod_or_permissions(manage_channels=True)
+    @commands.guild_only()
     @commands.command()
     async def ccallow(self, ctx, channel: discord.TextChannel):
         """Remove a channel from the deny list to allow chatchart use."""
@@ -230,3 +243,18 @@ class Chatchart(commands.Cog):
             return await ctx.send("Channel is not on the deny list.")
         await self.config.guild(ctx.guild).channel_deny.set(channel_list)
         await ctx.send(f"{channel.mention} will be allowed for chatchart use.")
+
+    @checks.is_owner()
+    @commands.command()
+    async def cclimit(self, ctx, limit_amount: int = None):
+        """
+        Limit the amount of messages someone can request.
+
+        Use `0` for no limit.
+        """
+        if limit_amount is None:
+            return await ctx.send_help()
+        if limit_amount < 0:
+            return await ctx.send("You need to use a number larger than 0.")
+        await self.config.limit.set(limit_amount)
+        await ctx.send(f"Chatchart is now limited to {limit_amount} messages.")
