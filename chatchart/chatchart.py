@@ -108,7 +108,7 @@ class Chatchart(commands.Cog):
             return await ctx.send(f"I am not allowed to create a chatchart of {channel.mention}.")
 
         message_limit = await self.config.limit()
-        if (message_limit is not 0) and (messages > message_limit):
+        if (message_limit != 0) and (messages > message_limit):
             messages = message_limit
 
         e = discord.Embed(
