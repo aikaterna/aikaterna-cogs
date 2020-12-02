@@ -1,7 +1,7 @@
 {
 	"author": ["aikaterna", "HizkiFW"],
 	"description": "Tic Tac Toe",
-    "install_msg": "Thanks for installing.",
+	"install_msg": "Thanks for installing.",
 	"short": "Tic Tac Toe",
 	"tags": ["game", "games", "tic tac toe", "ttt"],
 	"min_bot_version": "3.4.2",
