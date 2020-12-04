@@ -135,7 +135,8 @@ class Chatchart(commands.Cog):
                         description=f"This might take a while...\n{history_counter}/{messages} messages gathered",
                         colour=await self.bot.get_embed_colour(location=channel),
                     )
-                    await channel.trigger_typing()
+                    if channel.permissions_for(ctx.guild.me).send_messages:
+                        await channel.trigger_typing()
                     try:
                         await em.edit(embed=new_embed)
                     except discord.NotFound:
