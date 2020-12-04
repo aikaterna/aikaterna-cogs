@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 
 
 class RSS(commands.Cog):
@@ -978,6 +978,9 @@ class RSS(commands.Cog):
 
         if not force:
             entry_time = await self._time_tag_validation(sorted_feed_by_post_time[0])
+            if last_time > entry_time:
+                log.debug("Not posting because new entry is older than last saved entry.")
+                return
             await self._update_last_scraped(channel, name, sorted_feed_by_post_time[0].title, sorted_feed_by_post_time[0].link, entry_time)
 
         feedparser_plus_objects = []
