@@ -689,8 +689,6 @@ class Tools(commands.Cog):
 
         data = "```ini\n"
         data += "[Name]:          {}\n".format(cf.escape(str(user)))
-        if user.nick is not None:
-            data += "[Nickname]:      {}\n".format(cf.escape(str(user.nick)))
         data += "[ID]:            {}\n".format(user.id)
         data += "[Status]:        {}\n".format(user.status)
         data += "[Servers]:       {} shared\n".format(seen)
