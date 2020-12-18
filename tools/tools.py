@@ -641,7 +641,7 @@ class Tools(commands.Cog):
         else:
             try:
                 guild = self.bot.get_guild(int(guild))
-            except TypeError:
+            except ValueError:
                 return await ctx.send("Not a valid guild id.")
         online = str(len([m.status for m in guild.members if str(m.status) == "online" or str(m.status) == "idle"]))
         total_users = str(len(guild.members))
