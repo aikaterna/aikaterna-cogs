@@ -668,7 +668,7 @@ class RSS(commands.Cog):
                 try:
                     async with session.get(website_url) as response:
                         soup = BeautifulSoup(await response.text(), "html.parser")
-                except aiohttp.client_exceptions.ClientConnectorError:
+                except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientPayloadError):
                     await ctx.send("I can't reach that website.")
                     return
                 except aiohttp.client_exceptions.InvalidURL:
