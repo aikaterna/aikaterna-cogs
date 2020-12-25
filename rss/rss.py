@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.2"
+__version__ = "1.3.3"
 
 
 class RSS(commands.Cog):
@@ -655,6 +655,51 @@ class RSS(commands.Cog):
             feed_data[feed_name]["embed"] = not embed_toggle
 
         await ctx.send(f"Embeds for {bold(feed_name)} are {toggle_text}.")
+
+    @rss.command(name="find")
+    async def _rss_find(self, ctx, website_url: str):
+        """
+        Attempts to find RSS feeds from a URL/website.
+
+        The site must have identified their feed in the html of the page based on RSS feed type standards.
+        """
+        async with ctx.typing():
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.get(website_url) as response:
+                        soup = BeautifulSoup(await response.text(), "html.parser")
+                except aiohttp.client_exceptions.ClientConnectorError:
+                    await ctx.send("I can't reach that website.")
+                    return
+                except aiohttp.client_exceptions.InvalidURL:
+                    await ctx.send("That seems to be an invalid URL. Use a full website URL like `https://www.site.com/`.")
+                    return
+        if not soup:
+            await ctx.send("I didn't find anything at all on that link.")
+            return
+        msg = ""
+        url_parse = urlparse(website_url)
+        base_url = url_parse.netloc
+        url_scheme = url_parse.scheme
+
+        feed_url_types = ["application/rss+xml", "application/atom+xml", "text/xml", "application/rdf+xml"]
+        for feed_type in feed_url_types:
+            possible_feeds = soup.find_all('link', rel='alternate', type=feed_type, href=True)
+            for feed in possible_feeds:
+                feed_url = feed.get('href', None)
+                if not feed_url:
+                    continue
+                feed_url = feed_url.lstrip("/")
+                if ((not feed_url.startswith(url_scheme)) and (not feed_url.startswith(base_url))):
+                    feed_url = f"{url_scheme}://{base_url}/{feed_url}"
+                if feed_url.startswith(base_url):
+                    feed_url = f"{url_scheme}://{base_url}"
+                msg += f"[Feed Title]: {feed.get('title', None)}\n"
+                msg += f"[Feed URL]: {feed_url}\n\n"
+        if msg:
+            await ctx.send(box(msg, lang="ini"))
+        else:
+            await ctx.send("No RSS feeds found in the link provided.")
 
     @rss.command(name="force")
     async def _rss_force(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
