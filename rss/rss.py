@@ -477,7 +477,7 @@ class RSS(commands.Cog):
         pass
 
     @rss.command(name="add")
-    async def _rss_add(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, url: str):
+    async def _rss_add(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, *, url: str):
         """
         Add an RSS feed to a channel.
 
