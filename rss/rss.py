@@ -477,17 +477,12 @@ class RSS(commands.Cog):
         pass
 
     @rss.command(name="add")
-    async def _rss_add(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, url: str = None):
+    async def _rss_add(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, url: str):
         """
         Add an RSS feed to a channel.
 
         Defaults to the current channel if no channel is specified.
         """
-        no_url = "Invalid or unavailable URL."
-        if not url:
-            await ctx.send(no_url)
-            return
-
         channel = channel or ctx.channel
         channel_permission_check = await self._check_channel_permissions(ctx, channel)
         if not channel_permission_check:
@@ -497,7 +492,7 @@ class RSS(commands.Cog):
         if valid_url:
             await self._add_feed(ctx, feed_name.lower(), channel, url)
         else:
-            await ctx.send(no_url)
+            await ctx.send("Invalid or unavailable URL.")
 
     @rss.group(name="embed")
     async def _rss_embed(self, ctx):
