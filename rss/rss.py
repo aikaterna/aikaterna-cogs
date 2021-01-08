@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.3"
+__version__ = "1.3.4"
 
 
 class RSS(commands.Cog):
