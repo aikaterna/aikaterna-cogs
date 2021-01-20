@@ -1,4 +1,5 @@
-from .warcraftlogs import WarcraftLogs
+from redbot.core.bot import Red
+from .core import WarcraftLogs
 
 __red_end_user_data_statement__ = (
     "This cog stores data provided by users "
@@ -12,5 +13,7 @@ __red_end_user_data_statement__ = (
 )
 
 
-def setup(bot):
-    bot.add_cog(WarcraftLogs(bot))
+async def setup(bot: Red) -> None:
+    cog = WarcraftLogs(bot)
+    await cog._create_client()
+    bot.add_cog(cog)

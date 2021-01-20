@@ -1,10 +1,11 @@
 {
-	"author": ["aikaterna"],
+	"author": ["aikaterna", "Kowlin"],
 	"description": "Check WarcraftLogs for data on players of World of Warcraft Classic.",
-	"install_msg": "Check out [p]help WarcraftLogs and set your WCL API key, available by signing into a WarcraftLogs account on their site and visiting the bottom of your settings page. ",
+	"install_msg": "Check out [p]help WarcraftLogs and set your WCL API key, available by signing into a WarcraftLogs account on their site and visiting the bottom of your settings page.\nThe bot needs Embed Links permissions before the relevant commands will be available for use in this cog.\nThis cog also comes with a font that is included in the bundled data, under the Apache 2.0 License, which can also be found in that bundled data directory.",
 	"short": "WarcraftLogs data for World of Warcraft Classic players.",
 	"tags": ["warcraft"],
+	"permissions": ["embed_links"],
+	"requirements": ["pillow"],
 	"type": "COG",
 	"end_user_data_statement": "This cog stores data provided by users for the express purpose of redisplaying. It does not store user data which was not provided through a command. Users may remove their own content without making a data removal request. This cog does not support data requests, but will respect deletion requests."
-
 }
