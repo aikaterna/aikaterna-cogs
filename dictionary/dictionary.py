@@ -111,7 +111,7 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("a", {"class": "css-ps9i8s et6tpn80"})
+        section = data.find_all("a", {"class": "css-1m14xsh eh475bn1"})
         synonyms = [item.text.rstrip() for item in section]
         return synonyms
 
