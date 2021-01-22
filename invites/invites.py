@@ -7,6 +7,7 @@ from redbot.core import commands, checks, Config
 from redbot.core.utils import chat_formatting as cf
 from redbot.vendored.discord.ext import menus
 
+
 OLD_CODE_RE = re.compile("^[0-9a-zA-Z]{16}$")
 CODE_RE = re.compile("^[0-9a-zA-Z]{6,7}$")
 NEW10_CODE_RE = re.compile("^[0-9a-zA-Z]{10}$")
@@ -15,7 +16,7 @@ NEW8_CODE_RE = re.compile("^[0-9a-zA-Z]{8}$")
 FAILURE_MSG = "That invite doesn't seem to be valid."
 PERM_MSG = "I need the Administrator permission on this guild to view invite information."
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 
 class Invites(commands.Cog):
@@ -70,12 +71,14 @@ class Invites(commands.Cog):
             max_uses = await self.get_invite_max_uses(ctx, inv_object)
             inv_details = f"{i+1}. {inv_object.url} [ {inv_object.uses} uses / {max_uses} max ]\n"
             invite_info += inv_details
-        embed = discord.Embed(title=f"Invite Usage for {ctx.guild.name}", description=invite_info)
-        if not list_all_invites:
-            embed.set_footer(text="Only displaying pinned invites.")
-        else:
-            embed.set_footer(text="Displaying all invites.")
-        await ctx.send(embed=embed)
+
+        for page in cf.pagify(invite_info, delims=["\n"], shorten_by=16):
+            embed = discord.Embed(title=f"Invite Usage for {ctx.guild.name}", description=page)
+            if not list_all_invites:
+                embed.set_footer(text="Only displaying pinned invites.")
+            else:
+                embed.set_footer(text="Displaying all invites.")
+            await ctx.send(embed=embed)
 
     @invites.command(aliases=["listpinned"])
     async def listpin(self, ctx: commands.Context):
