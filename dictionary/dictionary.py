@@ -50,7 +50,7 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("a", {"class": "css-itvgb eh475bn1"})
+        section = data.find_all("a", {"class": "css-1m14xsh eh475bn1"})
         antonyms = [item.text.rstrip() for item in section]
         return antonyms
 
