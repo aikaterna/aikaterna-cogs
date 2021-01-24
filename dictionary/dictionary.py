@@ -39,7 +39,7 @@ class Dictionary(commands.Cog):
         result = await self._antonym(ctx, search_term)
         if not result:
             await ctx.send("This word is not in the dictionary.")
-            return 
+            return
 
         result_text = "*, *".join(result)
         msg = f"Antonyms for **{search_term}**: *{result_text}*"
@@ -50,7 +50,7 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("a", {"class": "css-itvgb eh475bn1"})
+        section = data.find_all("a", {"class": "css-1dcngqk eh475bn1"})
         antonyms = [item.text.rstrip() for item in section]
         return antonyms
 
@@ -111,7 +111,7 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("a", {"class": "css-1s3v085 eh475bn1"})
+        section = data.find_all("a", {"class": "css-1m14xsh eh475bn1"})
         synonyms = [item.text.rstrip() for item in section]
         return synonyms
 
