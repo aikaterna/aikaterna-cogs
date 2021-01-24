@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.4"
+__version__ = "1.3.5"
 
 
 class RSS(commands.Cog):
@@ -662,35 +662,42 @@ class RSS(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(website_url) as response:
-                        soup = BeautifulSoup(await response.text(), "html.parser")
+                        soup = BeautifulSoup(await response.text(errors="replace"), "html.parser")
                 except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientPayloadError):
                     await ctx.send("I can't reach that website.")
                     return
                 except aiohttp.client_exceptions.InvalidURL:
                     await ctx.send("That seems to be an invalid URL. Use a full website URL like `https://www.site.com/`.")
                     return
+        if "403 Forbidden" in soup.get_text():
+            await ctx.send("I received a '403 Forbidden' message while trying to reach that site.")
+            return
         if not soup:
             await ctx.send("I didn't find anything at all on that link.")
             return
+
         msg = ""
         url_parse = urlparse(website_url)
         base_url = url_parse.netloc
         url_scheme = url_parse.scheme
-
         feed_url_types = ["application/rss+xml", "application/atom+xml", "text/xml", "application/rdf+xml"]
         for feed_type in feed_url_types:
             possible_feeds = soup.find_all('link', rel='alternate', type=feed_type, href=True)
             for feed in possible_feeds:
                 feed_url = feed.get('href', None)
+                ls_feed_url = feed_url.lstrip("/")
                 if not feed_url:
                     continue
-                feed_url = feed_url.lstrip("/")
-                if ((not feed_url.startswith(url_scheme)) and (not feed_url.startswith(base_url))):
-                    feed_url = f"{url_scheme}://{base_url}/{feed_url}"
-                if feed_url.startswith(base_url):
-                    feed_url = f"{url_scheme}://{base_url}"
+                if feed_url.startswith("//"):
+                    final_url = f"{url_scheme}:{feed_url}"
+                elif ((not ls_feed_url.startswith(url_scheme)) and (not ls_feed_url.startswith(base_url))):
+                    final_url = f"{url_scheme}://{base_url}/{ls_feed_url}"
+                elif ls_feed_url.startswith(base_url):
+                    final_url = f"{url_scheme}://{base_url}"
+                else:
+                    final_url = feed_url
                 msg += f"[Feed Title]: {feed.get('title', None)}\n"
-                msg += f"[Feed URL]: {feed_url}\n\n"
+                msg += f"[Feed URL]: {final_url}\n\n"
         if msg:
             await ctx.send(box(msg, lang="ini"))
         else:
@@ -751,7 +758,7 @@ class RSS(commands.Cog):
         if not rss_feed:
             await ctx.send("That feed name doesn't exist in this channel.")
             return
-        
+
         async with self.config.channel(channel).feeds() as feed_data:
             feed_data[feed_name]["limit"] = character_limit
 
@@ -915,7 +922,7 @@ class RSS(commands.Cog):
         if not rss_feed:
             await ctx.send("That feed name doesn't exist in this channel.")
             return
-        
+
         async with self.config.channel(channel).feeds() as feed_data:
             allowed_tags = feed_data[feed_name].get("allowed_tags", [])
             if tag.lower() in [x.lower() for x in allowed_tags]:
@@ -958,7 +965,7 @@ class RSS(commands.Cog):
         if not rss_feed:
             await ctx.send("That feed name doesn't exist in this channel.")
             return
-        
+
         async with self.config.channel(channel).feeds() as feed_data:
             allowed_tags = feed_data[feed_name].get("allowed_tags", [])
             try:
