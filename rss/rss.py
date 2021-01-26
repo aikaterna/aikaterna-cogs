@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.5"
+__version__ = "1.3.6"
 
 
 class RSS(commands.Cog):
@@ -144,7 +144,8 @@ class RSS(commands.Cog):
                 except (KeyError, TypeError):
                     pass
 
-                rss_object[f"{tag_name}_plaintext"] = self._add_generic_html_plaintext(soup)
+                if soup:
+                    rss_object[f"{tag_name}_plaintext"] = self._add_generic_html_plaintext(soup)
 
             if tag_content_check == TagType.LIST:
                 tags_list = []
@@ -483,6 +484,12 @@ class RSS(commands.Cog):
 
         Defaults to the current channel if no channel is specified.
         """
+        if feed_name.startswith("<#"):
+            # someone typed a channel name but not a feed name
+            msg = "Try again with a feed name included in the right spot so that you can refer to the feed later.\n"
+            msg += f"Example: `{ctx.prefix}rss add feed_name channel_name feed_url`"
+            await ctx.send(msg)
+            return
         channel = channel or ctx.channel
         channel_permission_check = await self._check_channel_permissions(ctx, channel)
         if not channel_permission_check:
