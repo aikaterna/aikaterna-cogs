@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.6"
+__version__ = "1.3.7"
 
 
 class RSS(commands.Cog):
@@ -182,7 +182,8 @@ class RSS(commands.Cog):
                         try:
                             authors_content_counter += 1
                             name = f"{tag_name}_plaintext{str(authors_content_counter).zfill(2)}"
-                            rss_object[name] = list_item["name"]
+                            tag_content = BeautifulSoup(list_item["name"], "html.parser")
+                            rss_object[name] = tag_content.get_text()
                             rss_object["is_special"].append(name)
                         except KeyError:
                             pass
