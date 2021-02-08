@@ -25,14 +25,14 @@ class Away(commands.Cog):
     async def red_delete_data_for_user(
         self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
     ):
-        await self._away.user_from_id(user_id).clear()
+        await self.config.user_from_id(user_id).clear()
 
     def __init__(self, bot):
         self.bot = bot
-        self._away = Config.get_conf(self, 8423491260, force_registration=True)
-        self._away.register_global(**self.default_global_settings)
-        self._away.register_guild(**self.default_guild_settings)
-        self._away.register_user(**self.default_user_settings)
+        self.config = Config.get_conf(self, 8423491260, force_registration=True)
+        self.config.register_global(**self.default_global_settings)
+        self.config.register_guild(**self.default_guild_settings)
+        self.config.register_user(**self.default_user_settings)
 
     def _draw_play(self, song):
         song_start_time = song.start
@@ -226,25 +226,19 @@ class Away(commands.Cog):
         return False
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        tmp = {}
+    async def on_message(self, message: discord.Message):
         guild = message.guild
-        list_of_guilds_ign = await self._away.ign_servers()
-        if not guild:
+        if not guild or not message.mentions or message.author.bot:
             return
         if not message.channel.permissions_for(guild.me).send_messages:
             return
-        if not message.mentions:
-            return
-        if message.author.bot:
-            return
 
-        bl_members = await self._away.guild(guild).BLACKLISTED_MEMBERS()
+        blocked_guilds = await self.config.ign_servers()
+        guild_config = await self.config.guild(guild).all()
         for author in message.mentions:
-            if (guild.id in list_of_guilds_ign and not await self.is_mod_or_admin(author)) or author.id in bl_members:
+            if (guild.id in blocked_guilds and not await self.is_mod_or_admin(author)) or author.id in guild_config["BLACKLISTED_MEMBERS"]:
                 continue
-            user_data = await self._away.user(author).all()
-            text_only = await self._away.guild(guild).TEXT_ONLY()
+            user_data = await self.config.user(author).all()
             embed_links = message.channel.permissions_for(guild.me).embed_links
 
             away_msg = user_data["MESSAGE"]
@@ -254,10 +248,10 @@ class Away(commands.Cog):
                     away_msg, delete_after = away_msg
                 else:
                     delete_after = None
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, away_msg, "away")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, away_msg, "away")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
@@ -267,10 +261,10 @@ class Away(commands.Cog):
                     idle_msg, delete_after = idle_msg
                 else:
                     delete_after = None
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, idle_msg, "idle")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, idle_msg, "idle")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
@@ -280,10 +274,10 @@ class Away(commands.Cog):
                     dnd_msg, delete_after = dnd_msg
                 else:
                     delete_after = None
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, dnd_msg, "dnd")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, dnd_msg, "dnd")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
@@ -293,20 +287,20 @@ class Away(commands.Cog):
                     offline_msg, delete_after = offline_msg
                 else:
                     delete_after = None
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, offline_msg, "offline")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, offline_msg, "offline")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             streaming_msg = user_data["STREAMING_MESSAGE"]
             if streaming_msg and type(author.activity) is discord.Streaming:
                 streaming_msg, delete_after = streaming_msg
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, streaming_msg, "streaming")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, streaming_msg, "streaming")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
@@ -315,20 +309,20 @@ class Away(commands.Cog):
                 if not stream_status:
                     continue
                 streaming_msg, delete_after = streaming_msg
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, streaming_msg, "streamingcustom")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, streaming_msg, "streamingcustom")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             listening_msg = user_data["LISTENING_MESSAGE"]
             if listening_msg and type(author.activity) is discord.Spotify:
                 listening_msg, delete_after = listening_msg
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, listening_msg, "listening")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, listening_msg, "listening")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
@@ -337,10 +331,10 @@ class Away(commands.Cog):
                 if not listening_status:
                     continue
                 listening_msg, delete_after = listening_msg
-                if embed_links and not text_only:
+                if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, listening_msg, "listeningcustom")
                     await message.channel.send(embed=em, delete_after=delete_after)
-                elif (embed_links and text_only) or not embed_links:
+                elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, listening_msg, "listeningcustom")
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
@@ -349,11 +343,11 @@ class Away(commands.Cog):
                 for game in gaming_msgs:
                     if game in author.activity.name.lower():
                         game_msg, delete_after = gaming_msgs[game]
-                        if embed_links and not text_only:
+                        if embed_links and not guild_config["TEXT_ONLY"]:
                             em = await self.make_embed_message(author, game_msg, "gaming")
                             await message.channel.send(embed=em, delete_after=delete_after)
                             break  # Let's not accidentally post more than one
-                        elif (embed_links and text_only) or not embed_links:
+                        elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                             msg = await self.make_text_message(author, game_msg, "gaming")
                             await message.channel.send(msg, delete_after=delete_after)
                             break
@@ -364,11 +358,11 @@ class Away(commands.Cog):
                 for game in gaming_msgs:
                     if game in game_status[0].name.lower():
                         game_msg, delete_after = gaming_msgs[game]
-                        if embed_links and not text_only:
+                        if embed_links and not guild_config["TEXT_ONLY"]:
                             em = await self.make_embed_message(author, game_msg, "gamingcustom")
                             await message.channel.send(embed=em, delete_after=delete_after)
                             break  # Let's not accidentally post more than one
-                        elif (embed_links and text_only) or not embed_links:
+                        elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                             msg = await self.make_text_message(author, game_msg, "gamingcustom")
                             await message.channel.send(msg, delete_after=delete_after)
                             break
@@ -382,15 +376,15 @@ class Away(commands.Cog):
         `message` The custom message to display when you're mentioned
         """
         author = ctx.message.author
-        mess = await self._away.user(author).MESSAGE()
+        mess = await self.config.user(author).MESSAGE()
         if mess:
-            await self._away.user(author).MESSAGE.set(False)
+            await self.config.user(author).MESSAGE.set(False)
             msg = "You're now back."
         else:
             if message is None:
-                await self._away.user(author).MESSAGE.set((" ", delete_after))
+                await self.config.user(author).MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).MESSAGE.set((message, delete_after))
+                await self.config.user(author).MESSAGE.set((message, delete_after))
             msg = "You're now set as away."
         await ctx.send(msg)
 
@@ -403,15 +397,15 @@ class Away(commands.Cog):
         `message` The custom message to display when you're mentioned
         """
         author = ctx.message.author
-        mess = await self._away.user(author).IDLE_MESSAGE()
+        mess = await self.config.user(author).IDLE_MESSAGE()
         if mess:
-            await self._away.user(author).IDLE_MESSAGE.set(False)
+            await self.config.user(author).IDLE_MESSAGE.set(False)
             msg = "The bot will no longer reply for you when you're idle."
         else:
             if message is None:
-                await self._away.user(author).IDLE_MESSAGE.set((" ", delete_after))
+                await self.config.user(author).IDLE_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).IDLE_MESSAGE.set((message, delete_after))
+                await self.config.user(author).IDLE_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're idle."
         await ctx.send(msg)
 
@@ -424,15 +418,15 @@ class Away(commands.Cog):
         `message` The custom message to display when you're mentioned
         """
         author = ctx.message.author
-        mess = await self._away.user(author).OFFLINE_MESSAGE()
+        mess = await self.config.user(author).OFFLINE_MESSAGE()
         if mess:
-            await self._away.user(author).OFFLINE_MESSAGE.set(False)
+            await self.config.user(author).OFFLINE_MESSAGE.set(False)
             msg = "The bot will no longer reply for you when you're offline."
         else:
             if message is None:
-                await self._away.user(author).OFFLINE_MESSAGE.set((" ", delete_after))
+                await self.config.user(author).OFFLINE_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).OFFLINE_MESSAGE.set((message, delete_after))
+                await self.config.user(author).OFFLINE_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're offline."
         await ctx.send(msg)
 
@@ -445,15 +439,15 @@ class Away(commands.Cog):
         `message` The custom message to display when you're mentioned
         """
         author = ctx.message.author
-        mess = await self._away.user(author).DND_MESSAGE()
+        mess = await self.config.user(author).DND_MESSAGE()
         if mess:
-            await self._away.user(author).DND_MESSAGE.set(False)
+            await self.config.user(author).DND_MESSAGE.set(False)
             msg = "The bot will no longer reply for you when you're set to do not disturb."
         else:
             if message is None:
-                await self._away.user(author).DND_MESSAGE.set((" ", delete_after))
+                await self.config.user(author).DND_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).DND_MESSAGE.set((message, delete_after))
+                await self.config.user(author).DND_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're set to do not disturb."
         await ctx.send(msg)
 
@@ -466,15 +460,15 @@ class Away(commands.Cog):
         `message` The custom message to display when you're mentioned
         """
         author = ctx.message.author
-        mess = await self._away.user(author).STREAMING_MESSAGE()
+        mess = await self.config.user(author).STREAMING_MESSAGE()
         if mess:
-            await self._away.user(author).STREAMING_MESSAGE.set(False)
+            await self.config.user(author).STREAMING_MESSAGE.set(False)
             msg = "The bot will no longer reply for you when you're mentioned while streaming."
         else:
             if message is None:
-                await self._away.user(author).STREAMING_MESSAGE.set((" ", delete_after))
+                await self.config.user(author).STREAMING_MESSAGE.set((" ", delete_after))
             else:
-                await self._away.user(author).STREAMING_MESSAGE.set((message, delete_after))
+                await self.config.user(author).STREAMING_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're mentioned while streaming."
         await ctx.send(msg)
 
@@ -487,12 +481,12 @@ class Away(commands.Cog):
         `message` The custom message to display when you're mentioned
         """
         author = ctx.message.author
-        mess = await self._away.user(author).LISTENING_MESSAGE()
+        mess = await self.config.user(author).LISTENING_MESSAGE()
         if mess:
-            await self._away.user(author).LISTENING_MESSAGE.set(False)
+            await self.config.user(author).LISTENING_MESSAGE.set(False)
             msg = "The bot will no longer reply for you when you're mentioned while listening to Spotify."
         else:
-            await self._away.user(author).LISTENING_MESSAGE.set((message, delete_after))
+            await self.config.user(author).LISTENING_MESSAGE.set((message, delete_after))
             msg = "The bot will now reply for you when you're mentioned while listening to Spotify."
         await ctx.send(msg)
 
@@ -508,17 +502,17 @@ class Away(commands.Cog):
         Use "double quotes" around a game's name if it is more than one word.
         """
         author = ctx.message.author
-        mess = await self._away.user(author).GAME_MESSAGE()
+        mess = await self.config.user(author).GAME_MESSAGE()
         if game.lower() in mess:
             del mess[game.lower()]
-            await self._away.user(author).GAME_MESSAGE.set(mess)
+            await self.config.user(author).GAME_MESSAGE.set(mess)
             msg = f"The bot will no longer reply for you when you're playing {game}."
         else:
             if message is None:
                 mess[game.lower()] = (" ", delete_after)
             else:
                 mess[game.lower()] = (message, delete_after)
-            await self._away.user(author).GAME_MESSAGE.set(mess)
+            await self.config.user(author).GAME_MESSAGE.set(mess)
             msg = f"The bot will now reply for you when you're playing {game}."
         await ctx.send(msg)
 
@@ -532,27 +526,27 @@ class Away(commands.Cog):
         """
         guild = ctx.message.guild
         if member:
-            bl_mems = await self._away.guild(guild).BLACKLISTED_MEMBERS()
+            bl_mems = await self.config.guild(guild).BLACKLISTED_MEMBERS()
             if member.id not in bl_mems:
                 bl_mems.append(member.id)
-                await self._away.guild(guild).BLACKLISTED_MEMBERS.set(bl_mems)
+                await self.config.guild(guild).BLACKLISTED_MEMBERS.set(bl_mems)
                 msg = f"Away messages will not appear when {member.display_name} is mentioned in this guild."
                 await ctx.send(msg)
             elif member.id in bl_mems:
                 bl_mems.remove(member.id)
-                await self._away.guild(guild).BLACKLISTED_MEMBERS.set(bl_mems)
+                await self.config.guild(guild).BLACKLISTED_MEMBERS.set(bl_mems)
                 msg = f"Away messages will appear when {member.display_name} is mentioned in this guild."
                 await ctx.send(msg)
             return
-        if guild.id in (await self._away.ign_servers()):
-            guilds = await self._away.ign_servers()
+        if guild.id in (await self.config.ign_servers()):
+            guilds = await self.config.ign_servers()
             guilds.remove(guild.id)
-            await self._away.ign_servers.set(guilds)
+            await self.config.ign_servers.set(guilds)
             message = "Not ignoring this guild anymore."
         else:
-            guilds = await self._away.ign_servers()
+            guilds = await self.config.ign_servers()
             guilds.append(guild.id)
-            await self._away.ign_servers.set(guilds)
+            await self.config.ign_servers.set(guilds)
             message = "Ignoring this guild."
         await ctx.send(message)
 
@@ -564,14 +558,14 @@ class Away(commands.Cog):
 
         This overrides the embed_links check this cog uses for message sending.
         """
-        text_only = await self._away.guild(ctx.guild).TEXT_ONLY()
+        text_only = await self.config.guild(ctx.guild).TEXT_ONLY()
         if text_only:
             message = "Away messages will now be embedded or text only based on the bot's permissions for embed links."
         else:
             message = (
                 "Away messages are now forced to be text only, regardless of the bot's permissions for embed links."
             )
-        await self._away.guild(ctx.guild).TEXT_ONLY.set(not text_only)
+        await self.config.guild(ctx.guild).TEXT_ONLY.set(not text_only)
         await ctx.send(message)
 
     @commands.command(name="awaysettings", aliases=["awayset"])
@@ -587,7 +581,7 @@ class Away(commands.Cog):
             "LISTENING_MESSAGE": "Listening",
             "STREAMING_MESSAGE": "Streaming",
         }
-        settings = await self._away.user(author).get_raw()
+        settings = await self.config.user(author).get_raw()
         for attr, name in data.items():
             if type(settings[attr]) in [tuple, list]:
                 # This is just to keep backwards compatibility
