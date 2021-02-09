@@ -67,6 +67,8 @@ tools - A collection of mod and admin tools, ported from my v2 version. Sitryk i
 
 ttt - A Tic Tac Toe cog originally for Red V2 by HizikiFW. This cog is licensed under the Apache-2.0 license.
 
+urlfetch - Fetch text from a URL. Mainly used for simple text API queries (not JSON).
+
 warcraftlogs - Fetch player info/metrics from the WarcraftLogs API for World of Warcraft Classic. Does not provide stats for non-Classic characters.
 
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
