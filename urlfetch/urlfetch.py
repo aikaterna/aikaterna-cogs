@@ -9,7 +9,7 @@ from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 log = logging.getLogger("red.aikaterna.urlfetch")
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 class UrlFetch(commands.Cog):
@@ -44,10 +44,10 @@ class UrlFetch(commands.Cog):
                     text = await resp.text()
             return text
         except aiohttp.client_exceptions.ClientConnectorError:
-            log.error(f"aiohttp failure accessing feed at url:\n\t{url}", exc_info=True)
+            log.error(f"aiohttp failure accessing site at url:\n\t{url}", exc_info=True)
             return None
         except Exception:
-            log.error(f"General failure accessing feed at url:\n\t{url}", exc_info=True)
+            log.error(f"General failure accessing site at url:\n\t{url}", exc_info=True)
             return None
 
     async def _valid_url(self, ctx, url: str):
@@ -55,16 +55,16 @@ class UrlFetch(commands.Cog):
             result = urlparse(url)
         except Exception as e:
             log.exception(e, exc_info=e)
-            await ctx.send("There was an issue trying to fetch that feed. Please check your console for the error.")
+            await ctx.send("There was an issue trying to fetch that site. Please check your console for the error.")
             return None
 
         if all([result.scheme, result.netloc, result.path]):
             text = await self._get_url_content(url)
             if not text:
-                await ctx.send(f"No text present at: {url}")
+                await ctx.send("No text present at the given url.")
                 return None
             else:
                 return text
         else:
-            await ctx.send(f"Url seems to be incomplete: {url}")
+            await ctx.send(f"That url seems to be incomplete.")
             return None
