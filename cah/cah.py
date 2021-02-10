@@ -1119,7 +1119,9 @@ class CardsAgainstHumanity(commands.Cog):
         task = self.bot.loop.create_task(self.checkCards(ctx, newGame))
         self.games.append(newGame)
         # Tell the user they created a new game and list its ID
-        await ctx.send(f"You created game id: *{gameID}*")
+        msg = f"{ctx.author.name} created a Cards Against Humanity game with ID#: **{gameID}**\n"
+        msg += f"To join the game, type `{ctx.prefix}joincah {gameID}`"
+        await ctx.send(msg)
         await self.drawCards(ctx.author)
         # await self.showHand(ctx, ctx.author)
         # await self.nextPlay(ctx, newGame)
