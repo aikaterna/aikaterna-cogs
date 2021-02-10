@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.3.7"
+__version__ = "1.3.8"
 
 
 class RSS(commands.Cog):
@@ -41,6 +41,8 @@ class RSS(commands.Cog):
         self._post_queue_size = None
 
         self._read_feeds_loop = None
+
+        self._headers = {'User-Agent': 'Python/3.8'}
 
     def initialize(self):
         self._read_feeds_loop = self.bot.loop.create_task(self.read_feeds())
@@ -324,12 +326,16 @@ class RSS(commands.Cog):
     async def _get_url_content(self, url):
         """Helper for rss add/_valid_url."""
         try:
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=20)
+            async with aiohttp.ClientSession(headers=self._headers, timeout=timeout) as session:
                 async with session.get(url) as resp:
                     html = await resp.read()
             return html
         except aiohttp.client_exceptions.ClientConnectorError:
             log.error(f"aiohttp failure accessing feed at url:\n\t{url}", exc_info=True)
+            return None
+        except asyncio.exceptions.TimeoutError:
+            log.error(f"asyncio timeout while accessing feed at url:\n\t{url}")
             return None
         except Exception:
             log.error(f"General failure accessing feed at url:\n\t{url}", exc_info=True)
@@ -459,13 +465,17 @@ class RSS(commands.Cog):
     async def _validate_image(self, url: str):
         """Helper for _get_current_feed_embed."""
         try:
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=20)
+            async with aiohttp.ClientSession(headers=self._headers, timeout=timeout) as session:
                 async with session.get(url) as resp:
                     image = await resp.read()
             img = io.BytesIO(image)
             image_test = imghdr.what(img)
             return image_test
         except aiohttp.client_exceptions.InvalidURL:
+            return None
+        except asyncio.exceptions.TimeoutError:
+            log.error(f"asyncio timeout while accessing image at url:\n\t{url}", exc_info=True)
             return None
         except Exception:
             log.error(f"Failure accessing image in embed feed at url:\n\t{url}", exc_info=True)
@@ -496,11 +506,12 @@ class RSS(commands.Cog):
         if not channel_permission_check:
             return
 
-        valid_url = await self._valid_url(url)
-        if valid_url:
-            await self._add_feed(ctx, feed_name.lower(), channel, url)
-        else:
-            await ctx.send("Invalid or unavailable URL.")
+        async with ctx.typing():
+            valid_url = await self._valid_url(url)
+            if valid_url:
+                await self._add_feed(ctx, feed_name.lower(), channel, url)
+            else:
+                await ctx.send("Invalid or unavailable URL.")
 
     @rss.group(name="embed")
     async def _rss_embed(self, ctx):
@@ -667,7 +678,8 @@ class RSS(commands.Cog):
         The site must have identified their feed in the html of the page based on RSS feed type standards.
         """
         async with ctx.typing():
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=20)
+            async with aiohttp.ClientSession(headers=self._headers, timeout=timeout) as session:
                 try:
                     async with session.get(website_url) as response:
                         soup = BeautifulSoup(await response.text(errors="replace"), "html.parser")
@@ -677,6 +689,10 @@ class RSS(commands.Cog):
                 except aiohttp.client_exceptions.InvalidURL:
                     await ctx.send("That seems to be an invalid URL. Use a full website URL like `https://www.site.com/`.")
                     return
+                except asyncio.exceptions.TimeoutError:
+                    await ctx.send("The site didn't respond in time or there was no response.")
+                    return
+
         if "403 Forbidden" in soup.get_text():
             await ctx.send("I received a '403 Forbidden' message while trying to reach that site.")
             return
