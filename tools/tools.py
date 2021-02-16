@@ -768,7 +768,7 @@ class Tools(commands.Cog):
         try:
             date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
         except ValueError:
-            member_created_at = f"{str(member.created_at)}.0"
+            time = f"{str(time)}.0"
             date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
         date_now = datetime.datetime.now(datetime.timezone.utc)
         date_now = date_now.replace(tzinfo=None)
