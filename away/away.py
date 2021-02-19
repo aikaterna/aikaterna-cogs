@@ -242,6 +242,11 @@ class Away(commands.Cog):
             embed_links = message.channel.permissions_for(guild.me).embed_links
 
             away_msg = user_data["MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if away_msg[1] < 5:
+                await self.config.user(author).MESSAGE.set((away_msg[0], 5))
+                away_msg = away_msg[0], 5
+
             if away_msg:
                 if type(away_msg) in [tuple, list]:
                     # This is just to keep backwards compatibility
@@ -256,6 +261,10 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             idle_msg = user_data["IDLE_MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if idle_msg[1] < 5:
+                await self.config.user(author).IDLE_MESSAGE.set((idle_msg[0], 5))
+                idle_msg = idle_msg[0], 5
             if idle_msg and author.status == discord.Status.idle:
                 if type(idle_msg) in [tuple, list]:
                     idle_msg, delete_after = idle_msg
@@ -269,6 +278,10 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             dnd_msg = user_data["DND_MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if dnd_msg[1] < 5:
+                await self.config.user(author).DND_MESSAGE.set((dnd_msg[0], 5))
+                dnd_msg = dnd_msg[0], 5
             if dnd_msg and author.status == discord.Status.dnd:
                 if type(dnd_msg) in [tuple, list]:
                     dnd_msg, delete_after = dnd_msg
@@ -282,6 +295,10 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             offline_msg = user_data["OFFLINE_MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if offline_msg[1] < 5:
+                await self.config.user(author).OFFLINE_MESSAGE.set((offline_msg[0], 5))
+                offline_msg = offline_msg[0], 5
             if offline_msg and author.status == discord.Status.offline:
                 if type(offline_msg) in [tuple, list]:
                     offline_msg, delete_after = offline_msg
@@ -295,6 +312,10 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             streaming_msg = user_data["STREAMING_MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if streaming_msg[1] < 5:
+                await self.config.user(author).STREAMING_MESSAGE.set((streaming_msg[0], 5))
+                streaming_msg = streaming_msg[0], 5
             if streaming_msg and type(author.activity) is discord.Streaming:
                 streaming_msg, delete_after = streaming_msg
                 if embed_links and not guild_config["TEXT_ONLY"]:
@@ -317,6 +338,10 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             listening_msg = user_data["LISTENING_MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if listening_msg[1] < 5:
+                await self.config.user(author).LISTENING_MESSAGE.set((listening_msg[0], 5))
+                listening_msg = listening_msg[0], 5
             if listening_msg and type(author.activity) is discord.Spotify:
                 listening_msg, delete_after = listening_msg
                 if embed_links and not guild_config["TEXT_ONLY"]:
@@ -339,6 +364,10 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             gaming_msgs = user_data["GAME_MESSAGE"]
+            # Convert possible `delete_after` of < 5s of before PR#206
+            if gaming_msgs[1] < 5:
+                await self.config.user(author).GAME_MESSAGE.set((gaming_msgs[0], 5))
+                gaming_msgs = gaming_msgs[0], 5
             if gaming_msgs and type(author.activity) in [discord.Game, discord.Activity]:
                 for game in gaming_msgs:
                     if game in author.activity.name.lower():
@@ -372,9 +401,12 @@ class Away(commands.Cog):
         """
         Tell the bot you're away or back.
 
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).MESSAGE()
         if mess:
@@ -393,9 +425,12 @@ class Away(commands.Cog):
         """
         Set an automatic reply when you're idle.
 
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).IDLE_MESSAGE()
         if mess:
@@ -414,9 +449,12 @@ class Away(commands.Cog):
         """
         Set an automatic reply when you're offline.
 
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).OFFLINE_MESSAGE()
         if mess:
@@ -435,9 +473,12 @@ class Away(commands.Cog):
         """
         Set an automatic reply when you're dnd.
 
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).DND_MESSAGE()
         if mess:
@@ -456,9 +497,12 @@ class Away(commands.Cog):
         """
         Set an automatic reply when you're streaming.
 
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).STREAMING_MESSAGE()
         if mess:
@@ -477,9 +521,12 @@ class Away(commands.Cog):
         """
         Set an automatic reply when you're listening to Spotify.
 
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).LISTENING_MESSAGE()
         if mess:
@@ -496,11 +543,14 @@ class Away(commands.Cog):
         Set an automatic reply when you're playing a specified game.
 
         `game` The game you would like automatic responses for
-        `delete_after` Optional seconds to delete the automatic reply
+        `delete_after` Optional seconds to delete the automatic reply. Must be minimum 5 seconds
         `message` The custom message to display when you're mentioned
 
         Use "double quotes" around a game's name if it is more than one word.
         """
+        if delete_after < 5:
+            return await ctx.send("Please set a time longer than 5 seconds for the `delete_after` argument")
+
         author = ctx.message.author
         mess = await self.config.user(author).GAME_MESSAGE()
         if game.lower() in mess:
