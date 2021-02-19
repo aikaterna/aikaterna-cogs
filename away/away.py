@@ -242,7 +242,7 @@ class Away(commands.Cog):
             embed_links = message.channel.permissions_for(guild.me).embed_links
 
             away_msg = user_data["MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if away_msg[1] < 5:
                 await self.config.user(author).MESSAGE.set((away_msg[0], 5))
                 away_msg = away_msg[0], 5
@@ -261,7 +261,7 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             idle_msg = user_data["IDLE_MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if idle_msg[1] < 5:
                 await self.config.user(author).IDLE_MESSAGE.set((idle_msg[0], 5))
                 idle_msg = idle_msg[0], 5
@@ -278,7 +278,7 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             dnd_msg = user_data["DND_MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if dnd_msg[1] < 5:
                 await self.config.user(author).DND_MESSAGE.set((dnd_msg[0], 5))
                 dnd_msg = dnd_msg[0], 5
@@ -295,7 +295,7 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             offline_msg = user_data["OFFLINE_MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if offline_msg[1] < 5:
                 await self.config.user(author).OFFLINE_MESSAGE.set((offline_msg[0], 5))
                 offline_msg = offline_msg[0], 5
@@ -312,7 +312,7 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             streaming_msg = user_data["STREAMING_MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if streaming_msg[1] < 5:
                 await self.config.user(author).STREAMING_MESSAGE.set((streaming_msg[0], 5))
                 streaming_msg = streaming_msg[0], 5
@@ -338,7 +338,7 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             listening_msg = user_data["LISTENING_MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if listening_msg[1] < 5:
                 await self.config.user(author).LISTENING_MESSAGE.set((listening_msg[0], 5))
                 listening_msg = listening_msg[0], 5
@@ -364,7 +364,7 @@ class Away(commands.Cog):
                     await message.channel.send(msg, delete_after=delete_after)
                 continue
             gaming_msgs = user_data["GAME_MESSAGE"]
-            # Convert possible `delete_after` of < 5s of before PR#206
+            # Convert possible `delete_after` of < 5s of before PR#210
             if gaming_msgs[1] < 5:
                 await self.config.user(author).GAME_MESSAGE.set((gaming_msgs[0], 5))
                 gaming_msgs = gaming_msgs[0], 5
