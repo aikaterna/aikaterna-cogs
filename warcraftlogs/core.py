@@ -144,13 +144,15 @@ class WarcraftLogs(commands.Cog):
 
         if len(char_data["encounterRankings"]["ranks"]) != 0:
             # Ensure this is the encounter that has gear listed. IF its not, we're moving on with the other encounters.
-            gear = char_data["encounterRankings"]["ranks"][0]["gear"]
+            sorted_by_time = sorted(char_data["encounterRankings"]["ranks"], key=lambda k: k['report']['startTime'], reverse=True) 
+            gear = sorted_by_time[0]["gear"]
         else:
             encounters["ids"].remove(encounters["latest"])
             for encounter in encounters["ids"]:
                 char_data = await self.http.get_gear(name, realm, region, encounter)
                 if len(char_data["encounterRankings"]["ranks"]) != 0:
-                    gear = char_data["encounterRankings"]["ranks"][0]["gear"]
+                    sorted_by_time = sorted(char_data["encounterRankings"]["ranks"], key=lambda k: k['report']['startTime'], reverse=True) 
+                    gear = sorted_by_time[0]["gear"]
                     break
 
         if gear is None:
@@ -194,7 +196,7 @@ class WarcraftLogs(commands.Cog):
         # embed
         embed = discord.Embed()
         title = f"{name.title()} - {realm.title()} ({region.upper()})"
-        guild_name = char_data["encounterRankings"]["ranks"][0]["guild"].get("name", None)
+        guild_name = sorted_by_time[0]["guild"].get("name", None)
         if guild_name:
             title += f"\n{guild_name}"
         embed.title = title
@@ -202,11 +204,11 @@ class WarcraftLogs(commands.Cog):
 
         # embed footer
         ilvl = f"Average Item Level: {avg_ilevel}\n"
-        encounter_spec = char_data["encounterRankings"]["ranks"][0].get("spec", None)
+        encounter_spec = sorted_by_time[0].get("spec", None)
         spec = f"Encounter spec: {encounter_spec}\n"
-        gear = f'Gear data pulled from {WCL_URL.format(char_data["encounterRankings"]["ranks"][0]["report"]["code"])}\n'
-        log = f'Log Date/Time: {self._time_convert(char_data["encounterRankings"]["ranks"][0]["startTime"])} UTC'
-        embed.set_footer(text=f"{spec}{ilvl}{gear}{log}")
+        gear_data = f'Gear data pulled from {WCL_URL.format(sorted_by_time[0]["report"]["code"])}\n'
+        log = f'Log Date/Time: {self._time_convert(sorted_by_time[0]["startTime"])} UTC'
+        embed.set_footer(text=f"{spec}{ilvl}{gear_data}{log}")
 
         await ctx.send(embed=embed)
 
