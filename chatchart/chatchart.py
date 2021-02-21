@@ -151,10 +151,10 @@ class Chatchart(commands.Cog):
 
         msg_data = {"total count": 0, "users": {}}
         for msg in history:
-            if len(msg.author.display_name) >= 20:
-                short_name = "{}...".format(msg.author.display_name[:20]).replace("$", "\\$")
+            if len(msg.author.name) >= 20:
+                short_name = "{}...".format(msg.author.name[:20]).replace("$", "\\$")
             else:
-                short_name = msg.author.display_name.replace("$", "\\$").replace("_", "\\_ ").replace("*", "\\*")
+                short_name = msg.author.name.replace("$", "\\$").replace("_", "\\_ ").replace("*", "\\*")
             whole_name = "{}#{}".format(short_name, msg.author.discriminator)
             if msg.author.bot:
                 pass
