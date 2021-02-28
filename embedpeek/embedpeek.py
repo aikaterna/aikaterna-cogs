@@ -73,6 +73,7 @@ class EmbedPeek(commands.Cog):
                     msg += "\n"
             elif isinstance(v, dict):
                 msg += self._dict_cleaner(v)
+                msg += "\n"
             else:
                 msg += f"{str(v)}\n\n"
 
