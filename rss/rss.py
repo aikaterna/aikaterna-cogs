@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 
 class RSS(commands.Cog):
@@ -36,6 +36,7 @@ class RSS(commands.Cog):
 
         self.config = Config.get_conf(self, 2761331001, force_registration=True)
         self.config.register_channel(feeds={})
+        self.config.register_global(use_published=["www.youtube.com"])
 
         self._post_queue = asyncio.PriorityQueue()
         self._post_queue_size = None
@@ -287,6 +288,28 @@ class RSS(commands.Cog):
                 return True
         return False
 
+    @staticmethod
+    def _find_website(website_url: str):
+        """Helper for rss parse."""
+        result = urlparse(website_url)
+        if result.scheme:
+            # https://www.website.com/...
+            if result.netloc:
+                website = result.netloc
+            else:
+                return None
+        else:
+            # www.website.com/...
+            if result.path:
+                website = result.path.split("/")[0]
+            else:
+                return None
+
+        if len(website.split(".")) < 3:
+            return None
+
+        return website
+
     def _get_channel_object(self, channel_id: int):
         """Helper for rss feed loop."""
         channel = self.bot.get_channel(channel_id)
@@ -424,9 +447,22 @@ class RSS(commands.Cog):
 
     async def _time_tag_validation(self, entry: feedparser.util.FeedParserDict):
         """Gets a unix timestamp if it's available from a single feedparser post entry."""
-        entry_time = entry.get("updated_parsed", None)
-        if not entry_time:
+        feed_link = entry.get("link", None)
+        if feed_link:
+            base_url = urlparse(feed_link).netloc
+        else:
+            return None
+
+        # check for a feed time override, if a feed is being problematic regarding updated_parsed
+        # usage (i.e. a feed entry keeps reposting with no perceived change in content)
+        use_published_parsed_override = await self.config.use_published()
+        if base_url in use_published_parsed_override:
             entry_time = entry.get("published_parsed", None)
+        else:
+            entry_time = entry.get("updated_parsed", None)
+            if not entry_time:
+                entry_time = entry.get("published_parsed", None)
+
         if isinstance(entry_time, time.struct_time):
             entry_time = time.mktime(entry_time)
         if entry_time:
@@ -890,6 +926,74 @@ class RSS(commands.Cog):
 
         await ctx.send(box(msg, lang="ini"))
 
+    @checks.is_owner()
+    @rss.group(name="parse")
+    async def _rss_parse(self, ctx):
+        """
+        Change feed parsing for a specfic domain.
+
+        This is a global change per website.
+        The default is to use the feed's updated_parsed tag, and adding a website to this list will change the check to published_parsed.
+
+        Some feeds may spam feed entries as they are updating the updated_parsed slot on their feed, but not updating feed content.
+        In this case we can force specific sites to use the published_parsed slot instead by adding the website to this override list.
+        """
+        pass
+
+    @_rss_parse.command(name="add")
+    async def _rss_parse_add(self, ctx, website_url: str):
+        """
+        Add a website to the list for a time parsing override.
+
+        Use a website link formatted like `www.website.com` or `https://www.website.com`.
+        For more information, use `[p]help rss parse`.
+        """
+        website = self._find_website(website_url)
+        if not website:
+            msg = f"I can't seem to find a website in `{website_url}`. "
+            msg += "Use something like `https://www.website.com/` or `www.website.com`."
+            await ctx.send(msg)
+            return
+
+        override_list = await self.config.use_published()
+        if website in override_list:
+            await ctx.send(f"`{website}` is already in the parsing override list.")
+        else:
+            override_list.append(website)
+            await self.config.use_published.set(override_list)
+            await ctx.send(f"`{website}` was added to the parsing override list.")
+
+    @_rss_parse.command(name="list")
+    async def _rss_parse_list(self, ctx):
+        """
+        Show the list for time parsing overrides.
+
+        For more information, use `[p]help rss parse`.
+        """
+        override_list = await self.config.use_published()
+        if not override_list:
+            msg = "No site overrides saved."
+        else:
+            msg = "Active for:\n" + '\n'.join(override_list)
+        await ctx.send(box(msg))
+
+    @_rss_parse.command(name="remove", aliases=["delete", "del"])
+    async def _rss_parse_remove(self, ctx, website_url: str = None):
+        """
+        Remove a website from the list for a time parsing override.
+
+        Use a website link formatted like `www.website.com` or `https://www.website.com`.
+        For more information, use `[p]help rss parse`.
+        """
+        website = self._find_website(website_url)
+        override_list = await self.config.use_published()
+        if website in override_list:
+            override_list.remove(website)
+            await self.config.use_published.set(override_list)
+            await ctx.send(f"`{website}` was removed from the parsing override list.")
+        else:
+            await ctx.send(f"`{website}` isn't in the parsing override list.")
+
     @rss.command(name="remove", aliases=["delete", "del"])
     async def _rss_remove(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
         """
@@ -1114,20 +1218,19 @@ class RSS(commands.Cog):
                 feedparser_plus_objects.append(feedparser_plus_obj)
                 break
 
-            # now that we are sorting by/saving updated_parsed instead of published_parsed (rss 1.4.0+)
-            # we can post an update for a post that already exists and has already been posted.
-            # this will only work for rss sites that are single-use like cloudflare status, discord status, etc
-            # where an update on the last post should be posted
-            # for checking every post in every feed for updated posts, each entry in an rss feed would need 
-            # to be saved instead of just the last one.
-            elif (last_title == entry.title) and (last_link == entry.link) and (entry_time > last_time):
-                log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
-                feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
-                feedparser_plus_objects.append(feedparser_plus_obj)
-
             # if this feed has a published_parsed or an updated_parsed tag, it will use
             # that time value present in entry_time to verify that the post is new.
             elif (entry_time and last_time) is not None:
+                # now that we are sorting by/saving updated_parsed instead of published_parsed (rss 1.4.0+)
+                # we can post an update for a post that already exists and has already been posted.
+                # this will only work for rss sites that are single-use like cloudflare status, discord status, etc
+                # where an update on the last post should be posted
+                # this can be overridden by a bot owner in the rss parse command, per problematic website
+                if (last_title == entry.title) and (last_link == entry.link) and (entry_time > last_time):
+                    log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
+                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                    feedparser_plus_objects.append(feedparser_plus_obj)
+                # regular feed qualification after this
                 if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
                     log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
