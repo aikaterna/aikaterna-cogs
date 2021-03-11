@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 
 class RSS(commands.Cog):
@@ -666,6 +666,17 @@ class RSS(commands.Cog):
         if image_tag_name is not None:
             if image_tag_name.startswith("$"):
                 image_tag_name = image_tag_name.strip("$")
+            else:
+                msg = "You must use a feed tag for this setting. "
+                msg += f"Feed tags start with `$` and can be found by using `{ctx.prefix}rss listtags` "
+                msg += "with the saved feed name.\nImages that are scraped from feed content are usually "
+                msg += "stored under the tags styled similar to `$content_image01`: subsequent scraped images "
+                msg += "will be in tags named `$content_image02`, `$content_image03`, etc. Not every feed entry "
+                msg += "will have the same amount of scraped image tags. Images can also be found under tags named "
+                msg += "`$media_content_plaintext`, if present.\nExperiment with tags by setting them as your "
+                msg += f"template with `{ctx.prefix}rss template` and using `{ctx.prefix}rss force` to view the content."
+                await ctx.send(msg)
+                return
 
         async with self.config.channel(channel).feeds() as feed_data:
             feed_data[feed_name]["embed_image"] = image_tag_name
@@ -702,6 +713,17 @@ class RSS(commands.Cog):
         if thumbnail_tag_name is not None:
             if thumbnail_tag_name.startswith("$"):
                 thumbnail_tag_name = thumbnail_tag_name.strip("$")
+            else:
+                msg = "You must use a feed tag for this setting. "
+                msg += f"Feed tags start with `$` and can be found by using `{ctx.prefix}rss listtags` "
+                msg += "with the saved feed name.\nImages that are scraped from feed content are usually "
+                msg += "stored under the tags styled similar to `$content_image01`: subsequent scraped images "
+                msg += "will be in tags named `$content_image02`, `$content_image03`, etc. Not every feed entry "
+                msg += "will have the same amount of scraped image tags. Images can also be found under tags named "
+                msg += "`$media_content_plaintext`, if present.\nExperiment with tags by setting them as your "
+                msg += f"template with `{ctx.prefix}rss template` and using `{ctx.prefix}rss force` to view the content."
+                await ctx.send(msg)
+                return
 
         async with self.config.channel(channel).feeds() as feed_data:
             feed_data[feed_name]["embed_thumbnail"] = thumbnail_tag_name
