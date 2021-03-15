@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 
 
 class RSS(commands.Cog):
@@ -315,7 +315,7 @@ class RSS(commands.Cog):
         channel = self.bot.get_channel(channel_id)
         if not channel:
             try:
-                channel = self.bot.fetch_channel(channel_id)
+                channel = await self.bot.fetch_channel(channel_id)
             except (discord.errors.Forbidden, discord.errors.NotFound):
                 return None
         if channel and channel.permissions_for(channel.guild.me).send_messages:
