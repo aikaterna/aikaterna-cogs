@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.4.3"
+__version__ = "1.4.4"
 
 
 class RSS(commands.Cog):
@@ -310,7 +310,7 @@ class RSS(commands.Cog):
 
         return website
 
-    def _get_channel_object(self, channel_id: int):
+    async def _get_channel_object(self, channel_id: int):
         """Helper for rss feed loop."""
         channel = self.bot.get_channel(channel_id)
         if not channel:
@@ -1504,7 +1504,7 @@ class RSS(commands.Cog):
             config_data = await self.config.all_channels()
             total_index = 0
             for channel_id, channel_feed_list in config_data.items():
-                channel = self._get_channel_object(channel_id)
+                channel = await self._get_channel_object(channel_id)
                 if not channel:
                     log.info(
                         f"Response channel {channel_id} not found, forbidden to access, or no perms to send messages, removing channel from config"
