@@ -39,31 +39,32 @@ class Pupper(commands.Cog):
     @commands.group()
     async def pets(self, ctx):
         """Manage your pet."""
-        if ctx.invoked_subcommand is None:
-            guild_data = await self.config.guild(ctx.guild).all()
-            if not guild_data["channel"]:
-                channel_names = ["No channels set."]
-            else:
-                channel_names = []
-                for channel_id in guild_data["channel"]:
-                    channel_obj = self.bot.get_channel(channel_id)
-                    channel_names.append(channel_obj.name)
+        if ctx.invoked_subcommand is not None:
+            return
+        guild_data = await self.config.guild(ctx.guild).all()
+        if not guild_data["channel"]:
+            channel_names = ["No channels set."]
+        else:
+            channel_names = []
+            for channel_id in guild_data["channel"]:
+                channel_obj = self.bot.get_channel(channel_id)
+                channel_names.append(channel_obj.name)
 
-            space = "\N{EN SPACE}"
-            toggle = "Active" if guild_data["toggle"] else "Inactive"
-            delete_after = "No deletion" if not guild_data["delete_after"] else guild_data["delete_after"]
+        space = "\N{EN SPACE}"
+        toggle = "Active" if guild_data["toggle"] else "Inactive"
+        delete_after = "No deletion" if not guild_data["delete_after"] else guild_data["delete_after"]
 
-            msg = f"[Channels]:       {humanize_list(channel_names)}\n"
-            msg += f"[Cooldown]:       {guild_data['cooldown']} seconds\n"
-            msg += f"[Credit range]:   {guild_data['credits'][0]} - {guild_data['credits'][1]} credits\n"
-            msg += f"[Delete after]:   {delete_after}\n"
-            msg += f"[Toggle]:         {toggle}\n"
-            msg += f"{space}\n"
-            msg += f"[Hello message]:  {guild_data['hello_msg']}\n"
-            msg += f"[Thanks message]: {guild_data['borf_msg']}\n"
+        msg = f"[Channels]:       {humanize_list(channel_names)}\n"
+        msg += f"[Cooldown]:       {guild_data['cooldown']} seconds\n"
+        msg += f"[Credit range]:   {guild_data['credits'][0]} - {guild_data['credits'][1]} credits\n"
+        msg += f"[Delete after]:   {delete_after}\n"
+        msg += f"[Toggle]:         {toggle}\n"
+        msg += f"{space}\n"
+        msg += f"[Hello message]:  {guild_data['hello_msg']}\n"
+        msg += f"[Thanks message]: {guild_data['borf_msg']}\n"
 
-            for page in pagify(msg, delims=["\n"]):
-                await ctx.send(box(page, lang="ini"))
+        for page in pagify(msg, delims=["\n"]):
+            await ctx.send(box(page, lang="ini"))
 
     @pets.command()
     async def toggle(self, ctx):
@@ -100,8 +101,7 @@ class Pupper(commands.Cog):
 
         if not seconds:
             seconds = 3600
-        if seconds < 300:
-            seconds = 300
+        seconds = max(seconds, 300)
         await self.config.guild(ctx.guild).cooldown.set(seconds)
         await ctx.send(f"Pet appearance cooldown set to {seconds}.")
 
@@ -183,14 +183,12 @@ class Pupper(commands.Cog):
                 channels_appended.append(text_channel.mention)
             else:
                 channels_in_list.append(text_channel.mention)
-                pass
-
         first_msg = ""
         second_msg = ""
         await self.config.guild(ctx.guild).channel.set(channel_list)
-        if len(channels_appended) > 0:
+        if channels_appended:
             first_msg = f"{humanize_list(channels_appended)} added to the valid petting channels.\n"
-        if len(channels_in_list) > 0:
+        if channels_in_list:
             second_msg = f"{humanize_list(channels_in_list)}: already in the list of petting channels."
         await ctx.send(f"{first_msg}{second_msg}")
 
@@ -212,10 +210,7 @@ class Pupper(commands.Cog):
         await ctx.send("All channels have been removed from the list of petting channels.")
 
     def _pet_lock(self, guild_id, tf):
-        if tf:
-            self.pets[guild_id] = True
-        else:
-            self.pets[guild_id] = False
+        self.pets[guild_id] = bool(tf)
 
     @commands.Cog.listener()
     async def on_message(self, message):

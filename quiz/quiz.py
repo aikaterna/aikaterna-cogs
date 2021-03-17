@@ -24,21 +24,21 @@ def check_global_setting_admin():
 
     async def pred(ctx: commands.Context):
         author = ctx.author
-        if not await bank.is_global():
-            if not isinstance(ctx.channel, discord.abc.GuildChannel):
-                return False
-            if await ctx.bot.is_owner(author):
-                return True
-            if author == ctx.guild.owner:
-                return True
-            if ctx.channel.permissions_for(author).manage_guild:
-                return True
-            admin_role_ids = await ctx.bot.get_admin_role_ids(ctx.guild.id)
-            for role in author.roles:
-                if role.id in admin_role_ids:
-                    return True
-        else:
+        if await bank.is_global():
             return await ctx.bot.is_owner(author)
+
+        if not isinstance(ctx.channel, discord.abc.GuildChannel):
+            return False
+        if await ctx.bot.is_owner(author):
+            return True
+        if author == ctx.guild.owner:
+            return True
+        if ctx.channel.permissions_for(author).manage_guild:
+            return True
+        admin_role_ids = await ctx.bot.get_admin_role_ids(ctx.guild.id)
+        for role in author.roles:
+            if role.id in admin_role_ids:
+                return True
 
     return commands.check(pred)
 
@@ -395,8 +395,7 @@ class Quiz(commands.Cog):
         idlist = sorted(list(channelinfo["Players"]), key=(lambda idnum: channelinfo["Players"][idnum]), reverse=True,)
         max_score = channelinfo["Players"][idlist[0]]
         end_len = len(str(max_score)) + 1
-        rank = 1
-        for playerid in idlist[:5]:
+        for rank, playerid in enumerate(idlist[:5], start=1):
             player = channel.guild.get_member(playerid)
             if len(player.display_name) > 24 - end_len:
                 name = player.display_name[: 21 - end_len] + "..."
@@ -406,7 +405,6 @@ class Quiz(commands.Cog):
             score_str = str(channelinfo["Players"][playerid])
             scoreboard += " " * (24 - len(name) - len(score_str))
             scoreboard += score_str + "\n"
-            rank += 1
         return box(scoreboard, lang="py")
 
     def calculate_credits(self, score):

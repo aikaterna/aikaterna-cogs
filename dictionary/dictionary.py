@@ -51,8 +51,7 @@ class Dictionary(commands.Cog):
         if not data:
             return await ctx.send("Error fetching data.")
         section = data.find_all("a", {"class": "css-1dcngqk eh475bn1"})
-        antonyms = [item.text.rstrip() for item in section]
-        return antonyms
+        return [item.text.rstrip() for item in section]
 
     @commands.command()
     async def define(self, ctx, *, word: str):
@@ -112,8 +111,7 @@ class Dictionary(commands.Cog):
         if not data:
             return await ctx.send("Error fetching data.")
         section = data.find_all("a", {"class": "css-1m14xsh eh475bn1"})
-        synonyms = [item.text.rstrip() for item in section]
-        return synonyms
+        return [item.text.rstrip() for item in section]
 
     @commands.command()
     async def synonym(self, ctx, *, word: str):

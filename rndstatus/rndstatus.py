@@ -88,8 +88,7 @@ class RndStatus(commands.Cog):
     async def delay(self, ctx, seconds: int):
         """Sets interval of random status switch.
         Must be 20 or superior."""
-        if seconds < 20:
-            seconds = 20
+        seconds = max(seconds, 20)
         await self.config.delay.set(seconds)
         await ctx.send(f"Interval set to {seconds} seconds.")
 

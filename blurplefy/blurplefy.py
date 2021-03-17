@@ -208,12 +208,12 @@ class Blurplefy(commands.Cog):
         if user is None and not link:
             picture = ctx.author.avatar_url
         else:
-            if not user:
+            if user:
+                picture = user.avatar_url
+            else:
                 if len(link) != 0:
                     for image in link:
                         picture = image.url
-            else:
-                picture = user.avatar_url
         try:
             async with self.session.request("GET", str(picture)) as r:
                 response = await r.read()
@@ -247,23 +247,23 @@ class Blurplefy(commands.Cog):
             impixels = imsize[0] * imsize[1]
             await ctx.send("{}, image resized smaller for easier processing".format(ctx.message.author.display_name))
 
-        if isgif is False:
+        if not isgif:
             image = self.imager(im, imsize)
         else:
             image = self.gifimager(im, gifloop, imsize)
         await ctx.send("{}, image data extracted.".format(ctx.author.display_name))
-        if isgif is False:
-            image = discord.File(fp=image, filename="image.png")
-        else:
+        if isgif:
             image = discord.File(fp=image, filename="image.gif")
 
+        else:
+            image = discord.File(fp=image, filename="image.png")
         try:
             embed = discord.Embed(title="", colour=0x7289DA)
             embed.set_author(name="Blurplefier - makes your image blurple!")
-            if isgif is False:
-                embed.set_image(url="attachment://image.png")
-            else:
+            if isgif:
                 embed.set_image(url="attachment://image.gif")
+            else:
+                embed.set_image(url="attachment://image.png")
             embed.set_footer(
                 text="Please note - This blurplefier is automated and therefore may not always give you the best result. | Content requested by {}".format(
                     ctx.author
@@ -316,7 +316,7 @@ class Blurplefy(commands.Cog):
                         check = 0
                 if check == 0:
                     img[x, y] = (0, 0, 0, 255)
-                if check == 1:
+                elif check == 1:
                     nooftotalpixels += 1
                 if checkblurple == 1:
                     noofblurplepixels += 1
@@ -339,8 +339,8 @@ class Blurplefy(commands.Cog):
 
         img = im.load()
 
+        i = 1
         for x in range(imsize[0] - 1):
-            i = 1
             for y in range(imsize[1] - 1):
                 pixel = img[x, y]
 
@@ -357,6 +357,7 @@ class Blurplefy(commands.Cog):
         frames = [frame.copy() for frame in ImageSequence.Iterator(im)]
         newgif = []
 
+        i = 1
         for frame in frames:
             frame = frame.convert(mode="L")
             frame = ImageEnhance.Contrast(frame).enhance(1000)
@@ -364,7 +365,6 @@ class Blurplefy(commands.Cog):
             img = frame.load()
 
             for x in range(imsize[0]):
-                i = 1
                 for y in range(imsize[1]):
                     pixel = img[x, y]
                     if pixel != (255, 255, 255):

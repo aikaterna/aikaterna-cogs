@@ -54,28 +54,29 @@ class Hunting(commands.Cog):
     @commands.group()
     async def hunting(self, ctx):
         """Hunting, it hunts birds and things that fly."""
-        if ctx.invoked_subcommand is None:
-            guild_data = await self.config.guild(ctx.guild).all()
-            if not guild_data["channels"]:
-                channel_names = ["No channels set."]
-            else:
-                channel_names = []
-                for channel_id in guild_data["channels"]:
-                    channel_obj = self.bot.get_channel(channel_id)
-                    channel_names.append(channel_obj.name)
+        if ctx.invoked_subcommand is not None:
+            return
+        guild_data = await self.config.guild(ctx.guild).all()
+        if not guild_data["channels"]:
+            channel_names = ["No channels set."]
+        else:
+            channel_names = []
+            for channel_id in guild_data["channels"]:
+                channel_obj = self.bot.get_channel(channel_id)
+                channel_names.append(channel_obj.name)
 
-            hunting_mode = "Words" if guild_data["bang_words"] else "Reactions"
-            reaction_time = "On" if guild_data["bang_time"] else "Off"
+        hunting_mode = "Words" if guild_data["bang_words"] else "Reactions"
+        reaction_time = "On" if guild_data["bang_time"] else "Off"
 
-            msg = f"[Hunting in]:                 {humanize_list(channel_names)}\n"
-            msg += f"[Bang timeout]:               {guild_data['wait_for_bang_timeout']} seconds\n"
-            msg += f"[Hunt interval minimum]:      {guild_data['hunt_interval_minimum']} seconds\n"
-            msg += f"[Hunt interval maximum]:      {guild_data['hunt_interval_maximum']} seconds\n"
-            msg += f"[Hunting mode]:               {hunting_mode}\n"
-            msg += f"[Bang response time message]: {reaction_time}\n"
+        msg = f"[Hunting in]:                 {humanize_list(channel_names)}\n"
+        msg += f"[Bang timeout]:               {guild_data['wait_for_bang_timeout']} seconds\n"
+        msg += f"[Hunt interval minimum]:      {guild_data['hunt_interval_minimum']} seconds\n"
+        msg += f"[Hunt interval maximum]:      {guild_data['hunt_interval_maximum']} seconds\n"
+        msg += f"[Hunting mode]:               {hunting_mode}\n"
+        msg += f"[Bang response time message]: {reaction_time}\n"
 
-            for page in pagify(msg, delims=["\n"]):
-                await ctx.send(box(page, lang="ini"))
+        for page in pagify(msg, delims=["\n"]):
+            await ctx.send(box(page, lang="ini"))
 
     @hunting.command()
     async def leaderboard(self, ctx, global_leaderboard=False):
@@ -98,8 +99,11 @@ class Hunting(commands.Cog):
         header = "{score:{score_len}}{name:2}\n".format(
             score="# Birds Shot",
             score_len=score_len + 5,
-            name="Name" if not str(ctx.author.mobile_status) in ["online", "idle", "dnd"] else "Name",
+            name="Name"
+            if str(ctx.author.mobile_status) not in ["online", "idle", "dnd"]
+            else "Name",
         )
+
         temp_msg = header
         for account in sorted_acc:
             if account[1]["total"] == 0:
@@ -181,7 +185,7 @@ class Hunting(commands.Cog):
             message = "Please shoot something before you can brag about it."
 
         for animal in score.items():
-            total = total + animal[1]
+            total += animal[1]
             if animal[1] == 1 or animal[0][-1] == "s":
                 kill_list.append(f"{animal[1]} {animal[0].capitalize()}")
             else:

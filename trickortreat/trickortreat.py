@@ -120,11 +120,9 @@ class TrickOrTreat(commands.Cog):
                 pick_now = await self.config.guild(ctx.guild).pick()
                 if lost_candy < 0:
                     await self.config.user(ctx.author).candies.set(0)
-                    await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
                 else:
                     await self.config.user(ctx.author).candies.set(userdata["candies"] - lost_candy)
-                    await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
-
+                await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
                 await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
 
                 return await ctx.send(

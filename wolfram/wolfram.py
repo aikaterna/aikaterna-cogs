@@ -39,10 +39,7 @@ class Wolfram(commands.Cog):
             async with self.session.get(url, params=payload, headers=headers) as r:
                 result = await r.text()
             root = ET.fromstring(result)
-            a = []
-            for pt in root.findall(".//plaintext"):
-                if pt.text:
-                    a.append(pt.text.capitalize())
+            a = [pt.text.capitalize() for pt in root.findall(".//plaintext") if pt.text]
         if len(a) < 1:
             message = "There is as yet insufficient data for a meaningful answer."
         else:
@@ -90,7 +87,6 @@ class Wolfram(commands.Cog):
         if not api_key:
             return await ctx.send("No API key set for Wolfram Alpha. Get one at http://products.wolframalpha.com/api/")
 
-        url = f"http://api.wolframalpha.com/v2/query"
         params = {
             "appid": api_key,
             "input": query,
@@ -100,6 +96,7 @@ class Wolfram(commands.Cog):
         msg = ""
 
         async with ctx.typing():
+            url = f"http://api.wolframalpha.com/v2/query"
             async with self.session.request("GET", url, params=params) as r:
                 text = await r.content.read()
                 root = ET.fromstring(text)

@@ -43,8 +43,8 @@ class Chatchart(commands.Cog):
         sizes = [x[1] for x in top]
         labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
         if len(top) >= 20:
-            sizes = sizes + [others]
-            labels = labels + ["Others {:g}%".format(others)]
+            sizes += [others]
+            labels += ["Others {:g}%".format(others)]
         if len(channel.name) >= 19:
             channel_name = "{}...".format(channel.name[:19])
         else:
@@ -119,7 +119,7 @@ class Chatchart(commands.Cog):
         history = []
         history_counter = 0
 
-        if not channel.permissions_for(ctx.message.author).read_messages == True:
+        if channel.permissions_for(ctx.message.author).read_messages != True:
             try:
                 await em.delete()
             except discord.NotFound:
@@ -162,8 +162,7 @@ class Chatchart(commands.Cog):
                 msg_data["users"][whole_name]["msgcount"] += 1
                 msg_data["total count"] += 1
             else:
-                msg_data["users"][whole_name] = {}
-                msg_data["users"][whole_name]["msgcount"] = 1
+                msg_data["users"][whole_name] = {"msgcount": 1}
                 msg_data["total count"] += 1
 
         if msg_data["users"] == {}:

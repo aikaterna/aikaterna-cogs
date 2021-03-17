@@ -28,18 +28,18 @@ class UrlFetch(commands.Cog):
         """
         async with ctx.typing():
             valid_url = await self._valid_url(ctx, url)
-            if valid_url:
-                text = await self._get_url_content(url)
-                if text:
-                    page_list = []
-                    for page in pagify(text, delims=["\n"], page_length=1800):
-                        page_list.append(box(page))
-                    if len(page_list) == 1:
-                        await ctx.send(box(page))
-                    else:
-                        await menu(ctx, page_list, DEFAULT_CONTROLS)
-            else:
+            if not valid_url:
                 return
+
+            text = await self._get_url_content(url)
+            if text:
+                page_list = []
+                for page in pagify(text, delims=["\n"], page_length=1800):
+                    page_list.append(box(page))
+                if len(page_list) == 1:
+                    await ctx.send(box(page))
+                else:
+                    await menu(ctx, page_list, DEFAULT_CONTROLS)
 
     async def _get_url_content(self, url: str):
         try:
@@ -68,11 +68,10 @@ class UrlFetch(commands.Cog):
 
         if all([result.scheme, result.netloc]):
             text = await self._get_url_content(url)
-            if not text:
-                await ctx.send("No text present at the given url.")
-                return None
-            else:
+            if text:
                 return text
+            await ctx.send("No text present at the given url.")
         else:
             await ctx.send(f"That url seems to be incomplete.")
-            return None
+
+        return None

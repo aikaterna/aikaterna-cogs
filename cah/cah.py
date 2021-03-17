@@ -66,9 +66,8 @@ class CardsAgainstHumanity(commands.Cog):
     def memberforname(self, name, server):
         # Check nick first - then name
         for member in server.members:
-            if member.nick:
-                if member.nick.lower() == name.lower():
-                    return member
+            if member.nick and member.nick.lower() == name.lower():
+                return member
         for member in server.members:
             if member.name.lower() == name.lower():
                 return member
@@ -102,10 +101,7 @@ class CardsAgainstHumanity(commands.Cog):
             else:
                 msg = f"{msg}{str(weeks)} weeks, "
         if days > 0:
-            if days == 1:
-                msg = f"{msg}{str(days)} day, "
-            else:
-                msg = f"{msg}{str(days)} days, "
+            msg = f"{msg}{str(days)} day, " if days == 1 else f"{msg}{str(days)} days, "
         if hours > 0:
             if hours == 1:
                 msg = f"{msg}{str(hours)} hour, "
@@ -191,7 +187,7 @@ class CardsAgainstHumanity(commands.Cog):
                     for member in game["Members"]:
                         if member["IsBot"]:
                             # Clear pending tasks and set to None
-                            if not member["Task"] == None:
+                            if member["Task"] is not None:
                                 task = member["Task"]
                                 if not task.done():
                                     task.cancel()
@@ -210,21 +206,16 @@ class CardsAgainstHumanity(commands.Cog):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             # PM
             return True
-        else:
-            # Not in PM
-            await message.channel.send("Cards Against Humanity commands must be run in Direct Messages with the bot.")
-            return False
+        # Not in PM
+        await message.channel.send("Cards Against Humanity commands must be run in Direct Messages with the bot.")
+        return False
 
     def randomID(self, length=8):
         # Create a random id that doesn't already exist
         while True:
             # Repeat until found
             newID = "".join(random.choice(self.charset) for i in range(length))
-            exists = False
-            for game in self.games:
-                if game["ID"] == newID:
-                    exists = True
-                    break
+            exists = any(game["ID"] == newID for game in self.games)
             if not exists:
                 break
         return newID
@@ -234,21 +225,16 @@ class CardsAgainstHumanity(commands.Cog):
         while True:
             # Repeat until found
             newID = "".join(random.choice(self.charset) for i in range(length))
-            exists = False
-            for member in game["Members"]:
-                if member["ID"] == newID:
-                    exists = True
-                    break
+            exists = any(member["ID"] == newID for member in game["Members"])
             if not exists:
                 break
         return newID
 
     async def userGame(self, user):
         # Returns the game the user is currently in
-        if not len(str(user)) == 4:
-            if not type(user) is int:
-                # Assume it's a discord.Member/User
-                user = user.id
+        if len(str(user)) != 4 and type(user) is not int:
+            # Assume it's a discord.Member/User
+            user = user.id
 
         for game in self.games:
             for member in game["Members"]:
@@ -265,10 +251,9 @@ class CardsAgainstHumanity(commands.Cog):
         return None
 
     async def removeMember(self, user, game=None):
-        if not len(str(user)) == 4:
-            if not type(user) is int:
-                # Assume it's a discord.Member/User
-                user = user.id
+        if len(str(user)) != 4 and type(user) is not int:
+            # Assume it's a discord.Member/User
+            user = user.id
         outcome = False
         removed = None
         if not game:
@@ -316,12 +301,12 @@ class CardsAgainstHumanity(commands.Cog):
                     # Remove submissions
                     for sub in game["Submitted"]:
                         # Remove deleted member and new judge's submissions
-                        if sub["By"] == member or sub["By"] == judge:
+                        if sub["By"] in [member, judge]:
                             # Found it!
                             game["Submitted"].remove(sub)
                             break
                     if member["IsBot"]:
-                        if not member["Task"] == None:
+                        if member["Task"] is not None:
                             task = member["Task"]
                             if not task.done():
                                 task.cancel()
@@ -398,17 +383,11 @@ class CardsAgainstHumanity(commands.Cog):
     async def botPick(self, ctx, bot, game):
         # Has the bot pick their card
         blackNum = game["BlackCard"]["Pick"]
-        if blackNum == 1:
-            cardSpeak = "card"
-        else:
-            cardSpeak = "cards"
-        i = 0
+        cardSpeak = "card" if blackNum == 1 else "cards"
         cards = []
-        while i < blackNum:
+        for _ in range(blackNum):
             randCard = random.randint(0, len(bot["Hand"]) - 1)
             cards.append(bot["Hand"].pop(randCard)["Text"])
-            i += 1
-
         await self.typing(game)
 
         # Make sure we haven't laid any cards
@@ -440,7 +419,7 @@ class CardsAgainstHumanity(commands.Cog):
             if len(game["Members"]) < self.minMembers:
                 if member["IsBot"]:
                     # Clear pending tasks and set to None
-                    if not member["Task"] == None:
+                    if member["Task"] is not None:
                         task = member["Task"]
                         if not task.done():
                             # Task isn't finished - we're on a new hand, cancel it
@@ -461,14 +440,11 @@ class CardsAgainstHumanity(commands.Cog):
             # Check if we have a user
             if user:
                 blackNum = game["BlackCard"]["Pick"]
-                if blackNum == 1:
-                    card = "card"
-                else:
-                    card = "cards"
+                card = "card" if blackNum == 1 else "cards"
                 if user["IsBot"]:
                     msg = f"*{self.botName} ({user['ID']})* submitted their {card}! "
                 else:
-                    if not member == user:
+                    if member != user:
                         # Don't say this to the submitting user
                         msg = f"*{self.displayname(user['User'])}* submitted their {card}! "
             if submitted < totalUsers:
@@ -615,15 +591,15 @@ class CardsAgainstHumanity(commands.Cog):
         msg += f"__Black Card:__\n\n**{blackCard}**\n\n"
 
         totalUsers = len(game["Members"]) - 1
-        submitted = len(game["Submitted"])
         if len(game["Members"]) >= self.minMembers:
+            submitted = len(game["Submitted"])
             if submitted < totalUsers:
                 msg += f"{submitted}/{totalUsers} cards submitted..."
             else:
                 msg += "All cards have been submitted!"
                 await self.showOptions(ctx, user)
                 return
-        if not judge == "**YOU** are":
+        if judge != "**YOU** are":
             # Judge doesn't need to lay a card
             prefix = await self.bot.get_valid_prefixes()
             if blackNum == 1:
@@ -650,10 +626,7 @@ class CardsAgainstHumanity(commands.Cog):
         for member in game["Members"]:
             if member["ID"] == user.id:
                 # Got our user
-                if member["Points"] == 1:
-                    points = "1 point"
-                else:
-                    points = f"{member['Points']} points"
+                points = "1 point" if member["Points"] == 1 else f"{member['Points']} points"
                 for card in member["Hand"]:
                     i += 1
                     msg += f"{i}. {card['Text']}\n"
@@ -692,9 +665,7 @@ class CardsAgainstHumanity(commands.Cog):
         msg += f"__Black Card:__\n\n**{blackCard}**\n\n"
         msg += "__Submitted White Cards:__\n\n"
 
-        i = 0
-        for sub in game["Submitted"]:
-            i += 1
+        for i, sub in enumerate(game["Submitted"], start=1):
             msg += "{}. {}\n".format(i, " - ".join(sub["Cards"]))
         if judge == "**YOU** are":
             prefix = await self.bot.get_valid_prefixes()
@@ -705,9 +676,10 @@ class CardsAgainstHumanity(commands.Cog):
         with open(str(bundled_data_path(self)) + "/deck.json", "r") as deck_file:
             deck = json.load(deck_file)
         # Draws a random unused card and shuffles the deck if needed
-        totalDiscard = len(game["Discard"])
-        for member in game["Members"]:
-            totalDiscard += len(member["Hand"])
+        totalDiscard = len(game["Discard"]) + sum(
+            len(member["Hand"]) for member in game["Members"]
+        )
+
         if totalDiscard >= len(deck["whiteCards"]):
             # Tell everyone the cards were shuffled
             for member in game["Members"]:
@@ -720,12 +692,11 @@ class CardsAgainstHumanity(commands.Cog):
         while True:
             # Random grab a unique card
             index = random.randint(0, len(deck["whiteCards"]) - 1)
-            if not index in game["Discard"]:
+            if index not in game["Discard"]:
                 game["Discard"].append(index)
                 text = deck["whiteCards"][index]
                 text = self.cleanJson(text)
-                card = {"Index": index, "Text": text}
-                return card
+                return {"Index": index, "Text": text}
 
     def shuffle(self, game):
         # Adds discards back into the deck
@@ -735,10 +706,9 @@ class CardsAgainstHumanity(commands.Cog):
                 game["Discard"].append(card["Index"])
 
     async def drawCards(self, user, cards=10):
-        if not len(str(user)) == 4:
-            if not type(user) is int:
-                # Assume it's a discord.Member/User
-                user = user.id
+        if len(str(user)) != 4 and type(user) is not int:
+            # Assume it's a discord.Member/User
+            user = user.id
         # fills the user's hand up to number of cards
         game = await self.userGame(user)
         for member in game["Members"]:
@@ -768,7 +738,7 @@ class CardsAgainstHumanity(commands.Cog):
         while True:
             # Random grab a unique card
             index = random.randint(0, len(deck["blackCards"]) - 1)
-            if not index in game["BDiscard"]:
+            if index not in game["BDiscard"]:
                 game["BDiscard"].append(index)
                 text = deck["blackCards"][index]["text"]
                 text = self.cleanJson(text)
@@ -887,7 +857,7 @@ class CardsAgainstHumanity(commands.Cog):
             msg = f"You're not in a game - you can create one with `{prefix[0]}newcah` or join one with `{prefix[0]}joincah`."
             return await self.sendToUser(ctx.author, msg)
         userGame["Time"] = int(time.time())
-        if message == None:
+        if message is None:
             msg = "Ooookay, you say *nothing...*"
             return await self.sendToUser(ctx.author, msg)
         msg = f"*{ctx.author.name}* says: {message}"
@@ -895,7 +865,7 @@ class CardsAgainstHumanity(commands.Cog):
             if member["IsBot"]:
                 continue
             # Tell them all!!
-            if not member["User"] == ctx.author:
+            if member["User"] != ctx.author:
                 # Don't tell yourself
                 await self.sendToUser(member["User"], msg)
             else:
@@ -926,7 +896,7 @@ class CardsAgainstHumanity(commands.Cog):
             if submit["By"]["User"] == ctx.author:
                 await self.sendToUser(ctx.author, "You already made your submission this round.")
                 return
-        if card == None:
+        if card is None:
             await self.sendToUser(ctx.author, "You need you input *something.*")
             return
         card = card.strip()
@@ -948,7 +918,7 @@ class CardsAgainstHumanity(commands.Cog):
                 card = card.split(",")
             except Exception:
                 card = []
-            if not len(card) == numberCards:
+            if len(card) != numberCards:
                 await self.sendToUser(
                     ctx.author,
                     f"You need to lay **{numberCards} cards** (no duplicates) with `{prefix[0]}lay [card numbers separated by commas (1,2,3)]`",
@@ -956,7 +926,7 @@ class CardsAgainstHumanity(commands.Cog):
                 return await self.showHand(ctx, ctx.author)
             # Got something
             # Check for duplicates
-            if not len(card) == len(set(card)):
+            if len(card) != len(set(card)):
                 await self.sendToUser(
                     ctx.author,
                     f"You need to lay **{numberCards} cards** (no duplicates) with `{prefix[0]}lay [card numbers separated by commas (1,2,3)]`",
@@ -1166,7 +1136,7 @@ class CardsAgainstHumanity(commands.Cog):
             if id:
                 game = self.gameForID(id)
                 prefix = await self.bot.get_valid_prefixes()
-                if game == None:
+                if game is None:
                     # That id doesn't exist - or is possibly a user
                     # If user, has to be joined from server chat
                     if not ctx.message.guild:
@@ -1176,22 +1146,21 @@ class CardsAgainstHumanity(commands.Cog):
                             f"command in a channel in a Discord server you share with that user.\n"
                             f"Make sure to use the proper command prefix for your server - it may or may not be `{prefix[0]}`."
                         )
-                    else:
-                        # We have a server - let's try for a user
-                        member = self.memberforname(id, ctx.message.guild)
-                        if not member:
-                            # Couldn't find user!
-                            return await ctx.send(
-                                f"I couldn't find a game attached to that id. \n"
-                                f"If you are trying to join a user - run the `{prefix[0]}joincah [user]` "
-                                f"command in a channel in a Discord server you share with that user.\n"
-                                f"Make sure to use the proper command prefix for your server - it may or may not be `{prefix[0]}`."
-                            )
-                        # Have a user - check if they're in a game
-                        game = await self.userGame(member)
-                        if not game:
-                            # That user is NOT in a game!
-                            return await ctx.send("That user doesn't appear to be playing.")
+                    # We have a server - let's try for a user
+                    member = self.memberforname(id, ctx.message.guild)
+                    if not member:
+                        # Couldn't find user!
+                        return await ctx.send(
+                            f"I couldn't find a game attached to that id. \n"
+                            f"If you are trying to join a user - run the `{prefix[0]}joincah [user]` "
+                            f"command in a channel in a Discord server you share with that user.\n"
+                            f"Make sure to use the proper command prefix for your server - it may or may not be `{prefix[0]}`."
+                        )
+                    # Have a user - check if they're in a game
+                    game = await self.userGame(member)
+                    if not game:
+                        # That user is NOT in a game!
+                        return await ctx.send("That user doesn't appear to be playing.")
 
             else:
                 game = random.choice(self.games)
@@ -1211,8 +1180,9 @@ class CardsAgainstHumanity(commands.Cog):
                 "NextHand": asyncio.Event(),
                 "Judging": False,
                 "Timeout": True,
+                "Running": True,
             }
-            game["Running"] = True
+
             task = self.bot.loop.create_task(self.gameCheckLoop(ctx, game))
             task = self.bot.loop.create_task(self.checkCards(ctx, game))
             self.games.append(game)
@@ -1358,7 +1328,7 @@ class CardsAgainstHumanity(commands.Cog):
                     # You didn't make this game
                     return await self.sendToUser(ctx.author, "Only the player that created the game can add bots.")
                 member["Time"] = int(time.time())
-        if number == None:
+        if number is None:
             # No number specified - let's add the max number of bots
             number = self.maxBots - botCount
 
@@ -1372,8 +1342,7 @@ class CardsAgainstHumanity(commands.Cog):
             # Too many bots!
             return await self.sendToUser(ctx.author, f"You already have enough bots (max is {self.maxBots}).")
 
-        if number > (self.maxBots - botCount):
-            number = self.maxBots - botCount
+        number = min(number, self.maxBots - botCount)
 
         if number == 1:
             msg = f"**Adding {number} bot:**\n\n"
@@ -1381,7 +1350,7 @@ class CardsAgainstHumanity(commands.Cog):
             msg = f"**Adding {number} bots:**\n\n"
 
         newBots = []
-        for i in range(0, number):
+        for _ in range(number):
             # We can get another bot!
             botID = self.randomBotID(userGame)
             lobot = {
@@ -1447,7 +1416,7 @@ class CardsAgainstHumanity(commands.Cog):
                     return await self.sendToUser(ctx.author, "Only the player that created the game can remove bots.")
                 member["Time"] = int(time.time())
         # We are the creator - let's check the number of bots
-        if id == None:
+        if id is None:
             # Just remove the first bot we find
             for member in userGame["Members"]:
                 if member["IsBot"]:
@@ -1490,7 +1459,7 @@ class CardsAgainstHumanity(commands.Cog):
             max = len(shuffledGames)
         msg = "__Current CAH Games__:\n\n"
 
-        for i in range(0, max):
+        for i in range(max):
             playerCount = 0
             botCount = 0
             gameID = shuffledGames[i]["ID"]
@@ -1500,10 +1469,10 @@ class CardsAgainstHumanity(commands.Cog):
                 else:
                     playerCount += 1
             botText = f"{botCount} bot"
-            if not botCount == 1:
+            if botCount != 1:
                 botText += "s"
             playerText = f"{playerCount} player"
-            if not playerCount == 1:
+            if playerCount != 1:
                 playerText += "s"
 
             msg += f"{i + 1}. {gameID} - {playerText} | {botText}\n"
@@ -1581,9 +1550,11 @@ class CardsAgainstHumanity(commands.Cog):
         else:
             msg += "__Players:__\n\n"
         for user in users:
-            if len(userGame["Members"]) >= self.minMembers:
-                if user == userGame["Members"][userGame["Judge"]]:
-                    continue
+            if (
+                len(userGame["Members"]) >= self.minMembers
+                and user == userGame["Members"][userGame["Judge"]]
+            ):
+                continue
             i += 1
             if i > 10:
                 break
@@ -1631,7 +1602,7 @@ class CardsAgainstHumanity(commands.Cog):
                     )
                 member["Time"] = int(time.time())
         # We are the creator - let's check the number of bots
-        if name == None:
+        if name is None:
             # Nobody named!
             return await self.sendToUser(ctx.author, "Okay, I removed... no one from the game...")
 
@@ -1717,21 +1688,20 @@ class CardsAgainstHumanity(commands.Cog):
             if member["IsBot"]:
                 botCount += 1
                 continue
-            if member["User"] == ctx.author:
-                if not member["Creator"]:
-                    # You didn't make this game
-                    return await self.sendToUser(ctx.author, "Only the player that created the game can remove bots.")
+            if member["User"] == ctx.author and not member["Creator"]:
+                # You didn't make this game
+                return await self.sendToUser(ctx.author, "Only the player that created the game can remove bots.")
         # We are the creator - let's check the number of bots
-        if setting == None:
+        if setting is None:
             # Output idle kick status
             if userGame["Timeout"]:
                 await ctx.send("Idle kick is enabled.")
             else:
                 await ctx.send("Idle kick is disabled.")
             return
-        elif setting.lower() == "yes" or setting.lower() == "on" or setting.lower() == "true":
+        elif setting.lower() in ["yes", "on", "true"]:
             setting = True
-        elif setting.lower() == "no" or setting.lower() == "off" or setting.lower() == "false":
+        elif setting.lower() in ["no", "off", "false"]:
             setting = False
         else:
             setting = None

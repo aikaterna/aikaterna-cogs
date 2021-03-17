@@ -129,8 +129,8 @@ class NoLinks(commands.Cog):
             whitelist_role = discord.utils.get(message.author.roles, id=role)
             if whitelist_role:
                 allowed_roles.append(whitelist_role)
-        message_channel = self.bot.get_channel(data["report_channel"])
         if not allowed_roles:
+            message_channel = self.bot.get_channel(data["report_channel"])
             try:
                 sentence = message.content.split()
                 for word in sentence:
@@ -144,7 +144,6 @@ class NoLinks(commands.Cog):
             except Exception as e:
                 if message_channel:
                     await message_channel.send(e)
-                pass
 
     @staticmethod
     def _match_url(url):

@@ -110,7 +110,7 @@ class RSS(commands.Cog):
         for element in bs4_soup.descendants:
             if isinstance(element, str):
                 text += element
-            elif element.name == "br" or element.name == "p" or element.name == "li":
+            elif element.name in ["br", "p", "li"]:
                 text += "\n"
         text = re.sub("\\n+", "\n", text)
         text = text.replace("*", "\\*")
@@ -162,10 +162,10 @@ class RSS(commands.Cog):
                 for list_item in tag_content:
                     list_item_check = await self._get_tag_content_type(list_item)
 
-                    # for common "links" format or when "content" is a list
-                    list_html_content_counter = 0
                     if list_item_check == TagType.HTML:
                         list_tags = ["value", "href"]
+                        # for common "links" format or when "content" is a list
+                        list_html_content_counter = 0
                         for tag in list_tags:
                             try:
                                 url_check = await self._valid_url(list_item[tag], feed_check=False)
@@ -207,7 +207,7 @@ class RSS(commands.Cog):
                         except KeyError:
                             pass
 
-                    if len(tags_list) > 0:
+                    if tags_list:
                         rss_object["tags_list"] = tags_list
                         rss_object["tags_plaintext_list"] = humanize_list(tags_list)
                         rss_object["is_special"].append("tags_list")
@@ -251,20 +251,17 @@ class RSS(commands.Cog):
         elif addl_send_messages_check:
             # check for send messages perm if needed, like on an rss add
             # not needed on something like rss delete
-            if not channel.permissions_for(ctx.me).send_messages:
-                await ctx.send("I don't have permissions to send messages in that channel.")
-                return False
-            else:
+            if channel.permissions_for(ctx.me).send_messages:
                 return True
+            await ctx.send("I don't have permissions to send messages in that channel.")
+            return False
         else:
             return True
 
     async def _check_feed_existing(self, ctx, feed_name: str, channel: discord.TextChannel):
         """Helper for rss functions."""
         rss_feed = await self.config.channel(channel).feeds.get_raw(feed_name, default=None)
-        if not rss_feed:
-            return False
-        return True
+        return bool(rss_feed)
 
     async def _delete_feed(self, ctx, feed_name: str, channel: discord.TextChannel):
         """Helper for rss delete."""
@@ -420,7 +417,7 @@ class RSS(commands.Cog):
         """
         entry_time = await self._time_tag_validation(feedparser_plus_obj)
 
-        rss_object = RssFeed(
+        return RssFeed(
             name=feed_name.lower(),
             last_title=feedparser_plus_obj["title"],
             last_link=feedparser_plus_obj["link"],
@@ -431,8 +428,6 @@ class RSS(commands.Cog):
             is_special=feedparser_plus_obj["is_special"],
             embed=True,
         )
-
-        return rss_object
 
     async def _sort_by_post_time(self, feedparser_obj: feedparser.util.FeedParserDict):
         for time_tag in ["updated_parsed", "published_parsed"]:
@@ -503,26 +498,22 @@ class RSS(commands.Cog):
             log.exception(e, exc_info=e)
             return False
 
-        if all([result.scheme, result.netloc, result.path]):
-            if feed_check:
-                text, error_msg = await self._get_url_content(url)
-                if not text:
-                    raise NoFeedContent(error_msg)
-                    return False
-
-                rss = feedparser.parse(text)
-                if rss.bozo:
-                    msg = f"Bozo feed: feedparser is unable to parse the response from {url}.\n\n"
-                    msg += "Received content preview:\n"
-                    msg += box(rss.feed.get("summary", str(rss))[:1500])
-                    raise NoFeedContent(msg)
-                    return False
-                else:
-                    return True
-            else:
-                return True
-        else:
+        if not all([result.scheme, result.netloc, result.path]):
             return False
+
+        if not feed_check:
+            return True
+        text, error_msg = await self._get_url_content(url)
+        if not text:
+            raise NoFeedContent(error_msg)
+        rss = feedparser.parse(text)
+        if rss.bozo:
+            msg = f"Bozo feed: feedparser is unable to parse the response from {url}.\n\n"
+            msg += "Received content preview:\n"
+            msg += box(rss.feed.get("summary", str(rss))[:1500])
+            raise NoFeedContent(msg)
+        else:
+            return True
 
     async def _validate_image(self, url: str):
         """Helper for _get_current_feed_embed."""
@@ -532,8 +523,7 @@ class RSS(commands.Cog):
                 async with session.get(url) as resp:
                     image = await resp.read()
             img = io.BytesIO(image)
-            image_test = imghdr.what(img)
-            return image_test
+            return imghdr.what(img)
         except aiohttp.client_exceptions.InvalidURL:
             return None
         except asyncio.exceptions.TimeoutError:
@@ -888,10 +878,7 @@ class RSS(commands.Cog):
 
         feeds = await self._get_feed_names(channel)
         msg = f"[ Available Feeds for #{channel.name} ]\n\n\t"
-        if feeds:
-            msg += "\n\t".join(sorted(feeds))
-        else:
-            msg += "\n\tNone."
+        msg += "\n\t".join(sorted(feeds)) if feeds else "\n\tNone."
         for page in pagify(msg, delims=["\n"], page_length=1800):
             await ctx.send(box(page, lang="ini"))
 
@@ -1222,10 +1209,9 @@ class RSS(commands.Cog):
 
         if not force:
             entry_time = await self._time_tag_validation(sorted_feed_by_post_time[0])
-            if (last_time and entry_time) is not None:
-                if last_time > entry_time:
-                    log.debug("Not posting because new entry is older than last saved entry.")
-                    return
+            if (last_time and entry_time) is not None and last_time > entry_time:
+                log.debug("Not posting because new entry is older than last saved entry.")
+                return
             await self._update_last_scraped(channel, name, sorted_feed_by_post_time[0].title, sorted_feed_by_post_time[0].link, entry_time)
 
         feedparser_plus_objects = []
@@ -1309,7 +1295,7 @@ class RSS(commands.Cog):
                 allowed_post_tags = [x.lower() for x in allowed_tags]
                 feed_tag_list = [x.lower() for x in feedparser_plus_obj.get("tags_list", [])]
                 intersection = list(set(feed_tag_list).intersection(allowed_post_tags))
-                if len(intersection) == 0:
+                if not intersection:
                     log.debug(f"{name} feed post in {channel.name} ({channel.id}) was denied because of an allowed tag mismatch.")
                     continue
 

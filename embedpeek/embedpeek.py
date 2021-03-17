@@ -22,11 +22,9 @@ class EmbedPeek(commands.Cog):
         On a webhook message or other multi-embed messages, this will only display the first embed.
         """
         bad_link_msg = "That doesn't look like a message link, I can't reach that message, or that link does not have an embed."
-        no_guild_msg = "You aren't in that guild."
-        no_channel_msg = "You can't view that channel."
         no_message_msg = "That message wasn't found."
 
-        if not "discord.com/channels/" in message_link:
+        if "discord.com/channels/" not in message_link:
             return await ctx.send(bad_link_msg)
         ids = message_link.split("/")
         if len(ids) != 7:
@@ -40,8 +38,10 @@ class EmbedPeek(commands.Cog):
             return await ctx.send(no_message_msg)
 
         if ctx.author not in guild.members:
+            no_guild_msg = "You aren't in that guild."
             return await ctx.send(no_guild_msg)
         if not channel.permissions_for(ctx.author).read_messages:
+            no_channel_msg = "You can't view that channel."
             return await ctx.send(no_channel_msg)
 
         components = [guild, channel, message]

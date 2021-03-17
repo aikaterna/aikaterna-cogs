@@ -64,115 +64,107 @@ class Otherbot(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def otherbot(self, ctx: commands.Context):
         """Otherbot configuration options."""
+        if ctx.invoked_subcommand:
+            return
         # Following logic from Trusty's welcome cog:
         # https://github.com/TrustyJAID/Trusty-cogs/blob/master/welcome/welcome.py#L81
         guild = ctx.guild
-        if not ctx.invoked_subcommand:
-            guild_data = await self.config.guild(guild).all()
-            settings_name = dict(
-                ping="Ping role",
-                reporting="Channel reporting",
-                watching="Offline tracking",
-                online_watching="Online tracking",
-                offline_emoji="Offline emoji",
-                online_emoji="Online emoji",
-                embed_offline="Offline embed",
-                embed_online="Online embed",
+        guild_data = await self.config.guild(guild).all()
+        settings_name = dict(
+            ping="Ping role",
+            reporting="Channel reporting",
+            watching="Offline tracking",
+            online_watching="Online tracking",
+            offline_emoji="Offline emoji",
+            online_emoji="Online emoji",
+            embed_offline="Offline embed",
+            embed_online="Online embed",
+        )
+        msg = ""
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            em = discord.Embed(
+                color=await ctx.embed_colour(), title=f"Otherbot settings for {guild.name}"
             )
-            msg = ""
-            if ctx.channel.permissions_for(ctx.me).embed_links:
-                em = discord.Embed(
-                    color=await ctx.embed_colour(), title=f"Otherbot settings for {guild.name}"
-                )
-                for attr, name in settings_name.items():
-                    if attr == "ping":
-                        role = guild.get_role(guild_data["ping"])
-                        if role:
-                            msg += f"**{name}**: {role.mention}\n"
-                        else:
-                            msg += f"**{name}**: Not set.\n"
-                    elif attr == "reporting":
-                        channel = guild.get_channel(guild_data["reporting"])
-                        if channel:
-                            msg += f"**{name}**: {channel.mention}\n"
-                        else:
-                            msg += f"**{name}**: Not set.\n"
-                    elif attr == "watching":
-                        if guild_data["watching"]:
-                            msg += (
-                                f"**{name}**: "
-                                + " ".join(
-                                    await self.get_watching(
-                                        guild_data["watching"], "watching", guild.id
-                                    )
+            for attr, name in settings_name.items():
+                if attr == "online_watching":
+                    if guild_data["online_watching"]:
+                        msg += (
+                            f"**{name}**: "
+                            + " ".join(
+                                await self.get_watching(
+                                    guild_data["online_watching"], "online_watching", guild.id
                                 )
-                                + "\n"
                             )
-                        else:
-                            msg += f"**{name}**: Not set.\n"
-                    elif attr == "online_watching":
-                        if guild_data["online_watching"]:
-                            msg += (
-                                f"**{name}**: "
-                                + " ".join(
-                                    await self.get_watching(
-                                        guild_data["online_watching"], "online_watching", guild.id
-                                    )
-                                )
-                                + "\n"
-                            )
-                        else:
-                            msg += f"**{name}**: Not set.\n"
+                            + "\n"
+                        )
                     else:
-                        msg += f"**{name}**: {guild_data[attr]}\n"
-                em.description = msg
-                em.set_thumbnail(url=guild.icon_url)
-                await ctx.send(embed=em)
-            else:
-                msg = "```\n"
-                for attr, name in settings_name.items():
-                    if attr == "ping":
-                        role = guild.get_role(guild_data["ping"])
-                        if role:
-                            msg += f"{name}: {role.mention}\n"
-                        else:
-                            msg += f"{name}: Not set.\n"
-                    elif attr == "reporting":
-                        channel = guild.get_channel(guild_data["reporting"])
-                        if channel:
-                            msg += f"{name}: {channel.mention}\n"
-                        else:
-                            msg += f"{name}: Not set.\n"
-                    elif attr == "watching":
-                        if guild_data["watching"]:
-                            msg += (
-                                f"{name}: "
-                                + " ".join(
-                                    await self.get_watching(
-                                        guild_data["watching"], "watching", guild.id
-                                    )
-                                )
-                                + "\n"
-                            )
-                        else:
-                            msg += f"{name}: Not set."
-                    elif attr == "online_watching":
-                        if guild_data["online_watching"]:
-                            msg += (
-                                f"{name}: "
-                                + " ".join(
-                                    await self.get_watching(
-                                        guild_data["online_watching"], "online_watching", guild.id
-                                    )
-                                )
-                                + "\n"
-                            )
-                        else:
-                            msg += f"{name}: Not set.\n"
+                        msg += f"**{name}**: Not set.\n"
+                elif attr == "ping":
+                    role = guild.get_role(guild_data["ping"])
+                    msg += f"**{name}**: {role.mention}\n" if role else f"**{name}**: Not set.\n"
+                elif attr == "reporting":
+                    channel = guild.get_channel(guild_data["reporting"])
+                    if channel:
+                        msg += f"**{name}**: {channel.mention}\n"
                     else:
-                        msg += f"**{name}**: {guild_data[attr]}\n"
-                msg += "```"
-                await ctx.send(msg)
+                        msg += f"**{name}**: Not set.\n"
+                elif attr == "watching":
+                    if guild_data["watching"]:
+                        msg += (
+                            f"**{name}**: "
+                            + " ".join(
+                                await self.get_watching(
+                                    guild_data["watching"], "watching", guild.id
+                                )
+                            )
+                            + "\n"
+                        )
+                    else:
+                        msg += f"**{name}**: Not set.\n"
+                else:
+                    msg += f"**{name}**: {guild_data[attr]}\n"
+            em.description = msg
+            em.set_thumbnail(url=guild.icon_url)
+            await ctx.send(embed=em)
+        else:
+            msg = "```\n"
+            for attr, name in settings_name.items():
+                if attr == "online_watching":
+                    if guild_data["online_watching"]:
+                        msg += (
+                            f"{name}: "
+                            + " ".join(
+                                await self.get_watching(
+                                    guild_data["online_watching"], "online_watching", guild.id
+                                )
+                            )
+                            + "\n"
+                        )
+                    else:
+                        msg += f"{name}: Not set.\n"
+                elif attr == "ping":
+                    role = guild.get_role(guild_data["ping"])
+                    msg += f"{name}: {role.mention}\n" if role else f"{name}: Not set.\n"
+                elif attr == "reporting":
+                    channel = guild.get_channel(guild_data["reporting"])
+                    msg += f"{name}: {channel.mention}\n" if channel else f"{name}: Not set.\n"
+                elif attr == "watching":
+                    if guild_data["watching"]:
+                        msg += (
+                            f"{name}: "
+                            + " ".join(
+                                await self.get_watching(
+                                    guild_data["watching"], "watching", guild.id
+                                )
+                            )
+                            + "\n"
+                        )
+                    else:
+                        msg += f"{name}: Not set."
+                else:
+                    msg += f"**{name}**: {guild_data[attr]}\n"
+            msg += "```"
+            await ctx.send(msg)
 
     @otherbot.command()
     async def channel(self, ctx: commands.Context, channel: discord.TextChannel = None):
