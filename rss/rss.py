@@ -25,7 +25,7 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.4.4"
+__version__ = "1.4.5"
 
 
 class RSS(commands.Cog):
@@ -435,10 +435,18 @@ class RSS(commands.Cog):
         return rss_object
 
     async def _sort_by_post_time(self, feedparser_obj: feedparser.util.FeedParserDict):
-        for time_tag in ["updated_parsed", "published_parsed"]:
+        base_url = urlparse(feedparser_obj[0].get("link")).netloc
+        use_published_parsed_override = await self.config.use_published()
+
+        if base_url in use_published_parsed_override:
+            time_tag = ["published_parsed"]
+        else:
+            time_tag = ["updated_parsed", "published_parsed"]
+
+        for tag in time_tag:
             try:
                 baseline_time = time.struct_time((2021, 1, 1, 12, 0, 0, 4, 1, -1))
-                sorted_feed_by_post_time = sorted(feedparser_obj, key=lambda x: x.get(time_tag, baseline_time), reverse=True)
+                sorted_feed_by_post_time = sorted(feedparser_obj, key=lambda x: x.get(tag, baseline_time), reverse=True)
                 break
             except TypeError:
                 sorted_feed_by_post_time = feedparser_obj
