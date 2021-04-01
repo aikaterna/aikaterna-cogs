@@ -11,7 +11,7 @@ log = logging.getLogger("red.aikaterna.luigipoker")
 
 class Card:
     def __init__(self, card_number=None):
-        self._number = card_number if card_number else randint(1, 6)
+        self._number = card_number or randint(1, 6)
         self._suit = self._suit()
 
     def _suit(self):
@@ -51,8 +51,7 @@ class Deck:
         self.new_deck()
 
     def _create_deck(self):
-        temp = [Card() for x in range(0, self._length)]
-        return temp
+        return [Card() for x in range(self._length)]
 
     def _new_card(self, i):
         self._deck[i] = Card()
@@ -131,13 +130,12 @@ class LuigiPoker(commands.Cog):
     @poker.command()
     async def play(self, ctx):
         """Starts the Game!"""
-        if not self._in_game.get(ctx.guild.id, False):
-            self._in_game[ctx.guild.id] = True
-            self.player_deck.new_deck()
-            self.dealer_deck.new_deck()
-        else:
+        if self._in_game.get(ctx.guild.id, False):
             return await ctx.send("You're already in a game...")
 
+        self._in_game[ctx.guild.id] = True
+        self.player_deck.new_deck()
+        self.dealer_deck.new_deck()
         square = "\N{WHITE MEDIUM SMALL SQUARE}"
         msg = (
             f"Dealer's Deck: {square*5}\n"
@@ -187,7 +185,7 @@ class LuigiPoker(commands.Cog):
 
         user_answers = user_resp.content.strip().split(",")
         user_answers_valid = list(set(user_answers) & set(["1", "2", "3", "4", "5"]))
-        if len(user_answers_valid) == 0:
+        if not user_answers_valid:
             return await self.hit(ctx)
 
         await ctx.send("Swapping Cards...")
@@ -340,7 +338,7 @@ class LuigiPoker(commands.Cog):
     @staticmethod
     def one_pair(deck):
         answer = False
-        for x in range(0, deck.len() - 1):
+        for x in range(deck.len() - 1):
             if deck.num(x) == deck.num(x + 1):
                 deck.first_pair = deck.num(x)
                 answer = True
@@ -353,7 +351,7 @@ class LuigiPoker(commands.Cog):
         first_pair = 0
         second_pair = 0
 
-        for x in range(0, deck.len() - 1):
+        for x in range(deck.len() - 1):
             if deck.num(x) == deck.num(x + 1):
                 if first_pair == 0:
                     first_pair = deck.num(x)
@@ -370,7 +368,7 @@ class LuigiPoker(commands.Cog):
     @staticmethod
     def three_of_a_kind(deck):
         answer = False
-        for x in range(0, deck.len() - 2):
+        for x in range(deck.len() - 2):
             if deck.num(x) == deck.num(x + 1) and deck.num(x + 1) == deck.num(x + 2):
                 deck.first_pair = deck.num(x)
                 answer = True
@@ -382,14 +380,20 @@ class LuigiPoker(commands.Cog):
         answer = False
         first_pair = 0
         second_pair = 0
-        for x in range(0, deck.len() - 2):
-            if deck.num(x) == deck.num(x + 1) and deck.num(x + 1) == deck.num(x + 2):
-                if first_pair == 0:
-                    first_pair = deck.num(x)
-        for x in range(0, deck.len() - 1):
-            if deck.num(x) == deck.num(x + 1):
-                if first_pair != deck.num(x) and second_pair == 0:
-                    second_pair = deck.num(x)
+        for x in range(deck.len() - 2):
+            if (
+                deck.num(x) == deck.num(x + 1)
+                and deck.num(x + 1) == deck.num(x + 2)
+                and first_pair == 0
+            ):
+                first_pair = deck.num(x)
+        for x in range(deck.len() - 1):
+            if (
+                deck.num(x) == deck.num(x + 1)
+                and first_pair != deck.num(x)
+                and second_pair == 0
+            ):
+                second_pair = deck.num(x)
 
         if first_pair != 0 and second_pair != 0:
             deck.first_pair = first_pair
@@ -401,7 +405,7 @@ class LuigiPoker(commands.Cog):
     @staticmethod
     def four_of_a_kind(deck):
         answer = False
-        for x in range(0, deck.len() - 3):
+        for x in range(deck.len() - 3):
             if (
                 deck.num(x) == deck.num(x + 1)
                 and deck.num(x + 1) == deck.num(x + 2)

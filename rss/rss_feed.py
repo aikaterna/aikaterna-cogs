@@ -35,16 +35,16 @@ class RssFeed():
     @classmethod
     def from_json(cls, data: dict):
         return cls(
-            name=data["name"] if data["name"] else None,
-            last_title=data["last_title"] if data["last_title"] else None,
-            last_link=data["last_link"] if data["last_link"] else None,
-            last_time=data["last_time"] if data["last_time"] else None,
-            template=data["template"] if data["template"] else None,
-            url=data["url"] if data["url"] else None,
-            template_tags=data["template_tags"] if data["template_tags"] else [],
-            is_special=data["is_special"] if data["is_special"] else [],
-            embed=data["embed"] if data["embed"] else True,
-            embed_color=data["embed_color"] if data["embed_color"] else None,
-            embed_image=data["embed_image"] if data["embed_image"] else None,
-            embed_thumbnail=data["embed_thumbnail"] if data["embed_thumbnail"] else None,
+            name=data["name"] or None,
+            last_title=data["last_title"] or None,
+            last_link=data["last_link"] or None,
+            last_time=data["last_time"] or None,
+            template=data["template"] or None,
+            url=data["url"] or None,
+            template_tags=data["template_tags"] or [],
+            is_special=data["is_special"] or [],
+            embed=data["embed"] or True,
+            embed_color=data["embed_color"] or None,
+            embed_image=data["embed_image"] or None,
+            embed_thumbnail=data["embed_thumbnail"] or None,
         )

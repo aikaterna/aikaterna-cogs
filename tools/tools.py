@@ -106,11 +106,7 @@ class Tools(commands.Cog):
         """Check text channel access."""
         if user is None:
             user = ctx.author
-        if guild is None:
-            guild = ctx.guild
-        else:
-            guild = self.bot.get_guild(guild)
-
+        guild = ctx.guild if guild is None else self.bot.get_guild(guild)
         try:
             can_access = [c.name for c in guild.text_channels if c.permissions_for(user).read_messages == True]
             text_channels = [c.name for c in guild.text_channels]
@@ -132,11 +128,7 @@ class Tools(commands.Cog):
         """Check voice channel access."""
         if user is None:
             user = ctx.author
-        if guild is None:
-            guild = ctx.guild
-        else:
-            guild = self.bot.get_guild(guild)
-
+        guild = ctx.guild if guild is None else self.bot.get_guild(guild)
         try:
             can_access = [c.name for c in guild.voice_channels if c.permissions_for(user).connect is True]
             voice_channels = [c.name for c in guild.voice_channels]
@@ -192,11 +184,7 @@ class Tools(commands.Cog):
     @commands.command()
     async def chinfo(self, ctx, channel: int = None):
         """Shows channel information. Defaults to current text channel."""
-        if channel is None:
-            channel = ctx.channel
-        else:
-            channel = self.bot.get_channel(channel)
-
+        channel = ctx.channel if channel is None else self.bot.get_channel(channel)
         if channel is None:
             return await ctx.send("Not a valid channel.")
 
@@ -381,7 +369,7 @@ class Tools(commands.Cog):
             len(guilds), "s" if len(guilds) > 1 else ""
         )
 
-        max_zpadding = max([len(str(g.member_count)) for g in guilds])
+        max_zpadding = max(len(str(g.member_count)) for g in guilds)
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
         all_forms = [
             form.format(
@@ -415,7 +403,10 @@ class Tools(commands.Cog):
         top_channels, category_channels = self.sort_channels(ctx.guild.channels)
 
         topChannels_formed = "\n".join(self.channels_format(top_channels))
-        categories_formed = "\n\n".join([self.category_format(tup) for tup in category_channels])
+        categories_formed = "\n\n".join(
+            self.category_format(tup) for tup in category_channels
+        )
+
 
         await ctx.send(f"{ctx.guild.name} has {len(channels)} channel{'s' if len(channels) > 1 else ''}.")
 
@@ -451,9 +442,8 @@ class Tools(commands.Cog):
 
             if len(date1sta) == len(date2sta):
                 return (0, 0)
-            else:
-                ret = len(date2sta) - len(date1sta)
-                return (abs(ret), 0 if ret > 0 else 1)
+            ret = len(date2sta) - len(date1sta)
+            return (abs(ret), 0 if ret > 0 else 1)
 
         for member in members:
             req = calculate_diff(member.joined_at, member.created_at)
@@ -591,7 +581,7 @@ class Tools(commands.Cog):
     async def rolelist(self, ctx):
         """Displays the server's roles."""
         form = "`{rpos:0{zpadding}}` - `{rid}` - `{rcolor}` - {rment} "
-        max_zpadding = max([len(str(r.position)) for r in ctx.guild.roles])
+        max_zpadding = max(len(str(r.position)) for r in ctx.guild.roles)
         rolelist = [
             form.format(rpos=r.position, zpadding=max_zpadding, rid=r.id, rment=r.mention, rcolor=r.color)
             for r in ctx.guild.roles
@@ -614,8 +604,22 @@ class Tools(commands.Cog):
         guild = ctx.guild
         if not user:
             user = author
-        seen = len(set([member.guild.name for member in self.bot.get_all_members() if member.id == user.id]))
-        sharedservers = str(set([member.guild.name for member in self.bot.get_all_members() if member.id == user.id]))
+        seen = len(
+            {
+                member.guild.name
+                for member in self.bot.get_all_members()
+                if member.id == user.id
+            }
+        )
+
+        sharedservers = str(
+            {
+                member.guild.name
+                for member in self.bot.get_all_members()
+                if member.id == user.id
+            }
+        )
+
         for shared in sharedservers:
             shared = "".strip("'").join(sharedservers).strip("'")
             shared = shared.strip("{").strip("}")
@@ -623,7 +627,7 @@ class Tools(commands.Cog):
         data = "[Guilds]:     {} shared\n".format(seen)
         data += "[In Guilds]:  {}\n".format(shared)
 
-        for page in cf.pagify(data, ["\n"], shorten_by=13, page_length=2000):
+        for _ in cf.pagify(data, ["\n"], shorten_by=13, page_length=2000):
             await ctx.send(f"```ini\n{data}```")
 
     @commands.guild_only()
@@ -643,7 +647,16 @@ class Tools(commands.Cog):
                 guild = self.bot.get_guild(int(guild))
             except ValueError:
                 return await ctx.send("Not a valid guild id.")
-        online = str(len([m.status for m in guild.members if str(m.status) == "online" or str(m.status) == "idle"]))
+        online = str(
+            len(
+                [
+                    m.status
+                    for m in guild.members
+                    if str(m.status) in ["online", "idle"]
+                ]
+            )
+        )
+
         total_users = str(len(guild.members))
         text_channels = [x for x in guild.channels if isinstance(x, discord.TextChannel)]
         voice_channels = [x for x in guild.channels if isinstance(x, discord.VoiceChannel)]
@@ -795,7 +808,7 @@ class Tools(commands.Cog):
         months = 0
         m_temp = 0
         mo_len = next(cy)
-        for i in range(1, days+1):
+        for _ in range(1, days+1):
             m_temp += 1
             if m_temp == mo_len:
                 months += 1
@@ -813,18 +826,19 @@ class Tools(commands.Cog):
     def _role_from_string(self, guild, rolename, roles=None):
         if roles is None:
             roles = guild.roles
-        role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
-        return role
+        return discord.utils.find(
+            lambda r: r.name.lower() == str(rolename).lower(), roles
+        )
 
     def sort_channels(self, channels):
-        temp = dict()
+        temp = {}
 
         channels = sorted(channels, key=lambda c: c.position)
 
         for c in channels[:]:
             if isinstance(c, discord.CategoryChannel):
                 channels.pop(channels.index(c))
-                temp[c] = list()
+                temp[c] = []
 
         for c in channels[:]:
             if c.category:
@@ -860,8 +874,8 @@ class Tools(commands.Cog):
         chs = cat_chan_tuple[1]
 
         chfs = self.channels_format(chs)
-        if chfs != []:
-            ch_forms = ["\t" + f for f in chfs]
-            return "\n".join([f"{cat.name} :: {cat.id}"] + ch_forms)
-        else:
+        if chfs == []:
             return "\n".join([f"{cat.name} :: {cat.id}"] + ["\tNo Channels"])
+
+        ch_forms = ["\t" + f for f in chfs]
+        return "\n".join([f"{cat.name} :: {cat.id}"] + ch_forms)

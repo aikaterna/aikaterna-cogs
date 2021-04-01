@@ -205,15 +205,11 @@ class TTT(commands.Cog):
         row, col, dia = self._find_streaks(m, xo)
         dia.append(0)
 
-        for i in range(3):
-            if row[i] == 3 or col[i] == 3 or dia[i] == 3:
-                return True
-
-        return False
+        return any(row[i] == 3 or col[i] == 3 or dia[i] == 3 for i in range(3))
 
     @staticmethod
     def _check_draw(board):
-        return not " " in board
+        return " " not in board
 
     def _ai_think(self, m):
         rx, cx, dx = self._find_streaks(m, "x")

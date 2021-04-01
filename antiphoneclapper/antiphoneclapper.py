@@ -72,7 +72,7 @@ class AntiPhoneClapper(commands.Cog):
         for frame in range(im.n_frames):
             im.seek(frame)
             tile_sizes.append(im.tile[0][1][2:])
-        return any([x[0] > limit[0] or x[1] > limit[1] for x in tile_sizes])
+        return any(x[0] > limit[0] or x[1] > limit[1] for x in tile_sizes)
 
     @commands.Cog.listener()
     async def on_message(self, m):

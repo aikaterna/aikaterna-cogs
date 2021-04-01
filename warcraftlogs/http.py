@@ -147,17 +147,17 @@ class WoWLogsClient:
 
     async def get_gear(self, char_name: str, char_realm: str, char_server: str, encounter_id: int):
         async with self.session.post(
-            graphql_url,
-            json={
-                "query": Queries.get_gear,
-                "variables": {
-                    "char_name": char_name,
-                    "char_realm": char_realm,
-                    "char_server": char_server,
-                    "encounter": encounter_id,
+                graphql_url,
+                json={
+                    "query": Queries.get_gear,
+                    "variables": {
+                        "char_name": char_name,
+                        "char_realm": char_realm,
+                        "char_server": char_server,
+                        "encounter": encounter_id,
+                    },
                 },
-            },
-        ) as call:
+            ) as call:
             try:
                 json = await call.json()
             except aiohttp.ContentTypeError:
@@ -172,5 +172,4 @@ class WoWLogsClient:
             if json["data"]["characterData"]["character"] is None:
                 return False
 
-            data = json["data"]["characterData"]["character"]
-            return data
+            return json["data"]["characterData"]["character"]

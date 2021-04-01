@@ -99,16 +99,16 @@ class WarcraftLogs(commands.Cog):
 
         if not name:
             name = userdata["charname"]
-            if not name:
-                return await ctx.send("Please specify a character name with this command.")
+        if not name:
+            return await ctx.send("Please specify a character name with this command.")
         if not realm:
             realm = userdata["realm"]
-            if not realm:
-                return await ctx.send("Please specify a realm name with this command.")
+        if not realm:
+            return await ctx.send("Please specify a realm name with this command.")
         if not region:
             region = userdata["region"]
-            if not region:
-                return await ctx.send("Please specify a region name with this command.")
+        if not region:
+            return await ctx.send("Please specify a region name with this command.")
 
         if len(region.split(" ")) > 1:
             presplit = region.split(" ")
@@ -167,26 +167,20 @@ class WarcraftLogs(commands.Cog):
             # item can be {'name': 'Unknown Item', 'quality': 'common', 'id': None, 'icon': 'inv_axe_02.jpg'} here
             rarity = self._get_rarity(item)
             item_ilevel_entry = item.get("itemLevel", None)
-            if item_ilevel_entry:
-                if int(item["itemLevel"]) > 5:
-                    item_ilevel += int(item["itemLevel"])
-                    item_count += 1
+            if item_ilevel_entry and int(item["itemLevel"]) > 5:
+                item_ilevel += int(item["itemLevel"])
+                item_count += 1
             item_list.append(f"{rarity} [{item['name']}](https://classic.wowhead.com/item={item['id']})")
             perm_enchant_id = item.get("permanentEnchant", None)
             temp_enchant_id = item.get("temporaryEnchant", None)
             perm_enchant_text = ENCHANT_ID.get(perm_enchant_id, None)
             temp_enchant_text = ENCHANT_ID.get(temp_enchant_id, None)
 
-            if perm_enchant_id:
-                if temp_enchant_id:
-                    symbol = "├"
-                else:
-                    symbol = "└"
-                if perm_enchant_text:
-                    item_list.append(f"`{symbol}──` {perm_enchant_text}")
-            if temp_enchant_id:
-                if temp_enchant_text:
-                    item_list.append(f"`└──` {temp_enchant_text}")
+            if perm_enchant_id and perm_enchant_text:
+                symbol = "├" if temp_enchant_id else "└"
+                item_list.append(f"`{symbol}──` {perm_enchant_text}")
+            if temp_enchant_id and temp_enchant_text:
+                item_list.append(f"`└──` {temp_enchant_text}")
 
         if item_ilevel > 0:
             avg_ilevel = "{:g}".format(item_ilevel / item_count)
@@ -235,27 +229,26 @@ class WarcraftLogs(commands.Cog):
         """
         # someone has their data saved so they are just trying 
         # to look up a zone for themselves
-        if name:
-            if name.upper() in ZONES_BY_SHORT_NAME:
-                zone = name
-                name = None
-                realm = None
-                region = None
+        if name and name.upper() in ZONES_BY_SHORT_NAME:
+            zone = name
+            name = None
+            realm = None
+            region = None
 
         # look up any saved info
         userdata = await self.config.user(ctx.author).all()
         if not name:
             name = userdata["charname"]
-            if not name:
-                return await ctx.send("Please specify a character name with this command.")
+        if not name:
+            return await ctx.send("Please specify a character name with this command.")
         if not realm:
             realm = userdata["realm"]
-            if not realm:
-                return await ctx.send("Please specify a realm name with this command.")
+        if not realm:
+            return await ctx.send("Please specify a realm name with this command.")
         if not region:
             region = userdata["region"]
-            if not region:
-                return await ctx.send("Please specify a region name with this command.")
+        if not region:
+            return await ctx.send("Please specify a region name with this command.")
 
         region = region.upper()
         if region not in ["US", "EU"]:
@@ -268,12 +261,11 @@ class WarcraftLogs(commands.Cog):
 
         # fetch zone name and zone id from user input
         zone_id = None
-        if zone:
-            if zone.upper() in ZONES_BY_SHORT_NAME:
-                zone_id = ZONES_BY_SHORT_NAME[zone.upper()][1]
-                zone_id_to_name = ZONES_BY_SHORT_NAME[zone.upper()][0]
+        if zone and zone.upper() in ZONES_BY_SHORT_NAME:
+            zone_id = ZONES_BY_SHORT_NAME[zone.upper()][1]
+            zone_id_to_name = ZONES_BY_SHORT_NAME[zone.upper()][0]
 
-        if zone_id == None:
+        if zone_id is None:
             # return first raid that actually has parse info in phase 6
             # as no specific zone was requested
             zone_ids = list(ZONES_BY_ID.keys())
@@ -396,7 +388,7 @@ class WarcraftLogs(commands.Cog):
             embed.add_field(name=zws, value=msg, inline=True)
 
         # all stars filler space
-        if not len(all_stars) % 3 == 0:
+        if len(all_stars) % 3 != 0:
             nearest_multiple = 3 * math.ceil(len(all_stars) / 3)
         else:
             nearest_multiple = len(all_stars)
@@ -526,8 +518,7 @@ class WarcraftLogs(commands.Cog):
     @staticmethod
     def _time_convert(time):
         time = str(time)[0:10]
-        value = datetime.fromtimestamp(int(time)).strftime("%Y-%m-%d %H:%M:%S")
-        return value
+        return datetime.fromtimestamp(int(time)).strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
     async def _zone_name_from_id(zoneID: int):
@@ -538,58 +529,52 @@ class WarcraftLogs(commands.Cog):
     def _get_color(self, number: float, bonus=""):
         if number >= 95:
             # legendary
-            out = self._orange(number, bonus)
+            return self._orange(number, bonus)
         elif 94 >= number > 75:
             # epic
-            out = self._red(number, bonus)
+            return self._red(number, bonus)
         elif 75 >= number > 50:
             # rare
-            out = self._blue(number, bonus)
+            return self._blue(number, bonus)
         elif 50 >= number > 25:
             # common
-            out = self._green(number, bonus)
+            return self._green(number, bonus)
         elif 25 >= number >= 0:
             # trash
-            out = self._grey(number, bonus)
+            return self._grey(number, bonus)
         else:
             # someone fucked up somewhere
-            out = box(number)
-        return out
+            return box(number)
 
     @staticmethod
     def _red(number, bonus):
         output_center = f"{str(number)}{bonus}".center(8, " ")
         text = f" [  {output_center}  ]"
-        new_number = f"{box(text, lang='css')}"
-        return new_number
+        return f"{box(text, lang='css')}"
 
     @staticmethod
     def _orange(number, bonus):
         output_center = f"{str(number)}{bonus}".center(8, " ")
         text = f" [  {output_center}  ]"
-        new_number = f"{box(text, lang='fix')}"
-        return new_number
+        return f"{box(text, lang='fix')}"
 
     @staticmethod
     def _green(number, bonus):
         output_center = f"{str(number)}{bonus}".center(8, " ")
         text = f" [  {output_center}  ]"
-        new_number = f"{box(text, lang='py')}"
-        return new_number
+        return f"{box(text, lang='py')}"
 
     @staticmethod
     def _blue(number, bonus):
         output_center = f"{str(number)}{bonus}".center(8, " ")
         text = f" [  {output_center}  ]"
-        new_number = f"{box(text, lang='ini')}"
-        return new_number
+        return f"{box(text, lang='ini')}"
 
     @staticmethod
     def _grey(number, bonus):
         output_center = f"{str(number)}{bonus}".center(8, " ")
         text = f" [  {output_center}  ]"
-        new_number = f"{box(text, lang='bf')}"
-        return new_number
+        return f"{box(text, lang='bf')}"
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name: str, api_tokens: Mapping[str, str]):
@@ -604,9 +589,9 @@ class WarcraftLogs(commands.Cog):
             api_tokens = await self.bot.get_shared_api_tokens("warcraftlogs")
 
         bearer = api_tokens.get("bearer", None)
-        if not bearer:
-            log.info("No valid token found, trying to create one.")
-            await generate_bearer(self.bot, self.config)
-            return await self._get_bearer()
-        else:
+        if bearer:
             return bearer
+
+        log.info("No valid token found, trying to create one.")
+        await generate_bearer(self.bot, self.config)
+        return await self._get_bearer()

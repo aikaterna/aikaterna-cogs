@@ -104,34 +104,35 @@ class Snacktime(commands.Cog):
     @checks.mod_or_permissions(manage_guild=True)
     async def snackset(self, ctx):
         """snack stuff"""
-        if ctx.invoked_subcommand is None:
-            guild_data = await self.config.guild(ctx.guild).all()
-            if not guild_data["DELIVER_CHANNELS"]:
-                channel_names = ["No channels set."]
-            else:
-                channel_names = []
-                for channel_id in guild_data["DELIVER_CHANNELS"]:
-                    channel_obj = self.bot.get_channel(channel_id)
-                    channel_names.append(channel_obj.name)
+        if ctx.invoked_subcommand is not None:
+            return
+        guild_data = await self.config.guild(ctx.guild).all()
+        if not guild_data["DELIVER_CHANNELS"]:
+            channel_names = ["No channels set."]
+        else:
+            channel_names = []
+            for channel_id in guild_data["DELIVER_CHANNELS"]:
+                channel_obj = self.bot.get_channel(channel_id)
+                channel_names.append(channel_obj.name)
 
-            if guild_data["FRIENDS"] is True:
-                invite_friends = "Friends only"
-            elif guild_data["FRIENDS"] is False:
-                invite_friends = "Snackburr only"
-            else:
-                invite_friends = "Everyone's invited!"
+        if guild_data["FRIENDS"] is True:
+            invite_friends = "Friends only"
+        elif guild_data["FRIENDS"] is False:
+            invite_friends = "Snackburr only"
+        else:
+            invite_friends = "Everyone's invited!"
 
-            msg = f"[Delivering in]:           {humanize_list(channel_names)}\n"
-            msg += f"[Event start delay]:       {guild_data['EVENT_START_DELAY']} seconds\n"
-            msg += f"[Event start variance]:    {guild_data['EVENT_START_DELAY_VARIANCE']} seconds\n"
-            msg += f"[Friends status]:          {invite_friends}\n"
-            msg += f"[Messages before event]:   {guild_data['MSGS_BEFORE_EVENT']}\n"
-            msg += f"[Snack amount limit]:      {guild_data['SNACK_AMOUNT']} pb\n"
-            msg += f"[Snack duration]:          {guild_data['SNACK_DURATION']} seconds\n"
-            msg += f"[Snack duration variance]: {guild_data['SNACK_DURATION_VARIANCE']} seconds\n"
+        msg = f"[Delivering in]:           {humanize_list(channel_names)}\n"
+        msg += f"[Event start delay]:       {guild_data['EVENT_START_DELAY']} seconds\n"
+        msg += f"[Event start variance]:    {guild_data['EVENT_START_DELAY_VARIANCE']} seconds\n"
+        msg += f"[Friends status]:          {invite_friends}\n"
+        msg += f"[Messages before event]:   {guild_data['MSGS_BEFORE_EVENT']}\n"
+        msg += f"[Snack amount limit]:      {guild_data['SNACK_AMOUNT']} pb\n"
+        msg += f"[Snack duration]:          {guild_data['SNACK_DURATION']} seconds\n"
+        msg += f"[Snack duration variance]: {guild_data['SNACK_DURATION_VARIANCE']} seconds\n"
 
-            for page in pagify(msg, delims=["\n"]):
-                await ctx.send(box(page, lang="ini"))
+        for page in pagify(msg, delims=["\n"]):
+            await ctx.send(box(page, lang="ini"))
 
     @snackset.command()
     async def errandtime(self, ctx, seconds: int):
@@ -243,17 +244,16 @@ class Snacktime(commands.Cog):
     async def snacktime(self, ctx):
         """Man i'm hungry! When's snackburr gonna get back with more snacks?"""
         scid = f"{ctx.message.guild.id}-{ctx.message.channel.id}"
-        if self.snacktimePrediction.get(scid, None) == None:
+        if self.snacktimePrediction.get(scid, None) is None:
             if self.acceptInput.get(scid, False):
                 return
-            else:
-                phrases = [
-                    r"Don't look at me. I donno where snackburr's at ¯\_(ツ)_/¯",
-                    "I hear snackburr likes parties. *wink wink",
-                    "I hear snackburr is attracted to channels with active conversations",
-                    "If you party, snackburr will come! 〈( ^o^)ノ",
-                ]
-                await ctx.send(randchoice(phrases))
+            phrases = [
+                r"Don't look at me. I donno where snackburr's at ¯\_(ツ)_/¯",
+                "I hear snackburr likes parties. *wink wink",
+                "I hear snackburr is attracted to channels with active conversations",
+                "If you party, snackburr will come! 〈( ^o^)ノ",
+            ]
+            await ctx.send(randchoice(phrases))
             return
         seconds = self.snacktimePrediction[scid] - self.bot.loop.time()
         if self.snacktimeCheckLock.get(scid, False):
@@ -295,7 +295,7 @@ class Snacktime(commands.Cog):
                 repeat_missed_snacktimes = await self.config.channel(message.channel).repeatMissedSnacktimes()
                 await self.config.channel(message.channel).repeatMissedSnacktimes.set(repeat_missed_snacktimes + 1)
                 await asyncio.sleep(2)
-                if (repeat_missed_snacktimes + 1) > 9:  # move to a setting
+                if repeat_missed_snacktimes > 8:  # move to a setting
                     await message.channel.send(await self.get_response(message, "LONELY"))
                     deliver_channels = await self.config.guild(message.guild).DELIVER_CHANNELS()
                     new_deliver_channels = deliver_channels.remove(message.channel.id)

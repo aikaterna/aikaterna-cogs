@@ -73,8 +73,8 @@ class Timezone(commands.Cog):
         if code is None:
             await ctx.send("That doesn't look like a country code!")
         else:
-            exist = True if code in country_timezones else False
-            if exist is True:
+            exist = code in country_timezones
+            if exist:
                 tz = str(country_timezones(code))
                 msg = (
                     f"Supported timezones for **{code}:**\n{tz[:-1][1:]}"
@@ -106,7 +106,7 @@ class Timezone(commands.Cog):
                 msg = f"Your current timezone is **{usertime}.**\n" f"The current time is: {time}"
                 await ctx.send(msg)
         else:
-            exist = True if tz.title() in common_timezones else False
+            exist = tz.title() in common_timezones
             if exist:
                 if "'" in tz:
                     tz = tz.replace("'", "")
@@ -128,7 +128,7 @@ class Timezone(commands.Cog):
             await ctx.send("That timezone is invalid.")
             return
         else:
-            exist = True if tz.title() in common_timezones else False
+            exist = tz.title() in common_timezones
             if exist:
                 if "'" in tz:
                     tz = tz.replace("'", "")

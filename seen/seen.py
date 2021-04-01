@@ -55,9 +55,10 @@ class Seen(commands.Cog):
                         if user_id not in users_data:
                             users_data[guild_id][user_id] = {"seen": v}
                         else:
-                            if (v and not users_data[guild_id][user_id]["seen"]) or (
+                            if (
                                 v
-                                and users_data[guild_id][user_id]["seen"]
+                                and not users_data[guild_id][user_id]["seen"]
+                                or v
                                 and v > users_data[guild_id][user_id]["seen"]
                             ):
                                 users_data[guild_id][user_id] = {"seen": v}
@@ -85,14 +86,15 @@ class Seen(commands.Cog):
             embed = discord.Embed(colour=discord.Color.red(), title="I haven't seen that user yet.")
             return await ctx.send(embed=embed)
 
-        if not member_seen_cache:
+        if (
+            not member_seen_cache
+            or member_seen_config
+            and member_seen_cache <= member_seen_config
+            and member_seen_config > member_seen_cache
+        ):
             member_seen = member_seen_config
-        elif not member_seen_config:
+        elif not member_seen_config or member_seen_cache > member_seen_config:
             member_seen = member_seen_cache
-        elif member_seen_cache > member_seen_config:
-            member_seen = member_seen_cache
-        elif member_seen_config > member_seen_cache:
-            member_seen = member_seen_config
         else:
             member_seen = member_seen_cache or member_seen_config
 

@@ -146,16 +146,14 @@ class Invites(commands.Cog):
         )
         if invite_match:
             return invite_code_or_url
-        else:
-            sep = invite_code_or_url.rfind("/")
-            if sep:
-                try:
-                    invite_code = invite_code_or_url.rsplit("/", 1)[1]
-                    return invite_code
-                except IndexError:
-                    return None
+        sep = invite_code_or_url.rfind("/")
+        if sep:
+            try:
+                return invite_code_or_url.rsplit("/", 1)[1]
+            except IndexError:
+                return None
 
-            return None
+        return None
 
     @staticmethod
     async def _get_invite_from_code(ctx: commands.Context, invite_code: str):
@@ -271,14 +269,12 @@ class MenuActions(menus.MenuPages, inherit_buttons=False):
         # when at the beginning page and using prev.
         max_pages = self._source.get_max_pages()
         try:
-            if max_pages is None:
+            if max_pages is None or page_number < max_pages and page_number >= 0:
                 await self.show_page(page_number)
             elif page_number >= max_pages:
                 await self.show_page(0)
-            elif page_number < 0:
+            else:
                 await self.show_page(max_pages - 1)
-            elif max_pages > page_number >= 0:
-                await self.show_page(page_number)
         except IndexError:
             pass
 
