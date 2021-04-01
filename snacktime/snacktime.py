@@ -432,6 +432,14 @@ class Snacktime(commands.Cog):
                         if self.alreadySnacked.get(scid, None) == None:
                             self.alreadySnacked[scid] = []
                         self.alreadySnacked[scid].append(message.author.id)
+
+                        # If user is blacklisted, don't give him/her anything.
+                        # We're still passing it to the list to avoid this calculation down the line,
+                        if await self.bot.allowed_by_whitelist_blacklist(
+                            who=message.author
+                        ) is False:
+                            return
+
                         await asyncio.sleep(randint(1, 6))
                         snack_amount = await self.config.guild(message.guild).SNACK_AMOUNT()
                         snackAmt = randint(1, snack_amount)
@@ -468,6 +476,11 @@ class Snacktime(commands.Cog):
                             userWants = True
                             break
                     if userWants:
+                        if await self.bot.allowed_by_whitelist_blacklist(
+                            who=message.author
+                        ) is False:
+                            return
+
                         await asyncio.sleep(randint(1, 6))
                         if self.acceptInput.get(scid, False):
                             resp = await self.get_response(message, "GREEDY")
