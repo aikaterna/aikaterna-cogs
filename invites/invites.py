@@ -42,12 +42,12 @@ class Invites(commands.Cog):
             return await self._send_embed(ctx, PERM_MSG)
 
         if not invite_code_or_url:
-            pages = MenuPages(await ctx.guild.invites())
+            pages = MenuInvitePages(await ctx.guild.invites())
         else:
             invite_code = await self._find_invite_code(invite_code_or_url)
             if not invite_code:
                 return await self._send_embed(ctx, FAILURE_MSG)
-            pages = MenuPages([x for x in await ctx.guild.invites() if x.code == invite_code])
+            pages = MenuInvitePages([x for x in await ctx.guild.invites() if x.code == invite_code])
         await self._menu(ctx, pages)
 
     @invites.command()
@@ -72,13 +72,9 @@ class Invites(commands.Cog):
             inv_details = f"{i+1}. {inv_object.url} [ {inv_object.uses} uses / {max_uses} max ]\n"
             invite_info += inv_details
 
-        for page in cf.pagify(invite_info, delims=["\n"], shorten_by=16):
-            embed = discord.Embed(title=f"Invite Usage for {ctx.guild.name}", description=page)
-            if not list_all_invites:
-                embed.set_footer(text="Only displaying pinned invites.")
-            else:
-                embed.set_footer(text="Displaying all invites.")
-            await ctx.send(embed=embed)
+        pagified_stings = [x for x in cf.pagify(invite_info, delims=["\n"], shorten_by=16)]
+        pages = MenuLeaderboardPages(ctx, pagified_stings, show_all=list_all_invites)
+        await self._menu(ctx, pages)
 
     @invites.command(aliases=["listpinned"])
     async def listpin(self, ctx: commands.Context):
@@ -195,7 +191,7 @@ class Invites(commands.Cog):
         await ctx.send(embed=embed)
 
 
-class MenuPages(menus.ListPageSource):
+class MenuInvitePages(menus.ListPageSource):
     def __init__(self, methods: List[discord.Invite]):
         super().__init__(methods, per_page=1)
 
@@ -237,6 +233,21 @@ class MenuPages(menus.ListPageSource):
         else:
             msg = ""
         return msg.format(d, h, m, s)
+
+
+class MenuLeaderboardPages(menus.ListPageSource):
+    def __init__(self, ctx: commands.Context, entries: List[str], show_all: bool):
+        super().__init__(entries, per_page=1)
+        self.show_all = show_all
+        self.ctx = ctx
+
+    async def format_page(self, menu: MenuActions, page: str) -> discord.Embed:
+        embed = discord.Embed(title=f"Invite Usage for {self.ctx.guild.name}", description=page)
+        if self.show_all is False:
+            embed.set_footer(text="Only displaying pinned invites.")
+        else:
+            embed.set_footer(text="Displaying all invites.")
+        return embed
 
 
 class MenuActions(menus.MenuPages, inherit_buttons=False):
