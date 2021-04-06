@@ -52,6 +52,8 @@ class AntiPhoneClapper(commands.Cog):
         msg = "Bad gifs will be removed in:\n"
         for channel in channel_list:
             channel_obj = self.bot.get_channel(channel)
+            if channel_obj is None:  # Catch deleted/unexisting channels
+                continue
             msg += f"{channel_obj.mention}\n"
         await ctx.send(msg)
 
