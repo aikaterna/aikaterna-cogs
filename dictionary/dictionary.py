@@ -51,7 +51,10 @@ class Dictionary(commands.Cog):
         if not data:
             return await ctx.send("Error fetching data.")
         section = data.find_all("ul", {"class": "css-1dnnh8h e1ccqdb60"})
-        antonyms = section[0].text.split()
+        if len(section) > 0:
+            antonyms = section[0].text.split()
+        else:
+            antonyms = []
         return antonyms
 
     @commands.command()
@@ -112,7 +115,10 @@ class Dictionary(commands.Cog):
         if not data:
             return await ctx.send("Error fetching data.")
         section = data.find_all("ul", {"class": "css-1l7o0dd e1ccqdb60"})
-        synonyms = section[0].text.split()
+        if len(section) > 0:
+            synonyms = section[0].text.split()
+        else:
+            synonyms = []
         return synonyms
 
     @commands.command()
