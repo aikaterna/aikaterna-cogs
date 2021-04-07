@@ -50,8 +50,8 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("a", {"class": "css-1dcngqk eh475bn1"})
-        antonyms = [item.text.rstrip() for item in section]
+        section = data.find_all("ul", {"class": "css-1dnnh8h e1ccqdb60"})
+        antonyms = section[0].text.split()
         return antonyms
 
     @commands.command()
@@ -111,8 +111,8 @@ class Dictionary(commands.Cog):
         data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
         if not data:
             return await ctx.send("Error fetching data.")
-        section = data.find_all("a", {"class": "css-1m14xsh eh475bn1"})
-        synonyms = [item.text.rstrip() for item in section]
+        section = data.find_all("ul", {"class": "css-1l7o0dd e1ccqdb60"})
+        synonyms = section[0].text.split()
         return synonyms
 
     @commands.command()
