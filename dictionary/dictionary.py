@@ -1,5 +1,6 @@
 import aiohttp
 from bs4 import BeautifulSoup
+import json
 import logging
 import re
 from redbot.core import commands
@@ -10,11 +11,13 @@ log = logging.getLogger("red.aikaterna.dictionary")
 
 
 class Dictionary(commands.Cog):
-    """Word, yo
-    Parts of this cog are adapted from the PyDictionary library."""
+    """
+    Word, yo
+    Parts of this cog are adapted from the PyDictionary library.
+    """
 
     async def red_delete_data_for_user(self, **kwargs):
-        """ Nothing to delete """
+        """Nothing to delete"""
         return
 
     def __init__(self, bot):
@@ -23,39 +26,6 @@ class Dictionary(commands.Cog):
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
-
-    async def _get_soup_object(self, url):
-        try:
-            async with self.session.request("GET", url) as response:
-                return BeautifulSoup(await response.text(), "html.parser")
-        except Exception:
-            log.error("Error fetching dictionary.py related webpage", exc_info=True)
-            return None
-
-    @commands.command()
-    async def antonym(self, ctx, *, word: str):
-        """Displays antonyms for a given word."""
-        search_term = word.split(" ", 1)[0]
-        result = await self._antonym(ctx, search_term)
-        if not result:
-            await ctx.send("This word is not in the dictionary.")
-            return
-
-        result_text = "*, *".join(result)
-        msg = f"Antonyms for **{search_term}**: *{result_text}*"
-        for page in pagify(msg, delims=["\n"]):
-            await ctx.send(page)
-
-    async def _antonym(self, ctx, word):
-        data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
-        if not data:
-            return await ctx.send("Error fetching data.")
-        section = data.find_all("ul", {"class": "css-1dnnh8h e1ccqdb60"})
-        if len(section) > 0:
-            antonyms = section[0].text.split()
-        else:
-            antonyms = []
-        return antonyms
 
     @commands.command()
     async def define(self, ctx, *, word: str):
@@ -110,27 +80,71 @@ class Dictionary(commands.Cog):
             out[name] = meanings
         return out
 
-    async def _synonym(self, ctx, word):
-        data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
-        if not data:
-            return await ctx.send("Error fetching data.")
-        section = data.find_all("ul", {"class": "css-1l7o0dd e1ccqdb60"})
-        if len(section) > 0:
-            synonyms = section[0].text.split()
-        else:
-            synonyms = []
-        return synonyms
+    @commands.command()
+    async def antonym(self, ctx, *, word: str):
+        """Displays antonyms for a given word."""
+        search_term = word.split(" ", 1)[0]
+        result = await self._antonym_or_synonym(ctx, "antonyms", search_term)
+        if not result:
+            await ctx.send("This word is not in the dictionary or nothing was found.")
+            return
+
+        result_text = "*, *".join(result)
+        msg = f"Antonyms for **{search_term}**: *{result_text}*"
+        for page in pagify(msg, delims=["\n"]):
+            await ctx.send(page)
 
     @commands.command()
     async def synonym(self, ctx, *, word: str):
         """Displays synonyms for a given word."""
         search_term = word.split(" ", 1)[0]
-        result = await self._synonym(ctx, search_term)
+        result = await self._antonym_or_synonym(ctx, "synonyms", search_term)
         if not result:
-            await ctx.send("This word is not in the dictionary.")
+            await ctx.send("This word is not in the dictionary or nothing was found.")
             return
 
         result_text = "*, *".join(result)
         msg = f"Synonyms for **{search_term}**: *{result_text}*"
         for page in pagify(msg, delims=["\n"]):
             await ctx.send(page)
+
+    async def _antonym_or_synonym(self, ctx, lookup_type, word):
+        if lookup_type not in ["antonyms", "synonyms"]:
+            return None
+        data = await self._get_soup_object(f"http://www.thesaurus.com/browse/{word}")
+        if not data:
+            await ctx.send("Error getting information from the website.")
+            return
+
+        website_data = None
+        script = data.find_all("script")
+        for item in script:
+            if item.string:
+                if "window.INITIAL_STATE" in item.string:
+                    content = item.string
+                    content = content.lstrip("window.INITIAL_STATE =").rstrip(";")
+                    content = content.replace("undefined", '"None"').replace("true", '"True"').replace("false", '"False"')
+                    try:
+                        website_data = json.loads(content)
+                    except json.decoder.JSONDecodeError:
+                        return None
+                    except Exception as e:
+                        log.exception(e, exc_info=e)
+                        await ctx.send("Something broke. Check your console for more information.")
+                        return None
+
+        final = []
+        if website_data:
+            syn_list = website_data["searchData"]["tunaApiData"]["posTabs"][0][lookup_type]
+            for syn in syn_list:
+                final.append(syn["term"])
+
+        return final
+
+    async def _get_soup_object(self, url):
+        try:
+            async with self.session.request("GET", url) as response:
+                return BeautifulSoup(await response.text(), "html.parser")
+        except Exception:
+            log.error("Error fetching dictionary.py related webpage", exc_info=True)
+            return None
