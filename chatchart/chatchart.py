@@ -156,7 +156,8 @@ class Chatchart(commands.Cog):
                     description=f"This might take a while...\n{history_counter}/{messages} messages gathered",
                     colour=await self.bot.get_embed_colour(location=channel),
                 )
-                await channel.trigger_typing()
+                if channel.permissions_for(channel.guild.me).send_messages:
+                    await channel.trigger_typing()
                 if animation_message_deleted is False:
                     try:
                         await animation_message.edit(embed=new_embed)
