@@ -150,7 +150,10 @@ class RndStatus(commands.Cog):
         pattern = re.compile(rf"<@!?{self.bot.user.id}>")
         cog_settings = await self.config.all()
         guilds = self.bot.guilds
-        guild = next(g for g in guilds if not g.unavailable)
+        try:
+            guild = next(g for g in guilds if not g.unavailable)
+        except StopIteration:
+            return
         try:
             current_game = str(guild.me.activity.name)
         except AttributeError:
