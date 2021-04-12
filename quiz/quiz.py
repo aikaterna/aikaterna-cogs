@@ -108,7 +108,10 @@ class Quiz(commands.Cog):
             if 9 <= int(category_name_or_id) >= 32:
                 return await ctx.send(f"Invalid category number. Use `{ctx.prefix}quiz categories` to see a list.")
             category_id = category_name_or_id
-            category_name = await self.category_name_from_id(int(category_name_or_id))
+            try:
+                category_name = await self.category_name_from_id(int(category_name_or_id))
+            except RuntimeError:
+                return await ctx.send(f"Invalid category ID. Use `{ctx.prefix}quiz categories` to see a list.")
         else:
             # cat name specified
             try:
