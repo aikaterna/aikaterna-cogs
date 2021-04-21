@@ -140,11 +140,10 @@ class RndStatus(commands.Cog):
         while True:
             try:
                 await self.presence_updater()
-                await asyncio.sleep(int(delay))
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                log.exception(e, exc_info=e)
+            except Exception:
+                log.exception("Something went wrong in maybe_update_presence task:")
+
+            await asyncio.sleep(int(delay))
 
     async def presence_updater(self):
         pattern = re.compile(rf"<@!?{self.bot.user.id}>")
