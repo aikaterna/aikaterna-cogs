@@ -1503,8 +1503,8 @@ class RSS(commands.Cog):
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                log.exception(e, exc_info=e)
-                break
+                log.error("An error has occurred in the RSS cog. Please report it.", exc_info=e)
+                continue
 
     async def _put_feeds_in_queue(self):
         log.debug("Putting feeds in queue")
