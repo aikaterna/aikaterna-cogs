@@ -1,5 +1,5 @@
 import datetime
-from typing import Literal, List
+from typing import Literal, List, Optional
 
 import discord
 import logging
