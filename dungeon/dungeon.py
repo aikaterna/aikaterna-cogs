@@ -1,5 +1,5 @@
 import datetime
-from typing import Literal
+from typing import Literal, List
 
 import discord
 import logging
@@ -122,6 +122,7 @@ class Dungeon(commands.Cog):
         await self.config.guild(ctx.guild).auto_ban.set(True)
         await ctx.send(f"Auto-ban has been turned on.\nMessage to send on ban:\n{ban_message}")
 
+    @commands.is_owner()
     @dungeon.command()
     async def blacklist(self, ctx):
         """Toggle auto-blacklisting for the bot for users moved to the dungeon."""
@@ -380,14 +381,90 @@ class Dungeon(commands.Cog):
         embed = discord.Embed(colour=ctx.guild.me.top_role.colour, description=msg)
         return await ctx.send(embed=embed)
 
+    @staticmethod
+    async def announce_or_log(
+        announce_channel: Optional[discord.TextChannel], 
+        message: str, 
+        *, 
+        log_message: str = None
+    ):
+        if announce_channel:
+            await announce_channel.send(message)
+        else:
+            log.debug(log_message or message)
+
+    async def handle_bypassed_member(
+        self,
+        member: discord.Member, 
+        data: dict, 
+        *, 
+        can_edit_roles: bool, 
+        user_role: Optional[discord.Role],
+        announce_channel: Optional[discord.TextChannel],
+    ):
+        bypassed_ids = data["bypass"]
+        bypassed_ids.remove(member.id)
+        await self.config.guild(member.guild).bypass.set(bypassed_ids)
+        if user_role and can_edit_roles():
+            try:
+                await member.add_roles(
+                    user_role, reason="User has bypassed Dungeon checks. Assigning member role.",
+                )
+            except discord.Forbidden:
+                pass
+        bypass_msg = f"**{member}** ({member.id}) was in the bypass list for **{guild.name}** ({guild.id}). They were allowed to join without Dungeon checks and I have assigned them the Member role specified in the settings, if any."
+        await self.announce_or_log(announce_channel, message)
+
+    async def handle_auto_ban(
+        self, 
+        member: discord.Member, 
+        data: dict, 
+        *, 
+        announce_channel: Optional[discord.TextChannel],
+    ) -> bool:
+        perm_msg = f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {guild.id}"
+
+        if data["auto_ban_message"]:
+            try:
+                await member.send(data["auto_ban_message"]:)
+            except discord.Forbidden:
+                fail_dm_message = f"I couldn't DM {member} ({member.id}) to let them know they've been banned, they've blocked me."
+                await self.announce_or_log(announce_channel, fail_dm_message, log_message=perm_msg)
+
+        try:
+            await member.ban(member, reason="Dungeon auto-ban", delete_message_days=0)
+        except discord.Forbidden:
+            fail_ban_message =  f"I tried to auto-ban someone ({member}, {member.id}) but I don't have ban permissions."
+            await self.announce_or_log(announce_channel, fail_ban_message, log_message=perm_msg)
+            return
+
+        if data["mod_log"]:
+            try:
+                await modlog.create_case(
+                    self.bot, guild, now, "ban", member, guild.me, until=None, channel=None,
+                )
+            except RuntimeError as error:
+                log.error(
+                    f"dungeon.py error while autobanning user and attempting to create modlog entry in guild: {guild.id}",
+                    exc_info=error,
+                )
+        else:
+            success_message = f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+            await self.announce_or_log(announce_channel, success_message)
+
+        return True # member was banned successfully
+
     @commands.Cog.listener()
-    async def on_member_join(self, member):
-        default_avatar = False
-        toggle = await self.config.guild(member.guild).toggle()
+    async def on_member_join(self, member: discord.Member):
+        guild = member.guild
+        toggle = await self.config.guild(guild).toggle()
         if not toggle:
             return
+
+        default_avatar = False
         if member.avatar_url == member.default_avatar_url:
             default_avatar = True
+
         try:
             join_date = datetime.datetime.strptime(str(member.created_at), "%Y-%m-%d %H:%M:%S.%f")
         except ValueError:
@@ -395,83 +472,41 @@ class Dungeon(commands.Cog):
             join_date = datetime.datetime.strptime(member_created_at, "%Y-%m-%d %H:%M:%S.%f")
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         since_join = now - join_date
-        join_days = await self.config.guild(member.guild).join_days()
-        profile_toggle = await self.config.guild(member.guild).profile_toggle()
-        announce_channel = await self.config.guild(member.guild).announce_channel()
-        channel_object = self.bot.get_channel(announce_channel)
-        auto_ban = await self.config.guild(member.guild).auto_ban()
-        auto_ban_msg = await self.config.guild(member.guild).auto_ban_message()
-        mod_log = await self.config.guild(member.guild).mod_log()
-        bypassed_ids = await self.config.guild(member.guild).bypass()
+        
+        data = await self.config.guild(guild).all()
+        profile_toggle = data["profile_toggle"]
+        auto_ban = data["auto_ban"]
+        bypassed_ids = data["bypass"]
+        blacklist = data["auto_blacklist"]
+
+        user_role_id = data["user_role"]
+
+        announce_channel = guild.get_channel(data["announce_channel"])
+        if announce_channel:
+            announce_perms = announce_channel.permissions_for(guild.me)
+            if not announce_perms.send_messages:
+                # prevent Forbidden requests
+                announce_channel = None
+
+        # functions rather than assignments to ensure state is taken into calculations
+        permissions = guild.me.guild_permissions
+        def has_heirarchy():
+            return guild.me.top_role > member.top_role
+        def can_edit_roles():
+            return permissions.manage_roles and has_heirarchy()
+        def can_ban():
+            return permissions.ban_members and has_heirarchy()
 
         if member.id in bypassed_ids:
-            bypassed_ids.remove(member.id)
-            await self.config.guild(member.guild).bypass.set(bypassed_ids)
-            user_role_id = await self.config.guild(member.guild).user_role()
-            user_role_obj = discord.utils.get(member.guild.roles, id=user_role_id)
-            try:
-                await member.add_roles(
-                    user_role_obj, reason="User has bypassed Dungeon checks. Assigning member role.",
-                )
-            except discord.Forbidden:
-                pass
-            except AttributeError:
-                pass
-            bypass_msg = f"**{member}** ({member.id}) was in the bypass list for **{member.guild.name}** ({member.guild.id}). They were allowed to join without Dungeon checks and I have assigned them the Member role specified in the settings, if any."
-            if announce_channel:
-                await channel_object.send(bypass_msg)
-            else:
-                log.debug(f"dungeon.py: {bypass_msg}")
+            user_role = guild.get_role(user_role_id)
+            await self.handle_bypassed_member(member, data, can_edit_roles=can_edit_roles, user_role=user_role, announce_channel=announce_channel)
             return
 
-        if (since_join.days < join_days) or (profile_toggle and default_avatar):
+        if (since_join.days < data["join_days"]) or (profile_toggle and default_avatar):
             banned = False
-            blacklist = await self.config.guild(member.guild).auto_blacklist()
-            dungeon_role_id = await self.config.guild(member.guild).dungeon_role()
-            dungeon_role_obj = discord.utils.get(member.guild.roles, id=dungeon_role_id)
-            perm_msg = f"dungeon.py: Unable to auto-ban user, permissions needed and no announce channel set. Guild: {member.guild.id}"
 
-            if auto_ban:
-                banned = True
-                if auto_ban_msg:
-                    try:
-                        await member.send(auto_ban_msg)
-                    except discord.Forbidden:
-                        if announce_channel:
-                            await channel_object.send(
-                                f"I couldn't DM {member} ({member.id}) to let them know they've been banned, they've blocked me."
-                            )
-                        else:
-                            log.debug(perm_msg)
-                            return
-                try:
-                    await member.guild.ban(member, reason="Dungeon auto-ban", delete_message_days=0)
-                except discord.Forbidden:
-                    if announce_channel:
-                        return await channel_object.send(
-                            f"I tried to auto-ban someone ({member}, {member.id}) but I don't have ban permissions."
-                        )
-                    else:
-                        log.debug(perm_msg)
-                        return
-
-                if not mod_log:
-                    if announce_channel:
-                        msg = f"Auto-banned new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
-                        return await channel_object.send(msg)
-                    else:
-                        log.debug(perm_msg)
-                        return
-                else:
-                    try:
-                        await modlog.create_case(
-                            self.bot, member.guild, now, "ban", member, member.guild.me, until=None, channel=None,
-                        )
-                    except RuntimeError:
-                        log.error(
-                            f"dungeon.py error while autobanning user and attempting to create modlog entry in guild: {member.guild.id}",
-                            exc_info=True,
-                        )
+            if auto_ban and can_ban():
+                banned = await self.handle_auto_ban(member, data, announce_channel=announce_channel)
 
             if blacklist:
                 # if you are reading this to learn, DON'T do this, there will be a real way
@@ -480,41 +515,37 @@ class Dungeon(commands.Cog):
                 async with self.bot._config.blacklist() as blacklist_list:
                     if member.id not in blacklist_list:
                         blacklist_list.append(member.id)
+
             if banned:
                 return
-            try:
-                if since_join.days < join_days:
+
+            dungeon_role = guild.get_role(data["dungeon_role"])
+            if dungeon_role and can_edit_roles():
+                if since_join.days < data["join_days"]:
                     reason = "Adding dungeon role, new account."
                 else:
                     reason = "Adding dungeon role, default profile pic."
-                await member.add_roles(dungeon_role_obj, reason=reason)
-            except discord.Forbidden:
-                if announce_channel:
-                    return await channel_object.send(
-                        "Someone suspicious joined but something went wrong. I need permissions to manage channels and manage roles."
-                    )
-                else:
-                    log.info(
-                        f"dungeon.py: I need permissions to manage channels and manage roles in {member.guild.name} ({member.guild.id})."
-                    )
+
+                try:
+                    await member.add_roles(dungeon_role_obj, reason=reason)
+                except discord.Forbidden:
+                    fail_role_message = "Someone suspicious joined but something went wrong. I need permissions to manage channels and manage roles."
+                    log_message = f"dungeon.py: I need permissions to manage channels and manage roles in {guild.name} ({guild.id})."
+                    await self.announce_or_log(announce_channel, fail_role_message, log_message=log_message)
                     return
 
-            msg = f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
-            if default_avatar:
-                msg += ", no profile picture set"
-            await channel_object.send(msg)
+                msg = f"Auto-banished new user: \n**{member}** ({member.id})\n{self._dynamic_time(int(since_join.total_seconds()))} old account"
+                if default_avatar:
+                    msg += ", no profile picture set"
+                await announce_channel.send(msg)
+
         else:
-            user_role_toggle = await self.config.guild(member.guild).user_role_toggle()
+            user_role_toggle = data["user_role_toggle"]
             if not user_role_toggle:
                 return
-            user_role_id = await self.config.guild(member.guild).user_role()
-            user_role_obj = discord.utils.get(member.guild.roles, id=user_role_id)
-            try:
+            user_role = guild.get_role(user_role_id)
+            if user_role and can_edit_roles():
                 await member.add_roles(user_role_obj, reason="Adding member role to new user.")
-            except discord.Forbidden:
-                pass
-            except AttributeError:
-                pass
 
     @staticmethod
     def _dynamic_time(time):
