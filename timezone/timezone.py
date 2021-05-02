@@ -1,10 +1,11 @@
 import discord
 import pytz
+import rapidfuzz
 from datetime import datetime
 from pytz import common_timezones
 from pytz import country_timezones
-from typing import Optional, Literal, Tuple, Union
-from redbot.core import Config, commands, checks
+from typing import Optional, Literal
+from redbot.core import Config, commands
 
 
 class Timezone(commands.Cog):
@@ -29,6 +30,14 @@ class Timezone(commands.Cog):
 
         return usertime, tz
 
+    def fuzzy_timezone_search(self, tz: str):
+        fuzzy_results = rapidfuzz.process.extract(tz, common_timezones, limit=2, score_cutoff=90)
+        if len(fuzzy_results) > 1:
+            return None
+        if len(fuzzy_results) == 0:
+            return None
+        return fuzzy_results[0][0]
+
     @commands.guild_only()
     @commands.group()
     async def time(self, ctx):
@@ -43,29 +52,22 @@ class Timezone(commands.Cog):
     @time.command()
     async def tz(self, ctx, *, tz: Optional[str] = None):
         """Gets the time in any timezone."""
-        try:
+        if tz is None:
+            time = datetime.now()
+            fmt = "**%H:%M** %d-%B-%Y"
+            await ctx.send(f"Current system time: {time.strftime(fmt)}")
+        else:
+            tz = self.fuzzy_timezone_search(tz)
             if tz is None:
-                time = datetime.now()
-                fmt = "**%H:%M** %d-%B-%Y"
-                await ctx.send(f"Current system time: {time.strftime(fmt)}")
+                await ctx.send(
+                    "Error: Incorrect format. Use:\n **Continent/City** with correct capitals. "
+                    "e.g. `America/New_York`\n See the full list of supported timezones here:\n "
+                    "<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
+                )
             else:
-                if "'" in tz:
-                    tz = tz.replace("'", "")
-                if len(tz) > 4 and "/" not in tz:
-                    await ctx.send(
-                        "Error: Incorrect format. Use:\n **Continent/City** with correct capitals. "
-                        "e.g. `America/New_York`\n See the full list of supported timezones here:\n "
-                        "<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>"
-                    )
-                else:
-                    tz = tz.title() if "/" in tz else tz.upper()
-                    if tz not in common_timezones:
-                        raise Exception(tz)
-                    fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
-                    time = datetime.now(pytz.timezone(tz))
-                    await ctx.send(time.strftime(fmt))
-        except Exception as e:
-            await ctx.send(f"**Error:** {str(e)} is an unsupported timezone.")
+                fmt = "**%H:%M** %d-%B-%Y **%Z (UTC %z)**"
+                time = datetime.now(pytz.timezone(tz))
+                await ctx.send(time.strftime(fmt))
 
     @time.command()
     async def iso(self, ctx, *, code=None):
@@ -106,12 +108,10 @@ class Timezone(commands.Cog):
                 msg = f"Your current timezone is **{usertime}.**\n" f"The current time is: {time}"
                 await ctx.send(msg)
         else:
-            exist = True if tz.title() in common_timezones else False
-            if exist:
-                if "'" in tz:
-                    tz = tz.replace("'", "")
-                await self.config.user(ctx.author).usertime.set(tz.title())
-                await ctx.send(f"Successfully set your timezone to **{tz.title()}**.")
+            tz = self.fuzzy_timezone_search(tz)
+            if tz is not None:
+                await self.config.user(ctx.author).usertime.set(tz)
+                await ctx.send(f"Successfully set your timezone to **{tz}**.")
             else:
                 await ctx.send(
                     f"**Error:** Unrecognized timezone. Try `{ctx.prefix}time me Continent/City`: "
@@ -128,12 +128,10 @@ class Timezone(commands.Cog):
             await ctx.send("That timezone is invalid.")
             return
         else:
-            exist = True if tz.title() in common_timezones else False
-            if exist:
-                if "'" in tz:
-                    tz = tz.replace("'", "")
-                await self.config.user(user).usertime.set(tz.title())
-                await ctx.send(f"Successfully set {user.name}'s timezone to **{tz.title()}**.")
+            tz = self.fuzzy_timezone_search(tz)
+            if tz is not None:
+                await self.config.user(user).usertime.set(tz)
+                await ctx.send(f"Successfully set {user.name}'s timezone to **{tz}**.")
             else:
                 await ctx.send(
                     f"**Error:** Unrecognized timezone. Try `{ctx.prefix}time set @user Continent/City`: "
