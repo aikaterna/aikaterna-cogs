@@ -32,9 +32,7 @@ class Timezone(commands.Cog):
 
     def fuzzy_timezone_search(self, tz: str):
         fuzzy_results = rapidfuzz.process.extract(tz, common_timezones, limit=2, score_cutoff=90)
-        if len(fuzzy_results) > 1:
-            return None
-        if len(fuzzy_results) == 0:
+        if len(fuzzy_results) != 1:  # none or too many
             return None
         return fuzzy_results[0][0]
 
