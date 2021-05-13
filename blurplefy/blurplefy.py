@@ -156,9 +156,9 @@ class Blurplefy(commands.Cog):
         embed = discord.Embed(title="", colour=0x7289DA)
         embed.add_field(name="Total amount of Blurple", value="{}%".format(blurplenesspercentage), inline=False)
         embed.add_field(name="Blurple (rgb(114, 137, 218))", value="{}%".format(percentblurple), inline=True)
-        embed.add_field(name="White (rgb(255, 255, 255))", value="{}\%".format(percentwhite), inline=True)
+        embed.add_field(name="White (rgb(255, 255, 255))", value="{}\\%".format(percentwhite), inline=True)
         embed.add_field(
-            name="Dark Blurple (rgb(78, 93, 148))", value="{}\%".format(percentdblurple), inline=True,
+            name="Dark Blurple (rgb(78, 93, 148))", value="{}\\%".format(percentdblurple), inline=True,
         )
         embed.add_field(
             name="Guide",
