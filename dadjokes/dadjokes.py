@@ -17,5 +17,5 @@ class DadJokes(commands.Cog):
         """Gets a random dad joke."""
         api = "https://icanhazdadjoke.com/"
         async with aiohttp.request("GET", api, headers={"Accept": "text/plain"}) as r:
-            result = await r.text()
+            result = await r.text(encoding="UTF-8")
             await ctx.send(f"`{result}`")
