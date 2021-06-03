@@ -279,6 +279,11 @@ class Chatchart(commands.Cog):
                     await loading_message.delete()
                 except discord.NotFound:
                     continue
+            except discord.NotFound:
+                try:
+                    await loading_message.delete()
+                except discord.NotFound:
+                    continue 
 
         msg_data = self.calculate_member_perc(global_history)
         # If no members are found.
