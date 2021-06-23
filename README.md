@@ -53,8 +53,6 @@ quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
 
 region - A command to change the voice region of a server. Requires the guild admin or mod role or guild administrator.
 
-retrosign - A v3 port of Anismash's retrosign cog.
-
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
 rss - Will's RSS cog ported for v3 with a lot of extra bells and whistles.
