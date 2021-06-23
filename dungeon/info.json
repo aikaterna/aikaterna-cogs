@@ -1,20 +1,12 @@
 {
-	"author": [
-		"aikaterna"
-	],
+	"author": ["aikaterna"],
 	"description": "Provides additional raid protection for servers utilizing a welcome/rules join channel.",
-    "install_msg": "Please read the additional instructions at: <https://github.com/aikaterna/aikaterna-cogs/blob/v3/dungeon_readme.md>",
-    "min_python_version": [3, 6, 0],
-    "permissions" : [
-		"ban_members",
-		"manage_channels",
-		"manage_roles"
-	],
+	"install_msg": "Please read the additional instructions at: <https://github.com/aikaterna/aikaterna-cogs/blob/v3/dungeon_readme.md>",
+	"min_python_version": [3, 6, 0],
+	"permissions" : ["ban_members", "manage_channels", "manage_roles"],
 	"short": "Specialized raid protection.",
-	"tags": [
-		"dungeon",
-        "autoban"
-	],
+	"tags": ["dungeon", "autoban"],
 	"type": "COG",
+	"hidden": true,
 	"end_user_data_statement": "This cog does not persistently store end user data. This cog does store discord IDs as needed for operation. "
 }
