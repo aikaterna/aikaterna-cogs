@@ -15,7 +15,7 @@ chatchart - Generates a pie chart to display chat activity over the last 5000 me
 
 dadjokes - Another UltimatePancake cog. Get some dad jokes on command.
 
-dictonary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
+dictionary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
 
 dungeon - [Depreciated/Unsupported] New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the [dungeon_readme.md](https://github.com/aikaterna/aikaterna-cogs/blob/v3/dungeon_readme.md) file on this repo for more information.
 
