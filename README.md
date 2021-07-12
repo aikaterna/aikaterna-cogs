@@ -61,6 +61,8 @@ snacktime - A v3 port of irdumb's snacktime cog. Now with friends!
 
 timezone - A v3 port of Fishyfing's timezone cog with a few improvements.
 
+trackdecoder - A dev utility cog to resolve Lavalink Track information from a b64 string.
+
 trickortreat - A trick or treat-based competitive candy eating game with a leaderboard and other fun commands like stealing candy from guildmates.
 
 tools - A collection of mod and admin tools, ported from my v2 version. Sitryk is responsible for a lot of the code in tools... thanks for the help with this cog.
