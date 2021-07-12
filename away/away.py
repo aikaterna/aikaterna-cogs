@@ -566,6 +566,7 @@ class Away(commands.Cog):
         await ctx.send(msg)
 
     @commands.command(name="toggleaway")
+    @commands.guild_only()
     @checks.admin_or_permissions(administrator=True)
     async def _ignore(self, ctx, member: discord.Member=None):
         """
@@ -600,6 +601,7 @@ class Away(commands.Cog):
         await ctx.send(message)
 
     @commands.command()
+    @commands.guild_only()
     @checks.admin_or_permissions(administrator=True)
     async def awaytextonly(self, ctx):
         """
