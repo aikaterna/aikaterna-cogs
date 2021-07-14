@@ -1,0 +1,7 @@
+{
+    "author": ["aikaterna"],
+    "install_msg": "⚠ **THIS COG IS NOT FOR GENERAL USE** ⚠\nThis cog creates voice invites for experimental applications that Discord is still working on.\nAnything can break at any time.\nI am not responsible for anything that happens to your Discord account or your bot while using this cog.\nUsers are required to use OAuth authentication to access some of these applications on joining the voice channels and interacting with it. This interaction/authentication is between Discord and the service(s) providing the experiments.\nI do not recommend installing this cog on a public bot.\nDO NOT LOAD THIS COG IF YOU DO NOT AGREE TO THE RISKS. NOT ALL RISKS HAVE BEEN EXPLAINED HERE.",
+    "short": "Create voice invites for experimental Discord applications.",
+    "description": "Create voice invites for experimental Discord applications.",
+    "tags": ["discord"]
+}

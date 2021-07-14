@@ -17,6 +17,8 @@ dadjokes - Another UltimatePancake cog. Get some dad jokes on command.
 
 dictionary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
 
+discordexperiments - Create voice channel invites for various built-in apps. This is only for developers or for people that can read the code and assess the risk of using it.
+
 dungeon - [Depreciated/Unsupported] New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the [dungeon_readme.md](https://github.com/aikaterna/aikaterna-cogs/blob/v3/dungeon_readme.md) file on this repo for more information.
 
 embedpeek - Take a closer look at or unpack embed content. This cog is mostly a developer tool.
