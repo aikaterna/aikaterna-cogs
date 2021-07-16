@@ -616,7 +616,8 @@ class Tools(commands.Cog):
 
         mutual_guilds = user.mutual_guilds
         data = f"[Guilds]:     {len(mutual_guilds)} shared\n"
-        data += f"[In Guilds]:  {cf.humanize_list([g.name for g in mutual_guilds], style='unit')}"
+        shared_servers = sorted([g.name for g in mutual_guilds], key=lambda v: (v.upper(), v[0].islower()))
+        data += f"[In Guilds]:  {cf.humanize_list(shared_servers, style='unit')}"
 
         for page in cf.pagify(data, ["\n"], page_length=1800):
             await ctx.send(f"```ini\n{data}```")
