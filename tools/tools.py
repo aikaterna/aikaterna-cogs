@@ -177,7 +177,8 @@ class Tools(commands.Cog):
         embed_list = []
         for page in cf.pagify(msg, shorten_by=1400):
             embed = discord.Embed(
-                description="**Total bans:** {}\n\n{}".format(bancount, page), colour=await ctx.embed_colour(),
+                description="**Total bans:** {}\n\n{}".format(bancount, page),
+                colour=await ctx.embed_colour(),
             )
             embed_list.append(embed)
         await menu(ctx, embed_list, DEFAULT_CONTROLS)
@@ -322,7 +323,8 @@ class Tools(commands.Cog):
         users_in_role = "\n".join(sorted(m.display_name for m in guild.members if role in m.roles))
         if len(users_in_role) == 0:
             embed = discord.Embed(
-                description=cf.bold(f"0 users found in the {role.name} role."), colour=await ctx.embed_colour(),
+                description=cf.bold(f"0 users found in the {role.name} role."),
+                colour=await ctx.embed_colour(),
             )
             await awaiter.edit(embed=embed)
             return
@@ -365,7 +367,8 @@ class Tools(commands.Cog):
 
         if ctx.channel.permissions_for(ctx.guild.me).embed_links:
             embed = discord.Embed(
-                description=f"{user.mention} joined this guild on {joined_on}.", color=await ctx.embed_colour(),
+                description=f"{user.mention} joined this guild on {joined_on}.",
+                color=await ctx.embed_colour(),
             )
             await ctx.send(embed=embed)
         else:
@@ -384,12 +387,7 @@ class Tools(commands.Cog):
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
         all_forms = [
-            form.format(
-                gid=g.id,
-                mems=g.member_count,
-                name=filter_invites(cf.escape(g.name)),
-                zpadding=max_zpadding
-            )
+            form.format(gid=g.id, mems=g.member_count, name=filter_invites(cf.escape(g.name)), zpadding=max_zpadding)
             for g in guilds
         ]
         final = "\n".join(all_forms)
@@ -602,7 +600,8 @@ class Tools(commands.Cog):
         embed_list = []
         for page in cf.pagify(rolelist, shorten_by=1400):
             embed = discord.Embed(
-                description=f"**Total roles:** {len(ctx.guild.roles)}\n\n{page}", colour=await ctx.embed_colour(),
+                description=f"**Total roles:** {len(ctx.guild.roles)}\n\n{page}",
+                colour=await ctx.embed_colour(),
             )
             embed_list.append(embed)
         await menu(ctx, embed_list, DEFAULT_CONTROLS)
@@ -614,16 +613,12 @@ class Tools(commands.Cog):
         guild = ctx.guild
         if not user:
             user = author
-        seen = len(set([member.guild.name for member in self.bot.get_all_members() if member.id == user.id]))
-        sharedservers = str(set([member.guild.name for member in self.bot.get_all_members() if member.id == user.id]))
-        for shared in sharedservers:
-            shared = "".strip("'").join(sharedservers).strip("'")
-            shared = shared.strip("{").strip("}")
 
-        data = "[Guilds]:     {} shared\n".format(seen)
-        data += "[In Guilds]:  {}\n".format(shared)
+        mutual_guilds = user.mutual_guilds
+        data = f"[Guilds]:     {len(mutual_guilds)} shared\n"
+        data += f"[In Guilds]:  {cf.humanize_list([g.name for g in mutual_guilds], style='unit')}"
 
-        for page in cf.pagify(data, ["\n"], shorten_by=13, page_length=2000):
+        for page in cf.pagify(data, ["\n"], page_length=1800):
             await ctx.send(f"```ini\n{data}```")
 
     @commands.guild_only()
@@ -677,7 +672,9 @@ class Tools(commands.Cog):
 
         try:
             roles = [r for r in user.roles if r.name != "@everyone"]
-            _roles = [roles[0].name,] + [f'{r.name:>{len(r.name)+17}}' for r in roles[1:]]
+            _roles = [
+                roles[0].name,
+            ] + [f"{r.name:>{len(r.name)+17}}" for r in roles[1:]]
         except IndexError:
             # if there are no roles then roles[0] will raise the IndexError here
             _roles = ["None"]
@@ -781,12 +778,12 @@ class Tools(commands.Cog):
         yrs, mths = divmod(mths, 12)
 
         m = f"{yrs}y {mths}mth {wks}w {days}d {hrs}h {mins}m {secs}s"
-        m2 = [x for x in m.split() if x[0] != '0']
-        s = ' '.join(m2[:2])
+        m2 = [x for x in m.split() if x[0] != "0"]
+        s = " ".join(m2[:2])
         if s:
-            return f'{s} ago'
+            return f"{s} ago"
         else:
-            return ''
+            return ""
 
     @staticmethod
     def _count_months(days):
@@ -795,7 +792,7 @@ class Tools(commands.Cog):
         months = 0
         m_temp = 0
         mo_len = next(cy)
-        for i in range(1, days+1):
+        for i in range(1, days + 1):
             m_temp += 1
             if m_temp == mo_len:
                 months += 1
@@ -850,7 +847,11 @@ class Tools(commands.Cog):
         type_justify = max([len(type_name(c)) for c in channels])
 
         return [
-            channel_form.format(name=c.name[:24].ljust(name_justify), ctype=type_name(c).ljust(type_justify), cid=c.id,)
+            channel_form.format(
+                name=c.name[:24].ljust(name_justify),
+                ctype=type_name(c).ljust(type_justify),
+                cid=c.id,
+            )
             for c in channels
         ]
 
