@@ -679,7 +679,7 @@ class Tools(commands.Cog):
         msg = tabulate(table, headers, tablefmt="simple")
 
         embed_list = []
-        for page in cf.pagify(msg, delims=["\n"], page_length=1800):
+        for page in cf.pagify(msg, delims=["\n"], page_length=1000):
             embed = discord.Embed(
                 description="",
                 colour=await ctx.embed_colour(),
