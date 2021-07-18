@@ -5,13 +5,17 @@ import inspect
 import itertools
 import logging
 import re
+
+from contextlib import suppress as sps
+from tabulate import tabulate
+from typing import Optional
+
 from redbot.core import checks, commands
 from redbot.core.utils import chat_formatting as cf
 from redbot.core.utils.common_filters import filter_invites
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS, close_menu
-from tabulate import tabulate
-from contextlib import suppress as sps
 
+from .converter import FuzzyMember
 
 log = logging.getLogger("red.aikaterna.tools")
 
@@ -660,6 +664,38 @@ class Tools(commands.Cog):
         data += "[Created]:  {}\n```".format(self._dynamic_time(guild.created_at))
         await asyncio.sleep(1)
         await waiting.edit(content=data)
+
+    @commands.guild_only()
+    @commands.command()
+    async def uid(self, ctx, partial_name_or_nick: Optional[FuzzyMember]):
+        """Get a member's id from a fuzzy name search."""
+        if partial_name_or_nick is None:
+            partial_name_or_nick = [ctx.author]
+
+        table = []
+        headers = ["ID", "Name", "Nickname"]
+        for user_obj in partial_name_or_nick:
+            table.append([user_obj.id, user_obj.name, user_obj.nick if not None else ""])
+        msg = tabulate(table, headers, tablefmt="simple")
+
+        embed_list = []
+        for page in cf.pagify(msg, delims=["\n"], page_length=1800):
+            embed = discord.Embed(
+                description="",
+                colour=await ctx.embed_colour(),
+            )
+            embed.add_field(name="Matching Users", value=cf.box(page))
+            embed_list.append(embed)
+
+        final_embed_list = []
+        for i, embed in enumerate(embed_list):
+            embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
+            final_embed_list.append(embed)
+        if len(embed_list) == 1:
+            close_control = {"\N{CROSS MARK}": close_menu}
+            await menu(ctx, final_embed_list, close_control)
+        else:
+            await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()

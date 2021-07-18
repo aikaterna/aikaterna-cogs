@@ -1,57 +1,45 @@
-"""
-Because discord.py rewrite doesn't come with a general channel converter anymore
-Written by sitryk
-"""
 import discord
-import re
+from fuzzywuzzy import fuzz, process
+from typing import List
+from unidecode import unidecode
 
-from discord.ext.commands import converter, BadArgument
+from discord.ext.commands.converter import IDConverter, _get_from_guilds
+from discord.ext.commands.errors import BadArgument
+
+from redbot.core import commands
 
 
-class GuildChannelConverter(converter.IDConverter, converter.Converter):
+class FuzzyMember(IDConverter):
     """
-    Check order is:
+    Original class written by TrustyJaid#0001
+    https://github.com/TrustyJAID/Trusty-cogs/blob/c739903aa2c8111c58b3d5e695a1221cbe1f57d9/serverstats/converters.py
 
-    1. Text Channels
-    2. Voice Channels
-    3. Categories
+    This will accept partial names and perform a fuzzy search for
+    members within the guild and return a list of member objects.
+
+    Guidance code on how to do this from:
+    https://github.com/Rapptz/discord.py/blob/rewrite/discord/ext/commands/converter.py#L85
+    https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/cogs/mod/mod.py#L24
     """
 
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: commands.Context, argument: str) -> List[discord.Member]:
         bot = ctx.bot
-        match = self._get_id_match(argument) or re.match(r"<#([0-9]+)>$", argument)
-        result = None
         guild = ctx.guild
+        result = []
 
-        if match is None:
-            order = [
-                (discord.TextChannel, guild.text_channels),
-                (discord.VoiceChannel, guild.voice_channels),
-                (discord.CategoryChannel, guild.categories),
-            ]
+        members = {m: unidecode(m.name) for m in guild.members}
+        fuzzy_results = process.extract(argument, members, limit=1000, scorer=fuzz.partial_ratio)
+        matching_names = [m[2] for m in fuzzy_results if m[1] > 90]
+        for x in matching_names:
+            result.append(x)
 
-            # not a mention
-            for c_types in order:
-                if guild:
-                    result = discord.utils.get(c_types[1], name=argument)
-                    if result is not None:
-                        break
-                else:
+        nick_members = {m: unidecode(m.nick) for m in guild.members if m.nick and m not in matching_names}
+        fuzzy_results2 = process.extract(argument, nick_members, limit=50, scorer=fuzz.partial_ratio)
+        matching_nicks = [m[2] for m in fuzzy_results2 if m[1] > 90]
+        for x in matching_nicks:
+            result.append(x)
 
-                    def check(c):
-                        return isinstance(c, c_types[0]) and c.name == argument
-
-                    result = discord.utils.find(check, bot.get_all_channels())
-                    if result is not None:
-                        break
-        else:
-            channel_id = int(match.group(1))
-            if guild:
-                result = guild.get_channel(channel_id)
-            else:
-                result = converter._get_from_guilds(bot, "get_channel", channel_id)
-
-        if not isinstance(result, (discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel)):
-            raise BadArgument('Channel "{}" not found.'.format(argument))
+        if not result or result == [None]:
+            raise BadArgument('Member "{}" not found'.format(argument))
 
         return result
