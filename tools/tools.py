@@ -678,24 +678,15 @@ class Tools(commands.Cog):
             table.append([user_obj.id, user_obj.name, user_obj.nick if not None else ""])
         msg = tabulate(table, headers, tablefmt="simple")
 
-        embed_list = []
-        for page in cf.pagify(msg, delims=["\n"], page_length=1000):
-            embed = discord.Embed(
-                description="",
-                colour=await ctx.embed_colour(),
-            )
-            embed.add_field(name="Matching Users", value=cf.box(page))
-            embed_list.append(embed)
+        pages = []
+        for page in cf.pagify(msg, delims=["\n"], page_length=1800):
+            pages.append(cf.box(page))
 
-        final_embed_list = []
-        for i, embed in enumerate(embed_list):
-            embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
-            final_embed_list.append(embed)
-        if len(embed_list) == 1:
+        if len(pages) == 1:
             close_control = {"\N{CROSS MARK}": close_menu}
-            await menu(ctx, final_embed_list, close_control)
+            await menu(ctx, pages, close_control)
         else:
-            await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
+            await menu(ctx, pages, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()
