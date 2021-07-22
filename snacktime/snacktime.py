@@ -106,13 +106,14 @@ class Snacktime(commands.Cog):
         """snack stuff"""
         if ctx.invoked_subcommand is None:
             guild_data = await self.config.guild(ctx.guild).all()
-            if not guild_data["DELIVER_CHANNELS"]:
-                channel_names = ["No channels set."]
-            else:
-                channel_names = []
+            channel_names = []
+            if guild_data["DELIVER_CHANNELS"]:
                 for channel_id in guild_data["DELIVER_CHANNELS"]:
                     channel_obj = self.bot.get_channel(channel_id)
-                    channel_names.append(channel_obj.name)
+                    if channel_obj:
+                        channel_names.append(channel_obj.name)
+            if len(channel_names) == 0:
+                channel_names = ["No channels set."]
 
             if guild_data["FRIENDS"] is True:
                 invite_friends = "Friends only"
