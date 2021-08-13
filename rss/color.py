@@ -1,3 +1,4 @@
+from math import sqrt
 import discord
 import re
 import webcolors
@@ -39,8 +40,8 @@ def _distance(point_a: tuple, point_b: tuple):
     Euclidean distance between two points using rgb values as the metric space.
     """
     # rgb values
-    x1, y1, z1 = *point_a
-    x2, y2, z2 = *point_b
+    x1, y1, z1 = point_a
+    x2, y2, z2 = point_b
 
     # distances
     dx = x1 - x2
