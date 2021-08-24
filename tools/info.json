@@ -1,22 +1,12 @@
 {
-	"author": [
-		"aikaterna",
-        "sitryk"
-	],
-	"description": "Mod and admin tools.",
+    "author": ["aikaterna", "sitryk"],
+    "description": "Mod and admin tools.",
     "install_msg": "Thanks for installing. Use `[p]help` Tools to get started.",
     "min_python_version": [3, 8, 0],
-    "permissions" : [
-		"ban_members",
-		"manage_channels"
-	],
-	"requirements": [
-		"tabulate"
-	],
-	"short": "Mod and admin tools.",
-	"tags": [
-		"tools"
-	],
-	"type": "COG",
-	"end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "permissions" : ["ban_members", "manage_channels"],
+    "requirements": ["tabulate", "unidecode"],
+    "short": "Mod and admin tools.",
+    "tags": ["tools"],
+    "type": "COG",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
 }
