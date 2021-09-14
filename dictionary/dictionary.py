@@ -1,4 +1,6 @@
 import aiohttp
+import discord
+import contextlib
 from bs4 import BeautifulSoup
 import json
 import logging
@@ -35,7 +37,8 @@ class Dictionary(commands.Cog):
         result = await self._definition(ctx, search_term)
         str_buffer = ""
         if not result:
-            await search_msg.delete()
+            with contextlib.suppress(discord.NotFound):
+                await search_msg.delete()
             await ctx.send("This word is not in the dictionary.")
             return
         for key in result:
@@ -54,7 +57,8 @@ class Dictionary(commands.Cog):
                     else:
                         str_buffer += f"{str(counter)}. {val}\n"
                         counter += 1
-        await search_msg.delete()
+        with contextlib.suppress(discord.NotFound):
+            await search_msg.delete()
         for page in pagify(str_buffer, delims=["\n"]):
             await ctx.send(page)
 
