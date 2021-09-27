@@ -199,7 +199,7 @@ class TrickOrTreat(commands.Cog):
     @checks.mod_or_permissions(administrator=True)
     @commands.command()
     async def totbalance(self, ctx):
-        """Check how many candies are 'on the ground' in the guild."""
+        """[Admin] Check how many candies are 'on the ground' in the guild."""
         pick = await self.config.guild(ctx.guild).pick()
         await ctx.send(f"The guild is currently holding: {pick} \N{CANDY}")
 
