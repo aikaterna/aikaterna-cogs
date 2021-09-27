@@ -8,7 +8,6 @@ import asyncio
 import discord
 import heapq
 from io import BytesIO
-import logging
 from typing import List, Optional, Tuple, Union
 
 from redbot.core import checks, commands, Config
@@ -17,9 +16,6 @@ import matplotlib
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
 plt.switch_backend("agg")
-
-
-log = logging.getLogger("red.aikaterna.chatchart")
 
 
 class Chatchart(commands.Cog):
@@ -66,7 +62,7 @@ class Chatchart(commands.Cog):
         """Calculate the top 20 from the message data package"""
         for usr in msg_data["users"]:
             pd = float(msg_data["users"][usr]["msgcount"]) / float(msg_data["total_count"])
-            msg_data["users"][usr]["percent"] = round(pd * 100, 1)
+            msg_data["users"][usr]["percent"] = pd * 100
         top_twenty = heapq.nlargest(
             20,
             [
@@ -78,24 +74,13 @@ class Chatchart(commands.Cog):
             key=lambda x: x[1],
         )
         others = 100 - sum(x[1] for x in top_twenty)
-
-        if others < 0:
-            log.info(f"Others is less than zero: {others}")
-            log.info(f"Toptwenty is: {top_twenty}")
-
         return top_twenty, others
 
     @staticmethod
     async def create_chart(top, others, channel_or_guild: Union[discord.Guild, discord.TextChannel]):
         plt.clf()
         sizes = [x[1] for x in top]
-        
-        for s in sizes:
-            if s < 0:
-                index = sizes.index(s)
-                log.info(f"Size {s} is not valid, at position {top[index]}") 
-        
-        labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
+        labels = ["{} {:g}%".format(x[0], round(x[1], 1)) for x in top]
         if len(top) >= 20:
             sizes = sizes + [others]
             labels = labels + ["Others {:g}%".format(others)]
