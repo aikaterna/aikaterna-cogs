@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 
 class TrickOrTreat(commands.Cog):
@@ -311,6 +311,18 @@ class TrickOrTreat(commands.Cog):
         await ctx.send(msg, embed=em)
 
     @commands.guild_only()
+    @checks.is_owner()
+    @commands.command()
+    async def totclearall(self, ctx, are_you_sure=False):
+        """[Owner] Clear all saved game data."""
+        if not are_you_sure:
+            msg = "This will clear ALL saved data for this cog and reset it to the defaults.\n"
+            msg += f"If you are absolutely sure you want to do this, use `{ctx.prefix}totclearall yes`."
+            return await ctx.send(msg)
+        await self.config.clear_all()
+        await ctx.send("All data for this cog has been cleared.")
+
+    @commands.guild_only()
     @checks.mod_or_permissions(administrator=True)
     @commands.command()
     async def totcooldown(self, ctx, cooldown_time: int = 0):
@@ -559,35 +571,47 @@ class TrickOrTreat(commands.Cog):
         await self.config.user(message.author).candies.set(userdata["candies"] + candy)
 
         if chocolate == 100:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 4)
-            win_message += "\n**BONUS**: 5 \N{CHOCOLATE BAR}"
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 6)
+            win_message += "\n**BONUS**: 6 \N{CHOCOLATE BAR}"
         elif 99 >= chocolate >= 95:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 3)
-            win_message += "\n**BONUS**: 4 \N{CHOCOLATE BAR}"
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 5)
+            win_message += "\n**BONUS**: 5 \N{CHOCOLATE BAR}"
         elif 94 >= chocolate >= 90:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 4)
+            win_message += "\n**BONUS**: 4 \N{CHOCOLATE BAR}"
+        elif 89 >= chocolate >= 80:
+            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 3)
+            win_message += "\n**BONUS**: 3 \N{CHOCOLATE BAR}"
+        elif 79 >= chocolate >= 75:
             await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 2)
             win_message += "\n**BONUS**: 2 \N{CHOCOLATE BAR}"
-        elif 89 >= chocolate >= 80:
+        elif 74 >= chocolate >= 70:
             await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 1)
             win_message += "\n**BONUS**: 1 \N{CHOCOLATE BAR}"
 
         if lollipop == 100:
+            await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 4)
+            win_message += "\n**BONUS**: 4 \N{LOLLIPOP}"
+        elif 99 >= lollipop >= 95:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 3)
             win_message += "\n**BONUS**: 3 \N{LOLLIPOP}"
-        elif 99 >= lollipop >= 95:
+        elif 94 >= lollipop >= 85:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 2)
             win_message += "\n**BONUS**: 2 \N{LOLLIPOP}"
-        elif 94 >= lollipop >= 80:
+        elif 84 >= lollipop >= 75:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
             win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
 
         if star == 100:
+            await self.config.user(message.author).stars.set(userdata["stars"] + 4)
+            win_message += "\n**BONUS**: 4 \N{WHITE MEDIUM STAR}"
+        elif 99 >= star >= 97:
             await self.config.user(message.author).stars.set(userdata["stars"] + 3)
             win_message += "\n**BONUS**: 3 \N{WHITE MEDIUM STAR}"
-        elif 99 >= star >= 97:
+        elif 96 >= star >= 85:
             await self.config.user(message.author).stars.set(userdata["stars"] + 2)
             win_message += "\n**BONUS**: 2 \N{WHITE MEDIUM STAR}"
-        elif 96 >= star >= 80:
+        elif 84 >= star >= 75:
             await self.config.user(message.author).stars.set(userdata["stars"] + 1)
             win_message += "\n**BONUS**: 1 \N{WHITE MEDIUM STAR}"
 
