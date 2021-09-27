@@ -88,7 +88,10 @@ class Chatchart(commands.Cog):
         for s in sizes:
             if s < 0:
                 index = sizes.index(s)
-                log.info(f"Size {s} is not valid, at position {top[index]}")        
+                log.info(f"Size {s} is not valid, at position {top[index]}") 
+
+        if others < 0:
+            log.info(f"Others is less than zero: {others}") 
         
         labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
         if len(top) >= 20:
