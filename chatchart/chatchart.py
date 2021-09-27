@@ -78,6 +78,11 @@ class Chatchart(commands.Cog):
             key=lambda x: x[1],
         )
         others = 100 - sum(x[1] for x in top_twenty)
+
+        if others < 0:
+            log.info(f"Others is less than zero: {others}")
+            log.info(f"Toptwenty is: {top_twenty}")
+
         return top_twenty, others
 
     @staticmethod
@@ -89,9 +94,6 @@ class Chatchart(commands.Cog):
             if s < 0:
                 index = sizes.index(s)
                 log.info(f"Size {s} is not valid, at position {top[index]}") 
-
-        if others < 0:
-            log.info(f"Others is less than zero: {others}") 
         
         labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
         if len(top) >= 20:
