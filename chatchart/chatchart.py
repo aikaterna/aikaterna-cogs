@@ -8,16 +8,18 @@ import asyncio
 import discord
 import heapq
 from io import BytesIO
+import logging
 from typing import List, Optional, Tuple, Union
 
-import matplotlib
+from redbot.core import checks, commands, Config
 
+import matplotlib
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
-
 plt.switch_backend("agg")
 
-from redbot.core import checks, commands, Config
+
+log = logging.getLogger("red.aikaterna.chatchart")
 
 
 class Chatchart(commands.Cog):
@@ -82,6 +84,12 @@ class Chatchart(commands.Cog):
     async def create_chart(top, others, channel_or_guild: Union[discord.Guild, discord.TextChannel]):
         plt.clf()
         sizes = [x[1] for x in top]
+        
+        for s in sizes:
+            if s < 0:
+                index = sizes.index(s)
+                log.info(f"Size {s} is not valid, at position {top[index]}")        
+        
         labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
         if len(top) >= 20:
             sizes = sizes + [others]
