@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 
 class TrickOrTreat(commands.Cog):
@@ -362,6 +362,8 @@ class TrickOrTreat(commands.Cog):
         guild_users = [m.id for m in ctx.guild.members if m is not m.bot and not m == ctx.author]
         candy_users = await self.config._all_from_scope(scope="USER")
         valid_user = list(set(guild_users) & set(candy_users))
+        if not valid_user:
+            return await ctx.send("No one has any candy yet!")
         if not user:
             picked_user = self.bot.get_user(random.choice(valid_user))
         elif user == ctx.author or user == user.bot:
