@@ -38,6 +38,17 @@ class DiscordExperiments(commands.Cog):
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
         app_name = "YouTube Together"
+        await self._create_invite(ctx, 880218394199220334, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def ytpartyold(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a YouTube Together voice channel invite, the old version.
+
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "YouTube Together (Old Version)"
         await self._create_invite(ctx, 755600276941176913, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -83,3 +94,36 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "Chess in the Park"
         await self._create_invite(ctx, 832012586023256104, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def doodlecrew(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Doodle Crew voice channel invite.
+
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "the Doodle Crew game"
+        await self._create_invite(ctx, 878067389634314250, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def lettertile(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Letter Tile voice channel invite.
+
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "the Letter Tile game"
+        await self._create_invite(ctx, 879863686565621790, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def wordsnacks(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Word Snacks voice channel invite.
+
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "the Word Snacks game"
+        await self._create_invite(ctx, 879863976006127627, invite_max_age_in_seconds, app_name)
