@@ -37,6 +37,8 @@ latex - A simple cog originally by Stevy for v2 that displayes LaTeX expressions
 
 luigipoker - Play the Luigi Poker minigame from New Super Mario Brothers. Ported from the v2 version written by themario30.
 
+massunban - Bot Admins or guild Administrators can use this tool to mass unban users via ban reason keywords, or mass unban everyone on the ban list.
+
 noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.
 
 nolinks - A very blunt hammer to remove anything that looks like a link. Roles can be whitelisted and it can watch multiple channels.
