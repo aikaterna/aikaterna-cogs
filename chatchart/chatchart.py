@@ -83,7 +83,7 @@ class Chatchart(commands.Cog):
         labels = ["{} {:g}%".format(x[0], round(x[1], 1)) for x in top]
         if len(top) >= 20:
             sizes = sizes + [others]
-            labels = labels + ["Others {:g}%".format(others)]
+            labels = labels + ["Others {:g}%".format(round(others, 1))]
         if len(channel_or_guild.name) >= 19:
             if isinstance(channel_or_guild, discord.Guild):
                 channel_or_guild_name = "{}...".format(channel_or_guild.name[:19])
