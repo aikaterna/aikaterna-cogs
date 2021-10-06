@@ -139,7 +139,10 @@ class Dictionary(commands.Cog):
 
         final = []
         if website_data:
-            syn_list = website_data["searchData"]["tunaApiData"]["posTabs"][0][lookup_type]
+            tuna_api_data = website_data["searchData"]["tunaApiData"]
+            if not tuna_api_data:
+                return None
+            syn_list = tuna_api_data["posTabs"][0][lookup_type]
             for syn in syn_list:
                 final.append(syn["term"])
 
