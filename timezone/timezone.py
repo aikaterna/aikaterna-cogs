@@ -8,7 +8,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, DEFAULT_CONTROLS
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 class Timezone(commands.Cog):
@@ -199,13 +199,14 @@ class Timezone(commands.Cog):
         user_diff = user_now.utcoffset().total_seconds() / 60 / 60
         other_now = datetime.now(other_tz)
         other_diff = other_now.utcoffset().total_seconds() / 60 / 60
-        time_diff = str(abs(user_diff - other_diff)).rstrip(".0")
+        time_diff = abs(user_diff - other_diff)
+        time_diff_text = f"{time_diff:g}"
         fmt = "**%H:%M %Z (UTC %z)**"
         other_time = other_now.strftime(fmt)
-        plural = "" if time_diff == 1 else "s"
-        time_amt = "the same time zone as you" if time_diff == 0 else f"{time_diff} hour{plural}"
+        plural = "" if time_diff_text == "1" else "s"
+        time_amt = "the same time zone as you" if time_diff_text == "0" else f"{time_diff_text} hour{plural}"
         position = "ahead of" if user_diff < other_diff else "behind"
-        position_text = "" if time_diff == 0 else f" {position} you"
+        position_text = "" if time_diff_text == "0" else f" {position} you"
 
         await ctx.send(f"{user.display_name}'s time is {other_time} which is {time_amt}{position_text}.")
 
