@@ -3,5 +3,5 @@
     "install_msg": "Thanks for installing.",
     "short": "Fetch text from a URL.",
     "description": "Fetch text from a URL.",
-    "tags": ["api"],
+    "tags": ["api"]
 }
