@@ -1,11 +1,9 @@
 {
-	"author": [
-		"UltimatePancake"
-	],
-	"description": "Gets a random dad joke from icanhazdadjoke.com",
+    "author": ["UltimatePancake"],
+    "description": "Gets a random dad joke from icanhazdadjoke.com",
     "install_msg": "Gets a random dad joke from icanhazdadjoke.com. Thanks for installing.",
-	"short": "Random dad jokes",
-	"tags": ["jokes", "dad", "dadjokes"],
-	"type": "COG",
-	"end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "short": "Random dad jokes",
+    "tags": ["jokes", "dad", "dadjokes"],
+    "type": "COG",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
 }

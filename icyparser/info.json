@@ -1,15 +1,9 @@
 {
-	"author": [
-		"aikaterna"
-	],
-	"description": "Audio addon cog for dislaying icecast/shoutcast info.",
+    "author": ["aikaterna"],
+    "description": "Audio addon cog for dislaying icecast/shoutcast info.",
     "install_msg": "Thanks for installing, have fun.",
-	"short": "Audio addon cog for dislaying icecast/shoutcast info",
-	"tags": [
-		"audio",
-		"icecast",
-		"shoutcast"
-	],
-	"type": "COG",
-	"end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "short": "Audio addon cog for dislaying icecast/shoutcast info",
+    "tags": ["audio", "icecast", "shoutcast"],
+    "type": "COG",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
 }

@@ -1,10 +1,8 @@
 {
-    "name" : "NoFlippedTables",
     "author" : ["irdumb", "aikaterna"],
     "short" : "Unflip some tables.",
     "description" : "Unflip all the flipped tables.",
     "install_msg" : "Usage: [p]help tableset",
     "tags" : ["noflippedtables", "no flip", "tables"],
-    "disabled" : false,
-	"end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
 }

@@ -1,10 +1,9 @@
 {
-	"author": ["aikaterna", "HizkiFW"],
-	"description": "Tic Tac Toe",
-	"install_msg": "Thanks for installing.",
-	"short": "Tic Tac Toe",
-	"tags": ["game", "games", "tic tac toe", "ttt"],
-	"min_bot_version": "3.4.2",
-	"permissions": ["add_reactions"],
-	"type": "COG"
+    "author": ["aikaterna", "HizkiFW"],
+    "description": "Tic Tac Toe",
+    "install_msg": "Thanks for installing.",
+    "short": "Tic Tac Toe",
+    "tags": ["game", "games", "tic tac toe", "ttt"],
+    "permissions": ["add_reactions"],
+    "type": "COG"
 }

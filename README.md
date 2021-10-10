@@ -3,8 +3,6 @@ v3 Cogs for Red-DiscordBot by Twentysix26.
 
 adventure - Original concept & cog by locastan. My version is a collaboration between TrustyJAID, Draper, and myself and is now markedly different than locastan's version. The repo can be found on my repo page here on github.
 
-antiphoneclapper - Detects and removes bad GIFs posted in chat that have malformed frames. Thanks to Sitryk for all of the code that actually mattered for detection in this cog.
-
 away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna, and large improvements by TrustyJAID. Set and unset a user as being "away", or other statuses.
 
 blurplefy - Make an avatar or an image upload blurple for Discord's anniversaries.
@@ -18,8 +16,6 @@ dadjokes - Another UltimatePancake cog. Get some dad jokes on command.
 dictionary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
 
 discordexperiments - Create voice channel invites for various built-in apps. This is only for developers or for people that can read the code and assess the risk of using it.
-
-dungeon - [Depreciated/Unsupported] New users with new accounts will be shuffled off to a locked channel on-join to help mitigate raiders. Please see the [dungeon_readme.md](https://github.com/aikaterna/aikaterna-cogs/blob/v3/dungeon_readme.md) file on this repo for more information.
 
 embedpeek - Take a closer look at or unpack embed content. This cog is mostly a developer tool.
 
@@ -41,8 +37,6 @@ massunban - Bot Admins or guild Administrators can use this tool to mass unban u
 
 noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.
 
-nolinks - A very blunt hammer to remove anything that looks like a link. Roles can be whitelisted and it can watch multiple channels.
-
 otherbot - Alert a role when bot(s) go offline.
 
 partycrash - A port of Will's partycrash command from the v2 Admin cog. This cog will not generate invites, but will show already-existing invites that the bot has access to view.
@@ -54,8 +48,6 @@ pressf - A port/rewrite of NekoTony's v2 pressf cog. Pay your respects by pressi
 pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
 
 quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
-
-region - A command to change the voice region of a server. Requires the guild admin or mod role or guild administrator.
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
@@ -74,8 +66,6 @@ tools - A collection of mod and admin tools, ported from my v2 version. Sitryk i
 ttt - A Tic Tac Toe cog originally for Red V2 by HizikiFW. This cog is licensed under the Apache-2.0 license.
 
 urlfetch - Fetch text from a URL. Mainly used for simple text API queries (not JSON).
-
-warcraftlogs - [Depreciated/Unsupported] Fetch player info/metrics from the WarcraftLogs API for World of Warcraft Classic. Does not provide stats for non-Classic characters.
 
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
