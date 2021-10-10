@@ -8,7 +8,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, DEFAULT_CONTROLS
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 class Timezone(commands.Cog):
