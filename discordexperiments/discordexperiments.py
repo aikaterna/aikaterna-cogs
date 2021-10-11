@@ -93,6 +93,17 @@ class DiscordExperiments(commands.Cog):
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
         app_name = "Chess in the Park"
+        await self._create_invite(ctx, 832012774040141894, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def chessdev(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Chess in the Park voice channel invite, the dev version.
+
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Chess in the Park (Dev Version)"
         await self._create_invite(ctx, 832012586023256104, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
