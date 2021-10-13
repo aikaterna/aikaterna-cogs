@@ -25,7 +25,11 @@ from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 log = logging.getLogger("red.aikaterna.rss")
 
 
-__version__ = "1.5.0"
+IPV4_RE = re.compile("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
+
+
+__version__ = "1.6.0"
 
 
 class RSS(commands.Cog):
@@ -520,9 +524,12 @@ class RSS(commands.Cog):
 
                 rss = feedparser.parse(text)
                 if rss.bozo:
+                    error_message = rss.feed.get("summary", str(rss))[:1500]
+                    error_message = re.sub(IPV4_RE, "[REDACTED IP ADDRESS]", error_message)
+                    error_message = re.sub(IPV6_RE, "[REDACTED IP ADDRESS]", error_message)
                     msg = f"Bozo feed: feedparser is unable to parse the response from {url}.\n\n"
                     msg += "Received content preview:\n"
-                    msg += box(rss.feed.get("summary", str(rss))[:1500])
+                    msg += box(error_message)
                     raise NoFeedContent(msg)
                     return False
                 else:
