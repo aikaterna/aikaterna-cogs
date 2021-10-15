@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 
 
 class RSS(commands.Cog):
@@ -1241,10 +1241,19 @@ class RSS(commands.Cog):
                 if last_time > entry_time:
                     log.debug("Not posting because new entry is older than last saved entry.")
                     return
-            await self._update_last_scraped(channel, name, sorted_feed_by_post_time[0].title, sorted_feed_by_post_time[0].link, entry_time)
+            try:
+                title = sorted_feed_by_post_time[0].title
+            except AttributeError:
+                title = ""
+            await self._update_last_scraped(channel, name, title, sorted_feed_by_post_time[0].link, entry_time)
 
         feedparser_plus_objects = []
         for entry in sorted_feed_by_post_time:
+            # sometimes there's no title attribute and feedparser doesn't really play nice with that
+            try:
+                entry_title = entry.title
+            except AttributeError:
+                entry_title = ""
 
             # find the updated_parsed (checked first) or an published_parsed tag if they are present
             entry_time = await self._time_tag_validation(entry)
@@ -1263,16 +1272,16 @@ class RSS(commands.Cog):
                 # this will only work for rss sites that are single-use like cloudflare status, discord status, etc
                 # where an update on the last post should be posted
                 # this can be overridden by a bot owner in the rss parse command, per problematic website
-                if (last_title == entry.title) and (last_link == entry.link) and (entry_time > last_time):
+                if (last_title == entry_title) and (last_link == entry.link) and (entry_time > last_time):
                     log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
                 # regular feed qualification after this
-                if (last_title != entry.title) and (last_link != entry.link) and (last_time < entry_time):
+                if (last_title != entry_title) and (last_link != entry.link) and (last_time < entry_time):
                     log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
-                if (last_title == "" and entry.title == "") and (last_link != entry.link) and (last_time < entry_time):
+                if (last_title == "" and entry_title == "") and (last_link != entry.link) and (last_time < entry_time):
                     log.debug(f"New entry found via time validation for feed {name} on cid {channel.id} - no title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
@@ -1280,7 +1289,7 @@ class RSS(commands.Cog):
             # this is a post that has no time information attached to it and we can only
             # verify that the title and link did not match the previously posted entry
             elif (entry_time or last_time) is None:
-                if last_title == entry.title and last_link == entry.link:
+                if last_title == entry_title and last_link == entry.link:
                     log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
                     break
                 else:
@@ -1314,6 +1323,8 @@ class RSS(commands.Cog):
         for feedparser_plus_obj in feedparser_plus_objects:
             try:
                 curr_title = feedparser_plus_obj.title
+            except AttributeError:
+                curr_title = ""
             except IndexError:
                 log.debug(f"No entries found for feed {name} on cid {channel.id}")
                 return
