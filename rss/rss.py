@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.1"
+__version__ = "1.6.2"
 
 
 class RSS(commands.Cog):
@@ -216,6 +216,13 @@ class RSS(commands.Cog):
                         rss_object["tags_plaintext_list"] = humanize_list(tags_list)
                         rss_object["is_special"].append("tags_list")
                         rss_object["is_special"].append("tags_plaintext_list")
+
+        # if image dict tag exists, check for an image
+        try:
+            rss_object["image_plaintext"] = rss_object["image"]["href"]
+            rss_object["is_special"].append("image_plaintext")
+        except KeyError:
+            pass
 
         # if media_thumbnail or media_content exists, return the first friendly url
         try:
