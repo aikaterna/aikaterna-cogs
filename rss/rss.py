@@ -49,6 +49,10 @@ class RSS(commands.Cog):
 
         self._headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"}
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete"""
+        return
+
     def initialize(self):
         self._read_feeds_loop = self.bot.loop.create_task(self.read_feeds())
 

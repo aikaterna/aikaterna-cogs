@@ -19,6 +19,10 @@ class TTT(commands.Cog):
         self.bot = bot
         self.ttt_games = {}
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete"""
+        return
+
     @commands.guild_only()
     @commands.bot_has_permissions(add_reactions=True)
     @commands.max_concurrency(1, commands.BucketType.user)
