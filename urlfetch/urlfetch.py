@@ -21,6 +21,10 @@ class UrlFetch(commands.Cog):
 
         self._headers = {'User-Agent': 'Python/3.8'}
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete"""
+        return
+
     @commands.command()
     async def urlfetch(self, ctx, url: str):
         """

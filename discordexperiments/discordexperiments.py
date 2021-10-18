@@ -9,6 +9,10 @@ class DiscordExperiments(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete"""
+        return
+
     async def _create_invite(self, ctx, app_id: int, max_age: int, app_name: str):
         voice = ctx.author.voice
         if not voice:
