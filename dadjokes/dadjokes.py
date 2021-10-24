@@ -15,7 +15,12 @@ class DadJokes(commands.Cog):
     @commands.command()
     async def dadjoke(self, ctx):
         """Gets a random dad joke."""
-        api = "https://icanhazdadjoke.com/"
-        async with aiohttp.request("GET", api, headers={"Accept": "text/plain"}) as r:
-            result = await r.text(encoding="UTF-8")
-            await ctx.send(f"`{result}`")
+        try:
+            async with aiohttp.request("GET", "https://icanhazdadjoke.com/", headers={"Accept": "text/plain"}) as r:
+                if r.status != 200:
+                    return await ctx.send("Oops! Cannot get a dad joke...")
+                result = await r.text(encoding="UTF-8")
+        except aiohttp.ClientConnectionError:
+            return await ctx.send("Oops! Cannot get a dad joke...")
+
+        await ctx.send(f"`{result}`")
