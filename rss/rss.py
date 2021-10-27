@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.2"
+__version__ = "1.6.3"
 
 
 class RSS(commands.Cog):
@@ -435,9 +435,15 @@ class RSS(commands.Cog):
         """
         entry_time = await self._time_tag_validation(feedparser_plus_obj)
 
+        # sometimes there's no title attribute and feedparser doesn't really play nice with that
+        try:
+            feedparser_plus_obj_title = feedparser_plus_obj["title"]
+        except KeyError:
+            feedparser_plus_obj_title = ""
+
         rss_object = RssFeed(
             name=feed_name.lower(),
-            last_title=feedparser_plus_obj["title"],
+            last_title=feedparser_plus_obj_title,
             last_link=feedparser_plus_obj["link"],
             last_time=entry_time,
             template="$title\n$link",
