@@ -47,7 +47,8 @@ class Pupper(commands.Cog):
                 channel_names = []
                 for channel_id in guild_data["channel"]:
                     channel_obj = self.bot.get_channel(channel_id)
-                    channel_names.append(channel_obj.name)
+                    if channel_obj:
+                        channel_names.append(channel_obj.name)
 
             space = "\N{EN SPACE}"
             toggle = "Active" if guild_data["toggle"] else "Inactive"
@@ -94,7 +95,7 @@ class Pupper(commands.Cog):
 
     @pets.command()
     async def cooldown(self, ctx, seconds: int = None):
-        """Set the pet appearance cooldown in seconds. 
+        """Set the pet appearance cooldown in seconds.
 
         300s/5 minute minimum. Default is 3600s/1 hour."""
 
@@ -241,6 +242,11 @@ class Pupper(commands.Cog):
                 rando_channel = random.choice(guild_data["channel"])
                 await asyncio.sleep(random.randint(60, 480))
                 rando_channel_obj = self.bot.get_channel(rando_channel)
+                if not rando_channel_obj:
+                    async with self.config.guild(message.guild).all() as data:
+                        data["channels"].remove(rando_channel)
+                        rando_channel = random.choice(data["channel"])
+                        rando_channel_obj = self.bot.get_channel(rando_channel)
                 borf_msg = await rando_channel_obj.send(guild_data["hello_msg"])
                 pets = "👋"
                 pets_action = {"veryfastpats": "👋"}
