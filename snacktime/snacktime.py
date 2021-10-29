@@ -1,3 +1,4 @@
+import re
 import asyncio
 import discord
 import logging
@@ -46,6 +47,7 @@ class Snacktime(commands.Cog):
             "SNACK_DURATION_VARIANCE": 120,
             "MSGS_BEFORE_EVENT": 8,
             "SNACK_AMOUNT": 200,
+            "USE_CURRENCY": False
         }
 
         default_channel = {"repeatMissedSnacktimes": 0}
@@ -84,20 +86,35 @@ class Snacktime(commands.Cog):
     async def eat(self, ctx, amount: int):
         """
         all this talk about pb is makin me hungry.
-
         how bout you guys?
         """
+        use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
+        if use_red_currency:
+            currency_name = await bank.get_currency_name(ctx.guild)
+            # No custom emojis just in case they set new emoji after toggling it on
+            currency_name = re.sub(r'<:\w*:\d*>', '', currency_name)
+            # No animated emojis
+            currency_name = re.sub(r'<a:\w*:\d*>', '', currency_name)
+            if currency_name == "":
+                currency_name = "pb jars"  # Go back to pb if nothing left
+                # Set back to false if they set new emoji after toggling it on
+                await self.config.guild(ctx.guild).USE_CURRENCY.set(False)
+        else:
+            currency_name = "pb jars"
         persona = await self.persona_choice(ctx=ctx, message=None)
         if amount < 0:
             return await ctx.send(f"`{persona} Woah slow down!`")
         if amount > await bank.get_balance(ctx.author):
-            return await ctx.send(f"`{persona} You don't got that much pb!.. don't look at me..`")
+            return await ctx.send(f"`{persona} You don't got that much {currency_name}!.. don't look at me..`")
 
         await bank.withdraw_credits(ctx.author, amount)
 
         first_phrase = randchoice(SNACKBURR_PHRASES["EAT_BEFORE"])
         second_phrase = randchoice(SNACKBURR_PHRASES["EAT_AFTER"])
-        await ctx.send(f"`{persona} {ctx.author.display_name} {first_phrase} {second_phrase} {amount} whole pb jars!`")
+
+        await ctx.send(
+            f"`{persona} {ctx.author.display_name} {first_phrase} {second_phrase} {amount} whole {currency_name}!`"
+        )
 
     @commands.guild_only()
     @commands.group()
@@ -194,17 +211,47 @@ class Snacktime(commands.Cog):
     @snackset.command()
     async def amount(self, ctx, amt: int):
         """How much pb max snackburr should give out to each person per snacktime"""
-
+        currency = "pb"
         if amt <= 0:
             await ctx.send("amount must be greater than 0")
         else:
             await self.config.guild(ctx.guild).SNACK_AMOUNT.set(amt)
-            await ctx.send(f"snackburr will now give out {amt} pb max per person per snacktime.")
+            use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
+            if use_red_currency:
+                currency = await bank.get_currency_name(ctx.guild)
+                # No custom emojis
+                currency = re.sub(r'<:\w*:\d*>', '', currency)
+                # No animated emojis
+                currency = re.sub(r'<a:\w*:\d*>', '', currency)
+                if currency == "":
+                    # Go back to pb if nothing left
+                    currency = "pb"
+                    # Set back to false if they set new emoji after toggling it on
+                    await self.config.guild(ctx.guild).USE_CURRENCY.set(False)
+            await ctx.send(f"snackburr will now give out {amt} {currency} max per person per snacktime.")
+
+    @snackset.command()
+    async def togglecurrency(self, ctx):
+        """Toggle whether to use server currency name instead of pb"""
+        toggled = await self.config.guild(ctx.guild).USE_CURRENCY()
+        if not toggled:
+            currency_name = await bank.get_currency_name(ctx.guild)
+            # No custom emojis
+            currency_name = re.sub(r'<:\w*:\d*>', '', currency_name)
+            # No animated emojis
+            currency_name = re.sub(r'<a:\w*:\d*>', '', currency_name)
+            # If nothing is left dont let em toggle it
+            if currency_name == "":
+                return await ctx.send("snackburr doesnt like that currency name.. try something else.")
+            await self.config.guild(ctx.guild).USE_CURRENCY.set(True)
+            await ctx.send("snackburr will now use the bots currency name... lame.....")
+        else:
+            await self.config.guild(ctx.guild).USE_CURRENCY.set(False)
+            await ctx.send("snackburr will now use pb again yay!")
 
     @snackset.command(name="friends")
     async def snackset_friends(self, ctx, choice: int):
         """snackburr's friends wanna know what all the hub-bub's about!
-
         Do you want to
         1: invite them to the party,
         2: only allow snackburr to chillax with you guys, or
@@ -448,6 +495,20 @@ class Snacktime(commands.Cog):
                             if self.acceptInput.get(scid, False):
                                 resp = await self.get_response(message, "GIVE")
                                 resp = resp.format(message.author.name, snackAmt)
+                                use_red_currency = await self.config.guild(message.guild).USE_CURRENCY()
+                                if use_red_currency:
+                                    currency_name = await bank.get_currency_name(message.guild)
+                                    # No custom emojis
+                                    currency_name = re.sub(r'<:\w*:\d*>', '', currency_name)
+                                    # No animated emojis
+                                    currency_name = re.sub(r'<a:\w*:\d*>', '', currency_name)
+                                    if currency_name == "":
+                                        # Go back to pb if nothing left
+                                        currency_name = "pb"
+                                        # Set back to false if they set new emoji after toggling it on
+                                        await self.config.guild(message.guild).USE_CURRENCY.set(False)
+                                    resp = resp.replace("pb", currency_name)
+
                                 await message.channel.send(resp)
                             else:
                                 resp = await self.get_response(message, "LAST_SECOND")
