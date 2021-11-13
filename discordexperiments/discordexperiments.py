@@ -164,3 +164,14 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "the SpellCast game"
         await self._create_invite(ctx, 852509694341283871, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def checkers(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Checkers in the Park voice channel invite.
+
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Checkers in the Park"
+        await self._create_invite(ctx, 832013003968348200, invite_max_age_in_seconds, app_name)
