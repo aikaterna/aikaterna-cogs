@@ -213,7 +213,6 @@ class Snacktime(commands.Cog):
     @snackset.command()
     async def amount(self, ctx, amt: int):
         """How much pb max snackburr should give out to each person per snacktime"""
-        currency = "pb"
         if amt <= 0:
             await ctx.send("amount must be greater than 0")
         else:
