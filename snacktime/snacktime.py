@@ -141,18 +141,15 @@ class Snacktime(commands.Cog):
             else:
                 invite_friends = "Everyone's invited!"
 
-            currency_name = "pb"
             use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
-            if use_red_currency:
-                currency_name = await bank.get_currency_name(ctx.guild)
 
             msg = f"[Delivering in]:           {humanize_list(channel_names)}\n"
             msg += f"[Event start delay]:       {guild_data['EVENT_START_DELAY']} seconds\n"
             msg += f"[Event start variance]:    {guild_data['EVENT_START_DELAY_VARIANCE']} seconds\n"
             msg += f"[Friends status]:          {invite_friends}\n"
             msg += f"[Messages before event]:   {guild_data['MSGS_BEFORE_EVENT']}\n"
-            msg += f"[Snack amount limit]:      {guild_data['SNACK_AMOUNT']} {currency_name}\n"
-            msg += f"[Use Custom Currency]:     {use_red_currency}\n"
+            msg += f"[Snack amount limit]:      {guild_data['SNACK_AMOUNT']}\n"
+            msg += f"[Use custom currency]:     {use_red_currency}\n"
             msg += f"[Snack duration]:          {guild_data['SNACK_DURATION']} seconds\n"
             msg += f"[Snack duration variance]: {guild_data['SNACK_DURATION_VARIANCE']} seconds\n"
 
