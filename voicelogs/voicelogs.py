@@ -7,6 +7,7 @@ import discord
 import logging
 
 from datetime import date, datetime, timedelta, timezone
+from types import SimpleNamespace
 from typing import Literal, Union
 
 from redbot.core import checks, commands, Config
@@ -20,7 +21,7 @@ class VoiceLogs(commands.Cog):
     """Logs information about voice channel connection times."""
 
     __author__ = ["ZeLarpMaster#0818", "aikaterna"]
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     TIME_FORMATS = ["{} seconds", "{} minutes", "{} hours", "{} days", "{} weeks"]
     TIME_FRACTIONS = [60, 60, 24, 7]
@@ -114,6 +115,8 @@ class VoiceLogs(commands.Cog):
             time_diff = left_at - entry["joined_at"]
             time_spent = self.humanize_time(round(time_diff.total_seconds())) + time_spent
             user_obj = ctx.guild.get_member(entry["user_id"])
+            if not user_obj:
+                user_obj = SimpleNamespace(name="Unknown User", id=entry["user_id"])
             embed.description += f"**{user_obj.name}** ({user_obj.id}) for **{time_spent}**\n"
         if len(embed.description) == 0:
             embed.description = f"No voice activity in {voice_channel_name_or_id.mention}"
