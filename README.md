@@ -67,6 +67,8 @@ ttt - A Tic Tac Toe cog originally for Red V2 by HizikiFW. This cog is licensed 
 
 urlfetch - Fetch text from a URL. Mainly used for simple text API queries (not JSON).
 
+voicelogs - A record of people's time spent in voice channels by ZeLarpMaster for v2, and ported here for v3 use. This cog is licensed under the GPL-3.0 License.
+
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
 youtube - A v3 port of Paddo's youtube search cog for v2.
