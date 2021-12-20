@@ -46,28 +46,6 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def ytpartyold(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a YouTube Together voice channel invite, the old version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "YouTube Together (Old Version)"
-        await self._create_invite(ctx, 755600276941176913, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
-    async def ytpartydev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a YouTube Together voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "YouTube Together (Dev Version)"
-        await self._create_invite(ctx, 880218832743055411, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
     async def betrayal(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Betrayal.io voice channel invite.
@@ -101,17 +79,6 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def pokernightdev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Poker Night voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "Poker Night (Dev Version)"
-        await self._create_invite(ctx, 763133495793942528, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
     async def chess(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Chess in the Park voice channel invite.
@@ -123,17 +90,6 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def chessdev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Chess in the Park voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "Chess in the Park (Dev Version)"
-        await self._create_invite(ctx, 832012586023256104, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
     async def doodlecrew(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Doodle Crew voice channel invite.
@@ -142,17 +98,6 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "the Doodle Crew game"
         await self._create_invite(ctx, 878067389634314250, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
-    async def doodlecrewdev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Doodle Crew voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "the Doodle Crew game (Dev Version)"
-        await self._create_invite(ctx, 878067427668275241, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
@@ -178,17 +123,6 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def wordsnacksdev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Word Snacks voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "the Word Snacks game (Dev Version)"
-        await self._create_invite(ctx, 879864010126786570, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
     async def spellcast(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a SpellCast voice channel invite.
@@ -208,47 +142,3 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "Checkers in the Park"
         await self._create_invite(ctx, 832013003968348200, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
-    async def sketchy(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Sketchy Artist voice channel invite.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "the Sketchy Artist game"
-        await self._create_invite(ctx, 879864070101172255, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
-    async def sketchydev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Sketchy Artist voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "the Sketchy Artist game (Dev Version)"
-        await self._create_invite(ctx, 879864104980979792, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
-    async def awkword(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Awkword voice channel invite.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "the Awkword game"
-        await self._create_invite(ctx, 879863881349087252, invite_max_age_in_seconds, app_name)
-
-    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
-    async def decodersdev(self, ctx, invite_max_age_in_seconds=86400):
-        """
-        Create a Decoders voice channel invite, the dev version.
-
-        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
-        """
-        app_name = "the Decoders game (Dev Version)"
-        await self._create_invite(ctx, 891001866073296967, invite_max_age_in_seconds, app_name)
