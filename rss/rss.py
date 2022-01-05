@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.3"
+__version__ = "1.6.4"
 
 
 class RSS(commands.Cog):
@@ -338,7 +338,7 @@ class RSS(commands.Cog):
         return None
 
     async def _get_feed_names(self, channel: discord.TextChannel):
-        """Helper for rss list."""
+        """Helper for rss list/listall."""
         feed_list = []
         space = "\N{SPACE}"
         all_feeds = await self.config.channel(channel).feeds.all()
@@ -939,6 +939,27 @@ class RSS(commands.Cog):
         else:
             msg += "\n\tNone."
         for page in pagify(msg, delims=["\n"], page_length=1800):
+            await ctx.send(box(page, lang="ini"))
+
+    @rss.command(name="listall")
+    async def _rss_listall(self, ctx):
+        """List all saved feeds for this server."""
+        all_channels = await self.config.all_channels()
+        all_guild_channels = [x.id for x in ctx.guild.channels]
+        msg = ""
+        for channel_id, data in all_channels.items():
+            if channel_id in all_guild_channels:
+                channel_obj = ctx.guild.get_channel(channel_id)
+                feeds = await self._get_feed_names(channel_obj)
+                if not feeds:
+                    continue
+                if feeds == ["None."]:
+                    continue
+                msg += f"[ Available Feeds for #{channel_obj.name} ]\n\n\t"
+                msg += "\n\t".join(sorted(feeds))
+                msg += "\n\n"
+
+        for page in pagify(msg, delims=["\n\n", "\n"], page_length=1800):
             await ctx.send(box(page, lang="ini"))
 
     @rss.command(name="listtags")
