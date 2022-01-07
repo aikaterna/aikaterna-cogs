@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.4"
+__version__ = "1.6.5"
 
 
 class RSS(commands.Cog):
@@ -393,6 +393,11 @@ class RSS(commands.Cog):
         except asyncio.exceptions.TimeoutError:
             friendly_msg = "The bot timed out while trying to access that content."
             msg = f"asyncio timeout while accessing feed at url:\n\t{url}"
+            log.error(msg, exc_info=True)
+            return None, friendly_msg
+        except aiohttp.client_exceptions.ServerDisconnectedError:
+            friendly_msg = "The target server disconnected early without a response."
+            msg = f"server disconnected while accessing feed at url:\n\t{url}"
             log.error(msg, exc_info=True)
             return None, friendly_msg
         except Exception:
@@ -822,8 +827,17 @@ class RSS(commands.Cog):
                         "That seems to be an invalid URL. Use a full website URL like `https://www.site.com/`."
                     )
                     return
+                except aiohttp.client_exceptions.ServerDisconnectedError:
+                    await ctx.send("The server disconnected early without a response.")
+                    return
                 except asyncio.exceptions.TimeoutError:
                     await ctx.send("The site didn't respond in time or there was no response.")
+                    return
+                except Exception as e:
+                    msg = "There was an issue trying to find a feed in that site. "
+                    msg += "Please check your console for more information."
+                    log.exception(e, exc_info=e)
+                    await ctx.send(msg)
                     return
 
         if "403 Forbidden" in soup.get_text():
