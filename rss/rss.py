@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.5"
+__version__ = "1.6.6"
 
 
 class RSS(commands.Cog):
@@ -193,6 +193,7 @@ class RSS(commands.Cog):
 
                     if list_item_check == TagType.DICT:
                         authors_content_counter = 0
+                        enclosure_content_counter = 0
 
                         # common "authors" tag format
                         try:
@@ -201,6 +202,23 @@ class RSS(commands.Cog):
                             tag_content = BeautifulSoup(list_item["name"], "html.parser")
                             rss_object[name] = tag_content.get_text()
                             rss_object["is_special"].append(name)
+                        except KeyError:
+                            pass
+
+                        # common "enclosure" tag image format
+                        # note: this is not adhering to RSS feed specifications
+                        # proper enclosure tags should have `length`, `type`, `url`
+                        # and not `href`, `type`, `rel`
+                        # but, this is written for the first feed I have seen with an "enclosure" tag
+                        try:
+                            image_url = list_item["href"]
+                            image_type = list_item["type"]
+                            image_rel = list_item["rel"]
+                            enclosure_content_counter += 1
+                            name = f"media_plaintext{str(enclosure_content_counter).zfill(2)}"
+                            rss_object[name] = image_url
+                            rss_object["is_special"].append(name)
+                            tags_list.append(tag)
                         except KeyError:
                             pass
 
