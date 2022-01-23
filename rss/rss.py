@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.6.6"
+__version__ = "1.7.0"
 
 
 class RSS(commands.Cog):
@@ -1632,10 +1632,6 @@ class RSS(commands.Cog):
             for channel_id, channel_feed_list in config_data.items():
                 channel = await self._get_channel_object(channel_id)
                 if not channel:
-                    log.info(
-                        f"Response channel {channel_id} not found, forbidden to access, or no perms to send messages, removing channel from config"
-                    )
-                    await self.config.channel_from_id(int(channel_id)).clear()  # Remove entries from dead channel
                     continue
 
                 if await self.bot.cog_disabled_in_guild(self, channel.guild):
