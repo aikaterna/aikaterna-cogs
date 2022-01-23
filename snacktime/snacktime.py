@@ -1,7 +1,7 @@
-import re
 import asyncio
 import discord
 import logging
+import re
 from random import randint
 from random import choice as randchoice
 
@@ -94,6 +94,7 @@ class Snacktime(commands.Cog):
     async def eat(self, ctx, amount: int):
         """
         all this talk about pb is makin me hungry.
+
         how bout you guys?
         """
         use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
@@ -247,6 +248,7 @@ class Snacktime(commands.Cog):
     @snackset.command(name="friends")
     async def snackset_friends(self, ctx, choice: int):
         """snackburr's friends wanna know what all the hub-bub's about!
+
         Do you want to
         1: invite them to the party,
         2: only allow snackburr to chillax with you guys, or
