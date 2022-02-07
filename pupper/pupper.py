@@ -244,7 +244,7 @@ class Pupper(commands.Cog):
                 rando_channel_obj = self.bot.get_channel(rando_channel)
                 if not rando_channel_obj:
                     async with self.config.guild(message.guild).all() as data:
-                        data["channels"].remove(rando_channel)
+                        data["channel"].remove(rando_channel)
                         rando_channel = random.choice(data["channel"])
                         rando_channel_obj = self.bot.get_channel(rando_channel)
                 borf_msg = await rando_channel_obj.send(guild_data["hello_msg"])
