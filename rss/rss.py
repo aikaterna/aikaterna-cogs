@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.7.0"
+__version__ = "1.8.0"
 
 
 class RSS(commands.Cog):
@@ -131,6 +131,7 @@ class RSS(commands.Cog):
         """Append bs4-discovered tags to an rss_feed/feedparser object."""
         rss_object["is_special"] = []
         soup = None
+        tags_list = []
 
         temp_rss_obect = copy.deepcopy(rss_object)
         for tag_name, tag_content in temp_rss_obect.items():
@@ -164,7 +165,6 @@ class RSS(commands.Cog):
                     rss_object[f"{tag_name}_plaintext"] = self._add_generic_html_plaintext(soup)
 
             if tag_content_check == TagType.LIST:
-                tags_list = []
                 tags_content_counter = 0
 
                 for list_item in tag_content:
@@ -218,7 +218,7 @@ class RSS(commands.Cog):
                             name = f"media_plaintext{str(enclosure_content_counter).zfill(2)}"
                             rss_object[name] = image_url
                             rss_object["is_special"].append(name)
-                            tags_list.append(tag)
+                            tags_list.append(tag) if tag not in tags_list else tags_list
                         except KeyError:
                             pass
 
@@ -229,15 +229,15 @@ class RSS(commands.Cog):
                             name = f"{tag_name}_plaintext{str(tags_content_counter).zfill(2)}"
                             rss_object[name] = tag
                             rss_object["is_special"].append(name)
-                            tags_list.append(tag)
+                            tags_list.append(tag) if tag not in tags_list else tags_list
                         except KeyError:
                             pass
 
-                    if len(tags_list) > 0:
-                        rss_object["tags_list"] = tags_list
-                        rss_object["tags_plaintext_list"] = humanize_list(tags_list)
-                        rss_object["is_special"].append("tags_list")
-                        rss_object["is_special"].append("tags_plaintext_list")
+                if len(tags_list) > 0:
+                    rss_object["tags_list"] = tags_list
+                    rss_object["tags_plaintext_list"] = humanize_list(tags_list)
+                    rss_object["is_special"].append("tags_list")
+                    rss_object["is_special"].append("tags_plaintext_list")
 
         # if image dict tag exists, check for an image
         try:
@@ -458,16 +458,20 @@ class RSS(commands.Cog):
         """
         entry_time = await self._time_tag_validation(feedparser_plus_obj)
 
-        # sometimes there's no title attribute and feedparser doesn't really play nice with that
+        # sometimes there's no title or no link attribute and feedparser doesn't really play nice with that
         try:
             feedparser_plus_obj_title = feedparser_plus_obj["title"]
         except KeyError:
             feedparser_plus_obj_title = ""
+        try:
+            feedparser_plus_obj_link = feedparser_plus_obj["link"]
+        except KeyError:
+            feedparser_plus_obj_link = ""
 
         rss_object = RssFeed(
             name=feed_name.lower(),
             last_title=feedparser_plus_obj_title,
-            last_link=feedparser_plus_obj["link"],
+            last_link=feedparser_plus_obj_link,
             last_time=entry_time,
             template="$title\n$link",
             url=url,
@@ -1343,15 +1347,23 @@ class RSS(commands.Cog):
                 title = sorted_feed_by_post_time[0].title
             except AttributeError:
                 title = ""
-            await self._update_last_scraped(channel, name, title, sorted_feed_by_post_time[0].link, entry_time)
+            try:
+                link = sorted_feed_by_post_time[0].link
+            except AttributeError:
+                link = ""
+            await self._update_last_scraped(channel, name, title, link, entry_time)
 
         feedparser_plus_objects = []
         for entry in sorted_feed_by_post_time:
-            # sometimes there's no title attribute and feedparser doesn't really play nice with that
+            # sometimes there's no title or no link attribute and feedparser doesn't really play nice with that
             try:
                 entry_title = entry.title
             except AttributeError:
                 entry_title = ""
+            try:
+                entry_link = entry.link
+            except AttributeError:
+                entry_link = ""
 
             # find the updated_parsed (checked first) or an published_parsed tag if they are present
             entry_time = await self._time_tag_validation(entry)
@@ -1370,16 +1382,16 @@ class RSS(commands.Cog):
                 # this will only work for rss sites that are single-use like cloudflare status, discord status, etc
                 # where an update on the last post should be posted
                 # this can be overridden by a bot owner in the rss parse command, per problematic website
-                if (last_title == entry_title) and (last_link == entry.link) and (entry_time > last_time):
+                if (last_title == entry_title) and (last_link == entry_link) and (last_time < entry_time):
                     log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
                 # regular feed qualification after this
-                if (last_title != entry_title) and (last_link != entry.link) and (last_time < entry_time):
-                    log.debug(f"New entry found via time validation for feed {name} on cid {channel.id}")
+                if (last_link != entry_link) and (last_time < entry_time):
+                    log.debug(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
-                if (last_title == "" and entry_title == "") and (last_link != entry.link) and (last_time < entry_time):
+                if (last_title == "" and entry_title == "") and (last_link != entry_link) and (last_time < entry_time):
                     log.debug(f"New entry found via time validation for feed {name} on cid {channel.id} - no title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
@@ -1387,7 +1399,7 @@ class RSS(commands.Cog):
             # this is a post that has no time information attached to it and we can only
             # verify that the title and link did not match the previously posted entry
             elif (entry_time or last_time) is None:
-                if last_title == entry_title and last_link == entry.link:
+                if last_title == entry_title and last_link == entry_link:
                     log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
                     break
                 else:
