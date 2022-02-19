@@ -374,7 +374,11 @@ class CardsAgainstHumanity(commands.Cog):
                     member["Task"] = None
         # Set running to false
         game["Running"] = False
-        self.games.remove(game)
+        try:
+            self.games.remove(game)
+        except ValueError:
+            # game was in progress but players left, leaving the open game with less than 3 people
+            pass
         return False
 
     async def typing(self, game, typeTime=5):
@@ -702,7 +706,7 @@ class CardsAgainstHumanity(commands.Cog):
         await self.sendToUser(user, msg)
 
     async def drawCard(self, game):
-        with open(str(bundled_data_path(self)) + "/deck.json", "r") as deck_file:
+        with open(str(bundled_data_path(self)) + "/deck.json", "r", encoding='utf-8') as deck_file:
             deck = json.load(deck_file)
         # Draws a random unused card and shuffles the deck if needed
         totalDiscard = len(game["Discard"])
@@ -752,7 +756,7 @@ class CardsAgainstHumanity(commands.Cog):
                     i += 1
 
     async def drawBCard(self, game):
-        with open(str(bundled_data_path(self)) + "/deck.json", "r") as deck_file:
+        with open(str(bundled_data_path(self)) + "/deck.json", "r", encoding='utf-8') as deck_file:
             deck = json.load(deck_file)
         # Draws a random black card
         totalDiscard = len(game["BDiscard"])
@@ -890,7 +894,11 @@ class CardsAgainstHumanity(commands.Cog):
         if message == None:
             msg = "Ooookay, you say *nothing...*"
             return await self.sendToUser(ctx.author, msg)
+        long_message = False
         msg = f"*{ctx.author.name}* says: {message}"
+        if len(msg) > 1999:
+            msg = msg[:1990] + " [...]"
+            long_message = True
         for member in userGame["Members"]:
             if member["IsBot"]:
                 continue
@@ -901,7 +909,10 @@ class CardsAgainstHumanity(commands.Cog):
             else:
                 # Update member's time
                 member["Time"] = int(time.time())
-        await self.sendToUser(ctx.author, "Message sent!")
+        msg = "Message sent!"
+        if long_message:
+            msg += " Your message was cut short to keep it under the 2000 character limit."
+        await self.sendToUser(ctx.author, msg)
 
     @commands.command()
     async def lay(self, ctx, *, card=None):
@@ -1069,7 +1080,7 @@ class CardsAgainstHumanity(commands.Cog):
         """Starts a new Cards Against Humanity game."""
         try:
             embed = discord.Embed(color=discord.Color.green())
-            embed.set_author(name="**Setting up the game...**")
+            embed.set_author(name="Setting up the game...")
             await ctx.author.send(embed=embed)
         except discord.errors.Forbidden:
             return await ctx.send("You must allow Direct Messages from the bot for this game to work.")

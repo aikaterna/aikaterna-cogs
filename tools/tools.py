@@ -213,6 +213,8 @@ class Tools(commands.Cog):
             discord.TextChannel: "Text Channel",
             discord.VoiceChannel: "Voice Channel",
             discord.CategoryChannel: "Category",
+            discord.StageChannel: "Stage Channel",
+            discord.Thread: "Thread Channel",
         }
 
         load = "```\nLoading channel info...```"
@@ -223,41 +225,57 @@ class Tools(commands.Cog):
 
         data = "```ini\n"
         if caller == "invoke" or channel.guild != ctx.guild:
-            data += "[Server]:     {}\n".format(channel.guild.name)
-        data += "[Name]:       {}\n".format(cf.escape(str(channel)))
-        data += "[ID]:         {}\n".format(channel.id)
-        data += "[Private]:    {}\n".format(yesno[isinstance(channel, discord.abc.PrivateChannel)])
-        if isinstance(channel, discord.TextChannel) and channel.topic != "":
-            data += "[Topic]:      {}\n".format(channel.topic)
-        data += "[Position]:   {}\n".format(channel.position)
-        data += "[Created]:    {}\n".format(self._dynamic_time(channel.created_at))
-        data += "[Type]:       {}\n".format(typemap[type(channel)])
+            data += "[Server]:          {}\n".format(channel.guild.name)
+        data += "[Name]:            {}\n".format(cf.escape(str(channel)))
+        data += "[ID]:              {}\n".format(channel.id)
+        data += "[Private]:         {}\n".format(yesno[isinstance(channel, discord.abc.PrivateChannel)])
+        if isinstance(channel, discord.TextChannel) and channel.topic != None:
+            data += "[Topic]:           {}\n".format(channel.topic)
+        try:
+            data += "[Position]:        {}\n".format(channel.position)
+        except AttributeError:
+            # this is a thread
+            data += "[Parent Channel]:  {} ({})\n".format(channel.parent.name, channel.parent.id)
+            data += "[Parent Position]: {}\n".format(channel.parent.position)
+        try:
+            data += "[Created]:         {}\n".format(self._dynamic_time(channel.created_at))
+        except AttributeError:
+            # this is a thread
+            data += "[Updated]:         {}\n".format(self._dynamic_time(channel.archive_timestamp))
+        data += "[Type]:            {}\n".format(typemap[type(channel)])
+        if isinstance(channel, discord.TextChannel) and channel.is_news():
+            data += "[News Channel]:    {}\n".format(channel.is_news())
         if isinstance(channel, discord.VoiceChannel):
-            data += "[Users]:      {}\n".format(len(channel.members))
-            data += "[User limit]: {}\n".format(channel.user_limit)
-            data += "[Bitrate]:    {}kbps\n".format(int(channel.bitrate / 1000))
+            data += "[Users]:           {}\n".format(len(channel.members))
+            data += "[User limit]:      {}\n".format(channel.user_limit)
+            data += "[Bitrate]:         {}kbps\n".format(int(channel.bitrate / 1000))
         data += "```"
         await asyncio.sleep(1)
         await waiting.edit(content=data)
 
     @commands.guild_only()
     @commands.command()
-    async def eid(self, ctx, emoji: discord.Emoji):
+    async def eid(self, ctx, emoji: str = None):
         """Get an id for an emoji."""
+        if not isinstance(emoji, discord.Emoji):
+            return await ctx.send("I can't see that emoji in any of the servers I'm in.")
+
         await ctx.send(f"**ID for {emoji}:**   {emoji.id}")
 
     @commands.guild_only()
     @commands.command()
-    async def einfo(self, ctx, emoji: discord.Emoji):
+    async def einfo(self, ctx, emoji: str = None):
         """Emoji information."""
-        e = emoji
+        if not isinstance(emoji, discord.Emoji):
+            return await ctx.send("I can't see that emoji in any of the servers I'm in.")
+
         m = (
-            f"{str(e)}\n"
+            f"{str(emoji)}\n"
             f"```ini\n"
-            f"[NAME]:       {e.name}\n"
-            f"[GUILD]:      {e.guild}\n"
-            f"[URL]:        {e.url}\n"
-            f"[ANIMATED]:   {e.animated}"
+            f"[NAME]:       {emoji.name}\n"
+            f"[GUILD]:      {emoji.guild}\n"
+            f"[URL]:        {emoji.url}\n"
+            f"[ANIMATED]:   {emoji.animated}"
             "```"
         )
         await ctx.send(m)
@@ -265,7 +283,7 @@ class Tools(commands.Cog):
     @commands.guild_only()
     @commands.command()
     @checks.mod_or_permissions(manage_guild=True)
-    async def inrole(self, ctx, *, rolename):
+    async def inrole(self, ctx, *, rolename: str):
         """Check members in the role specified."""
         guild = ctx.guild
         await ctx.trigger_typing()
@@ -286,7 +304,7 @@ class Tools(commands.Cog):
             if len(roles) == 1:
                 role = roles[0]
             elif len(roles) < 1:
-                await ctx.send("No roles were found.")
+                await ctx.send(f"No roles containing `{rolename}` were found.")
                 return
             else:
                 msg = (
@@ -555,7 +573,8 @@ class Tools(commands.Cog):
             em.add_field(name="Position", value=role.position)
             em.add_field(name="Valid Permissions", value="{}".format(perms_we_have))
             em.add_field(name="Invalid Permissions", value="{}".format(perms_we_dont))
-            em.set_thumbnail(url=role.guild.icon_url)
+            if guild.icon:
+                em.set_thumbnail(url=role.guild.icon.url)
         try:
             await loadingmsg.edit(embed=em)
         except discord.HTTPException:
@@ -654,12 +673,12 @@ class Tools(commands.Cog):
         data = "```ini\n"
         data += "[Name]:     {}\n".format(guild.name)
         data += "[ID]:       {}\n".format(guild.id)
-        data += "[Region]:   {}\n".format(guild.region)
         data += "[Owner]:    {}\n".format(guild.owner)
         data += "[Users]:    {}/{}\n".format(online, total_users)
         data += "[Text]:     {} channels\n".format(len(text_channels))
         data += "[Voice]:    {} channels\n".format(len(voice_channels))
         data += "[Emojis]:   {}\n".format(len(guild.emojis))
+        data += "[Stickers]: {}\n".format(len(guild.stickers))
         data += "[Roles]:    {} \n".format(len(guild.roles))
         data += "[Created]:  {}\n```".format(self._dynamic_time(guild.created_at))
         await asyncio.sleep(1)
@@ -731,7 +750,7 @@ class Tools(commands.Cog):
             data += "[Streaming]: [{}]({})\n".format(cf.escape(str(actstream.name)), cf.escape(actstream.url))
         if actcustom := discord.utils.get(user.activities, type=discord.ActivityType.custom):
             if actcustom.name is not None:
-                data += "[Custom status]: {}\n".format(cf.escape(str(actcustom.name)))
+                data += "[Custom Status]: {}\n".format(cf.escape(str(actcustom.name)))
         passed = (ctx.message.created_at - user.created_at).days
         data += "[Created]:       {}\n".format(self._dynamic_time(user.created_at))
         joined_at = self.fetch_joined_at(user, ctx.guild)
@@ -791,12 +810,11 @@ class Tools(commands.Cog):
     @staticmethod
     def _dynamic_time(time):
         try:
-            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
+            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f%z")
         except ValueError:
             time = f"{str(time)}.0"
-            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
-        date_now = datetime.datetime.now(datetime.timezone.utc)
-        date_now = date_now.replace(tzinfo=None)
+            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f%z")
+        date_now = discord.utils.utcnow()
         since_join = date_now - date_join
 
         mins, secs = divmod(int(since_join.total_seconds()), 60)

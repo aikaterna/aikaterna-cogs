@@ -85,14 +85,14 @@ class Blurplefy(commands.Cog):
         await ctx.send("{}, starting blurple image analysis.".format(ctx.message.author.mention))
         link = ctx.message.attachments
         if user is None and not link:
-            picture = ctx.author.avatar_url
+            picture = ctx.author.avatar.url
         else:
             if not user:
                 if len(link) != 0:
                     for image in link:
                         picture = image.url
             else:
-                picture = user.avatar_url
+                picture = user.avatar.url
         try:
             async with self.session.request("GET", str(picture)) as r:
                 response = await r.read()
@@ -109,7 +109,7 @@ class Blurplefy(commands.Cog):
         await ctx.send("{}, starting blurple image analysis.".format(ctx.message.author.mention))
         link = ctx.message.attachments
         if user is None and not link:
-            picture = ctx.author.avatar_url
+            picture = ctx.author.avatar.url
             role_check = True
         elif not user:
             if len(link) != 0:
@@ -117,7 +117,7 @@ class Blurplefy(commands.Cog):
                     picture = image.url
                     role_check = False
         else:
-            picture = user.avatar_url
+            picture = user.avatar.url
             role_check = False
 
         try:
@@ -180,7 +180,7 @@ class Blurplefy(commands.Cog):
             blurple_role_obj = discord.utils.get(ctx.guild.roles, id=blurple_role_id)
             if (
                 blurplenesspercentage > 75
-                and picture == ctx.author.avatar_url
+                and picture == ctx.author.avatar.url
                 and blurple_role_obj not in ctx.author.roles
                 and percentblurple > 5
             ):
@@ -190,7 +190,7 @@ class Blurplefy(commands.Cog):
                     )
                 )
                 await ctx.author.add_roles(blurple_role_obj)
-            elif picture == ctx.author.avatar_url and blurple_role_obj not in ctx.author.roles:
+            elif picture == ctx.author.avatar.url and blurple_role_obj not in ctx.author.roles:
                 await ctx.send(
                     "{}, your profile pic does not have enough blurple (over 75% in total and over 5% blurple), therefore you are not eligible for the role {}.".format(
                         ctx.message.author.display_name, blurple_role_obj.name
@@ -206,14 +206,14 @@ class Blurplefy(commands.Cog):
         await ctx.send("{}, starting blurple image analysis.".format(ctx.message.author.mention))
         link = ctx.message.attachments
         if user is None and not link:
-            picture = ctx.author.avatar_url
+            picture = ctx.author.avatar.url
         else:
             if not user:
                 if len(link) != 0:
                     for image in link:
                         picture = image.url
             else:
-                picture = user.avatar_url
+                picture = user.avatar.url
         try:
             async with self.session.request("GET", str(picture)) as r:
                 response = await r.read()
@@ -380,12 +380,14 @@ class Blurplefy(commands.Cog):
     @commands.command()
     async def countdown(self, ctx):
         """Countdown to Discord's 7th Anniversary."""
-        embed = discord.Embed(name="", colour=0x7289DA)
-        timeleft = datetime.datetime(2021, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
-        embed.set_author(name="Time left until Discord's 6th Anniversary")
+        embed = discord.Embed()
+        embed.description="\N{ZERO WIDTH SPACE}"
+        embed.colour=0x7289DA
+        timeleft = datetime.datetime(2021, 5, 13, tzinfo=datetime.timezone.utc) + datetime.timedelta(hours=7) - discord.utils.utcnow()
+        embed.set_author(name="Time left until Discord's 7th Anniversary")
         if int(timeleft.total_seconds()) < 0:
-            timeleft = datetime.datetime(2022, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
-            embed.set_author(name="Time left until Discord's 6th Anniversary")
+            timeleft = datetime.datetime(2022, 5, 13, tzinfo=datetime.timezone.utc) + datetime.timedelta(hours=7) - discord.utils.utcnow()
+            embed.set_author(name="Time left until Discord's 7th Anniversary")
         embed.add_field(
             name="Countdown to midnight, May 13, California time (UTC-7):",
             value=("{}".format(self._dynamic_time(int(timeleft.total_seconds())))),

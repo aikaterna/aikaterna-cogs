@@ -4,7 +4,6 @@ import discord
 from redbot.core.bot import Red
 from redbot.core import commands, checks, Config
 
-from datetime import datetime
 
 DEFAULT_OFFLINE_EMOJI = "\N{LARGE RED CIRCLE}"
 DEFAULT_ONLINE_EMOJI = "\N{WHITE HEAVY CHECK MARK}"
@@ -12,7 +11,7 @@ DEFAULT_ONLINE_EMOJI = "\N{WHITE HEAVY CHECK MARK}"
 
 class Otherbot(commands.Cog):
     __author__ = ["aikaterna", "Predä 。#1001"]
-    __version__ = "0.10"
+    __version__ = "0.11"
 
     async def red_delete_data_for_user(
         self, *, requester: Literal["discord", "owner", "user", "user_strict"], user_id: int,
@@ -126,7 +125,8 @@ class Otherbot(commands.Cog):
                     else:
                         msg += f"**{name}**: {guild_data[attr]}\n"
                 em.description = msg
-                em.set_thumbnail(url=guild.icon_url)
+                if guild.icon:
+                    em.set_thumbnail(url=guild.icon.url)
                 await ctx.send(embed=em)
             else:
                 msg = "```\n"
@@ -346,7 +346,7 @@ class Otherbot(commands.Cog):
         await self.generate_cache()
 
     @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    async def on_presence_update(self, before: discord.Member, after: discord.Member):
         if after.guild is None or not after.bot:
             return
 
@@ -368,19 +368,16 @@ class Otherbot(commands.Cog):
                     em = discord.Embed(
                         color=0x8B0000,
                         description=f"{after.mention} is offline. {data['offline_emoji']}",
-                        timestamp=datetime.utcnow(),
+                        timestamp=discord.utils.utcnow(),
                     )
                     if not data["ping"]:
                         await channel.send(embed=em)
                     else:
-                        if discord.version_info.minor < 4:
-                            await channel.send(f"<@&{data['ping']}>", embed=em)
-                        else:
-                            await channel.send(
-                                f"<@&{data['ping']}>",
-                                embed=em,
-                                allowed_mentions=discord.AllowedMentions(roles=True),
-                            )
+                        await channel.send(
+                            f"<@&{data['ping']}>",
+                            embed=em,
+                            allowed_mentions=discord.AllowedMentions(roles=True),
+                        )
                 else:
                     if not data["ping"]:
                         await channel.send(f"{after.mention} is offline. {data['offline_emoji']}")
@@ -401,19 +398,16 @@ class Otherbot(commands.Cog):
                     em = discord.Embed(
                         color=0x008800,
                         description=f"{after.mention} is back online. {data['online_emoji']}",
-                        timestamp=datetime.utcnow(),
+                        timestamp=discord.utils.utcnow(),
                     )
                     if not data["ping"]:
                         await channel.send(embed=em)
                     else:
-                        if discord.version_info.minor < 4:
-                            await channel.send(f"<@&{data['ping']}>", embed=em)
-                        else:
-                            await channel.send(
-                                f"<@&{data['ping']}>",
-                                embed=em,
-                                allowed_mentions=discord.AllowedMentions(roles=True),
-                            )
+                        await channel.send(
+                            f"<@&{data['ping']}>",
+                            embed=em,
+                            allowed_mentions=discord.AllowedMentions(roles=True),
+                        )
                 else:
                     if not data["ping"]:
                         await channel.send(

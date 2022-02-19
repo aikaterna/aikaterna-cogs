@@ -117,7 +117,7 @@ class Seen(commands.Cog):
             elif output[2] > 1:
                 ts += "{} minutes ago".format(output[2])
         em = discord.Embed(colour=discord.Color.green())
-        avatar = author.avatar_url or author.default_avatar_url
+        avatar = author.display_avatar
         em.set_author(name="{} was seen {}".format(author.display_name, ts), icon_url=avatar)
         await ctx.send(embed=em)
 
