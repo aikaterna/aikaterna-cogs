@@ -661,17 +661,21 @@ class Tools(commands.Cog):
 
     @commands.guild_only()
     @commands.command(aliases=["stickerinfo"])
-    async def stinfo(self, ctx):
+    async def stinfo(self, ctx, message_link: str = None):
         """
         Sticker information.
 
-        Attach a sticker to the command message or provide a message link.
+        Attach a sticker to the command message or provide a link to a message with a sticker.
         """
-        stickers = ctx.message.stickers
+        if message_link:
+            message = await self.message_from_message_link(ctx, message_link)
+        else:
+            message = ctx.message
 
-        if not stickers:
-            return await ctx.send(f"Attach a sticker to the `{ctx.prefix}stinfo` command.")
+        if isinstance(message, str):
+            return await ctx.send(message)
 
+        stickers = message.stickers
         for sticker_item in stickers:
             sticker = await sticker_item.fetch()
 
@@ -829,6 +833,8 @@ class Tools(commands.Cog):
             await ctx.invoke(self.sinfo, id)
         elif isinstance(it_is, discord.abc.GuildChannel):
             await ctx.invoke(self.chinfo, id)
+        elif isinstance(it_is, discord.Thread):
+            await ctx.invoke(self.chinfo, id)
         elif isinstance(it_is, (discord.User, discord.Member)):
             await ctx.invoke(self.uinfo, it_is)
         elif isinstance(it_is, discord.Role):
@@ -916,6 +922,45 @@ class Tools(commands.Cog):
     @staticmethod
     def fetch_joined_at(user, guild):
         return user.joined_at
+
+    async def message_from_message_link(self, ctx: commands.Context, message_link: str):
+        bad_link_msg = "That doesn't look like a message link, I can't reach that message, "
+        bad_link_msg += "or you didn't attach a sticker to the command message."
+        no_guild_msg = "You aren't in that guild."
+        no_channel_msg = "You can't view that channel."
+        no_message_msg = "That message wasn't found."
+        no_sticker_msg = "There are no stickers attached to that message."
+
+        if not "discord.com/channels/" in message_link:
+            return bad_link_msg
+        ids = message_link.split("/")
+        if len(ids) != 7:
+            return bad_link_msg
+
+        guild = self.bot.get_guild(int(ids[4]))
+        if not guild:
+            return bad_link_msg
+
+        channel = guild.get_channel_or_thread(int(ids[5]))
+        if not channel:
+            channel = self.bot.get_channel(int(ids[5]))
+        if not channel:
+            return bad_link_msg
+
+        if ctx.author not in guild.members:
+            return no_guild_msg
+        if not channel.permissions_for(ctx.author).read_messages:
+            return no_channel_msg
+
+        try:
+            message = await channel.fetch_message(int(ids[6]))
+        except discord.errors.NotFound:
+            return no_message_msg
+
+        if not message.stickers:
+            return no_sticker_msg
+
+        return message
 
     @staticmethod
     def role_from_string(guild, rolename, roles=None):
