@@ -185,12 +185,13 @@ class Hunting(commands.Cog):
         if ctx.author.id not in self.bot.owner_ids and bank_is_global:
             return await ctx.send("Bank is global, only bot owner can set a reward range.")
         if not min_reward or not max_reward:
-            if bank_is_global:
-                await self.config.reward_range.set([])
-            else:
-                await self.config.guild(ctx.guild).reward_range.set([])
-            msg = "Reward range reset to default(None)."
-            return await ctx.send(msg)
+            if min_reward != 0 and not max_reward:  # Maybe they want users to sometimes not get rewarded
+                if bank_is_global:
+                    await self.config.reward_range.set([])
+                else:
+                    await self.config.guild(ctx.guild).reward_range.set([])
+                msg = "Reward range reset to default(None)."
+                return await ctx.send(msg)
         if min_reward > max_reward:
             return await ctx.send("Your minimum reward is greater than your max reward...")
         reward_range = [min_reward, max_reward]
