@@ -7,13 +7,14 @@ import time
 from typing import Literal
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, checks, commands, bank
+from redbot.core.errors import BalanceTooHigh
 from redbot.core.utils.chat_formatting import (bold, box, humanize_list,
                                                humanize_number, pagify)
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
-__version__ = "3.1.6"
+__version__ = "3.1.7"
 
 
 class Hunting(commands.Cog):
@@ -46,10 +47,15 @@ class Hunting(commands.Cog):
             "channels": [],
             "bang_time": False,
             "bang_words": True,
+            "reward_range": [],
+        }
+        default_global = {
+            "reward_range": [],  # For bots with global banks
         }
         default_user = {"score": {}, "total": 0}
         self.config.register_user(**default_user)
         self.config.register_guild(**default_guild)
+        self.config.register_guild(**default_global)
 
     @commands.guild_only()
     @commands.group()
@@ -75,6 +81,17 @@ class Hunting(commands.Cog):
             msg += f"[Hunt interval maximum]:      {guild_data['hunt_interval_maximum']} seconds\n"
             msg += f"[Hunting mode]:               {hunting_mode}\n"
             msg += f"[Bang response time message]: {reaction_time}\n"
+
+            if await bank.is_global():
+                reward = await self.config.reward_range()
+                if reward:
+                    reward = f"{reward[0]} - {reward[1]}"
+                msg += f"[Hunting reward range]:       {reward if reward else 'None'}\n"
+            else:
+                reward = guild_data['reward_range']
+                if reward:
+                    reward = f"{reward[0]} - {reward[1]}"
+                msg += f"[Hunting reward range]:       {reward if reward else 'None'}\n"
 
             for page in pagify(msg, delims=["\n"]):
                 await ctx.send(box(page, lang="ini"))
@@ -155,6 +172,35 @@ class Hunting(commands.Cog):
         await self.config.guild(ctx.guild).bang_words.set(not toggle)
         toggle_text = "Use the reaction" if toggle else "Type 'bang'"
         await ctx.send(f"{toggle_text} to react to the bang message when it appears.\n")
+
+    @checks.mod_or_permissions(manage_guild=True)
+    @hunting.command()
+    async def reward(self, ctx, min_reward: int = None, max_reward: int = None):
+        """
+        Set a credit reward range for successfully shooting a bird
+
+        Leave the options blank to disable bang rewards
+        """
+        bank_is_global = await bank.is_global()
+        if ctx.author.id not in self.bot.owner_ids and bank_is_global:
+            return await ctx.send("Bank is global, only bot owner can set a reward range.")
+        if not min_reward or not max_reward:
+            if bank_is_global:
+                await self.config.reward_range.set([])
+            else:
+                await self.config.guild(ctx.guild).reward_range.set([])
+            msg = "Reward range reset to default(None)."
+            return await ctx.send(msg)
+        if min_reward > max_reward:
+            return await ctx.send("Your minimum reward is greater than your max reward...")
+        reward_range = [min_reward, max_reward]
+        currency_name = await bank.get_currency_name(ctx.guild)
+        if bank_is_global:
+            await self.config.reward_range.set(reward_range)
+        else:
+            await self.config.guild(ctx.guild).reward_range.set(reward_range)
+        msg = f"Users can now get {min_reward} to {max_reward} {currency_name} for shooting a bird."
+        await ctx.send(msg)
 
     @checks.mod_or_permissions(manage_guild=True)
     @hunting.command()
@@ -376,12 +422,33 @@ class Hunting(commands.Cog):
 
         if random.randrange(0, 17) > 1:
             await self._add_score(guild, author, animal)
-            msg = f"{author.display_name} shot a {animal}{bangtime}!"
+            reward = await self.maybe_send_reward(guild, author)
+            if reward:
+                cur_name = await bank.get_currency_name(guild)
+                msg = f"{author.display_name} shot a {animal}{bangtime} and earned {reward} {cur_name}!"
+            else:
+                msg = f"{author.display_name} shot a {animal}{bangtime}!"
         else:
             msg = f"{author.display_name} missed the shot and the {animal} got away!"
 
         self.in_game.remove(channel.id)
         await channel.send(bold(msg))
+
+    async def maybe_send_reward(self, guild, author) -> int:
+        max_bal = await bank.get_max_balance(guild)
+        user_bal = await bank.get_balance(author)
+        if await bank.is_global():
+            range_to_give = await self.config.reward_range()
+        else:
+            range_to_give = await self.config.guild(guild).reward_range()
+        to_give = random.choice(range(range_to_give[0], range_to_give[1] + 1))
+        if to_give + user_bal > max_bal:
+            to_give = max_bal - user_bal
+        try:
+            await bank.deposit_credits(author, to_give)
+        except BalanceTooHigh as e:  # This shouldn't throw since we already compare to max bal
+            await bank.set_balance(author, e.max_balance)
+        return to_give
 
     @commands.Cog.listener()
     async def on_message(self, message):
