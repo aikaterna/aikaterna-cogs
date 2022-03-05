@@ -29,7 +29,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.8.0"
+__version__ = "1.8.1"
 
 
 class RSS(commands.Cog):
@@ -218,7 +218,6 @@ class RSS(commands.Cog):
                             name = f"media_plaintext{str(enclosure_content_counter).zfill(2)}"
                             rss_object[name] = image_url
                             rss_object["is_special"].append(name)
-                            tags_list.append(tag) if tag not in tags_list else tags_list
                         except KeyError:
                             pass
 
