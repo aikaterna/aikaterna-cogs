@@ -101,13 +101,13 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def lettertile(self, ctx, invite_max_age_in_seconds=86400):
+    async def letterleague(self, ctx, invite_max_age_in_seconds=86400):
         """
-        Create a Letter Tile voice channel invite.
+        Create a Letter League voice channel invite.
 
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "the Letter Tile game"
+        app_name = "the Letter League game"
         await self._create_invite(ctx, 879863686565621790, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
