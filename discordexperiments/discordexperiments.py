@@ -90,14 +90,14 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def doodlecrew(self, ctx, invite_max_age_in_seconds=86400):
+    async def sketchheads(self, ctx, invite_max_age_in_seconds=86400):
         """
-        Create a Doodle Crew voice channel invite.
+        Create a Sketch Heads voice channel invite.
 
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "the Doodle Crew game"
-        await self._create_invite(ctx, 878067389634314250, invite_max_age_in_seconds, app_name)
+        app_name = "the Sketch Heads game"
+        await self._create_invite(ctx, 902271654783242291, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
