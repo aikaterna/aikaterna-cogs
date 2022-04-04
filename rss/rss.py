@@ -1048,7 +1048,8 @@ class RSS(commands.Cog):
         msg += "\n\n\t[X] = html | [\\] = dictionary | [-] = list | [ ] = plain text"
         msg += "\n\t[*] = specially-generated tag, may not be present in every post"
 
-        await ctx.send(box(msg, lang="ini"))
+        for msg_part in pagify(msg, delims=["\n\t", "\n\n"]):
+            await ctx.send(box(msg_part, lang="ini"))
 
     @checks.is_owner()
     @rss.group(name="parse")
