@@ -90,24 +90,24 @@ class DiscordExperiments(commands.Cog):
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def doodlecrew(self, ctx, invite_max_age_in_seconds=86400):
+    async def sketchheads(self, ctx, invite_max_age_in_seconds=86400):
         """
-        Create a Doodle Crew voice channel invite.
+        Create a Sketch Heads voice channel invite.
 
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "the Doodle Crew game"
-        await self._create_invite(ctx, 878067389634314250, invite_max_age_in_seconds, app_name)
+        app_name = "the Sketch Heads game"
+        await self._create_invite(ctx, 902271654783242291, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
     @commands.command()
-    async def lettertile(self, ctx, invite_max_age_in_seconds=86400):
+    async def letterleague(self, ctx, invite_max_age_in_seconds=86400):
         """
-        Create a Letter Tile voice channel invite.
+        Create a Letter League voice channel invite.
 
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "the Letter Tile game"
+        app_name = "the Letter League game"
         await self._create_invite(ctx, 879863686565621790, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -142,3 +142,33 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "Checkers in the Park"
         await self._create_invite(ctx, 832013003968348200, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def blazing8s(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Blazing 8s voice channel invite.
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Blazing 8s"
+        await self._create_invite(ctx, 832025144389533716, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def puttparty(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Putt Party voice channel invite.
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Putt Party"
+        await self._create_invite(ctx, 945737671223947305, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def landio(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Land-io voice channel invite.
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Land-io"
+        await self._create_invite(ctx, 903769130790969345, invite_max_age_in_seconds, app_name)
