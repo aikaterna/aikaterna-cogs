@@ -2,5 +2,5 @@ from .voicelogs import VoiceLogs
 
 
 async def setup(bot):
-    cog = VoiceLogs(bot)
-    bot.add_cog(cog)
+    n = VoiceLogs(bot)
+    await bot.add_cog(n)
