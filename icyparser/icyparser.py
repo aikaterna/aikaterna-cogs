@@ -46,7 +46,7 @@ class IcyParser(commands.Cog):
 
                     return title, streamurl, image
 
-        except (KeyError, aiohttp.client_exceptions.ClientConnectionError):
+        except (KeyError, aiohttp.client_exceptions.ClientConnectionError, aiohttp.client_exceptions.ClientResponseError):
             return None, None, None
 
     def cog_unload(self):
