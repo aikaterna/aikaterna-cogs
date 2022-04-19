@@ -14,7 +14,7 @@ from redbot.core.utils.chat_formatting import (bold, box, humanize_list,
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
-__version__ = "3.1.7"
+__version__ = "3.1.8"
 
 
 class Hunting(commands.Cog):
@@ -55,7 +55,7 @@ class Hunting(commands.Cog):
         default_user = {"score": {}, "total": 0}
         self.config.register_user(**default_user)
         self.config.register_guild(**default_guild)
-        self.config.register_guild(**default_global)
+        self.config.register_global(**default_global)
 
     @commands.guild_only()
     @commands.group()
