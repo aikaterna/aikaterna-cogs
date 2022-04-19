@@ -4,12 +4,13 @@ from aiohttp.http_parser import HttpResponseParserPy
 import discord
 import functools
 import io
-from lavalink import get_player, PlayerNotFound
+import lavalink
 import logging
+from pkg_resources import parse_version
 import struct
 import re
 from types import SimpleNamespace
-from typing import List, Pattern, Optional, Union
+from typing import List, Pattern, Optional
 
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
@@ -108,10 +109,17 @@ class IcyParser(commands.Cog):
                 return await ctx.send(
                     "The Audio cog is not loaded. Provide a url with this command instead, to read from an online Icecast or Shoutcast stream."
                 )
-            try:
-                player = get_player(ctx.guild.id)
-            except PlayerNotFound:
-                return await ctx.send("The bot is not playing any music.")
+
+            if parse_version(lavalink.__version__) <=  parse_version("0.9.0"):
+                try:
+                    player = lavalink.get_player(ctx.guild.id)
+                except KeyError:
+                    return await ctx.send("The bot is not playing any music.")
+            else:
+                try:
+                    player = lavalink.get_player(ctx.guild.id)
+                except lavalink.PlayerNotFound:
+                    return await ctx.send("The bot is not playing any music.")
             if not player.current:
                 return await ctx.send("The bot is not playing any music.")
             if not player.current.is_stream:
