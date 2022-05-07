@@ -1,29 +1,38 @@
 #  Ported for Red v3 from: https://github.com/Rocked03/Blurplefied
-#  pip install python-resize-image
-#  pip install pillow
 
-import discord
-from PIL import Image, ImageEnhance, ImageSequence
-from io import BytesIO
 import aiohttp
 import asyncio
 import datetime
-import io
+from io import BytesIO
+import logging
 import math
+from PIL import Image, ImageEnhance, ImageSequence, UnidentifiedImageError
+import random
+import sys
 from resizeimage import resizeimage
-from redbot.core import Config, commands, checks
+from types import SimpleNamespace
 
-blurple = (114, 137, 218)
-blurplehex = 0x7289DA
-darkblurple = (78, 93, 148)
-white = (255, 255, 255)
+import discord
+
+from redbot.core import Config, commands, checks
+from redbot.core.utils.predicates import MessagePredicate
+
+
+log = logging.getLogger("red.aikaterna.blurplefy")
+
+
+# LEGACY_BLURPLE = (114, 137, 218)
+# LEGACY_DARK_BLURPLE = (78, 93, 148)
+BLURPLE = (88, 101, 242)
+DARK_BLURPLE = (69, 79, 191)
+WHITE = (255, 255, 255)
 
 
 class Blurplefy(commands.Cog):
     """Blurplefy images and check blurple content of images."""
 
     async def red_delete_data_for_user(self, **kwargs):
-        """ Nothing to delete """
+        """Nothing to delete"""
         return
 
     def __init__(self, bot):
@@ -40,16 +49,18 @@ class Blurplefy(commands.Cog):
     @commands.command()
     @checks.admin_or_permissions(manage_roles=True)
     async def blurplerole(self, ctx):
-        """Toggle a role award for having a blurple profile picture."""
+        """Toggle a role award for having a blurple profile picture.
+
+        A user's profile picture will be checked when they use [p]blurple.
+        """
         blurple_role_id = await self.config.guild(ctx.guild).blurple_role()
         if blurple_role_id is None:
-            await ctx.send("Enter the role name to award: it needs to be a valid, already existing role.")
-
-            def check(m):
-                return m.author == ctx.author
-
+            msg = "Enter the role name to award: it needs to be a valid, already existing role, "
+            msg += "and the name must match exactly (don't use a role mention)."
+            await ctx.send(msg)
+            pred = MessagePredicate.same_context(ctx)
             try:
-                blurple_role = await ctx.bot.wait_for("message", timeout=15.0, check=check)
+                blurple_role = await ctx.bot.wait_for("message", timeout=15.0, check=pred)
                 blurple_role_obj = discord.utils.get(ctx.guild.roles, name=blurple_role.content)
                 if blurple_role_obj is None:
                     return await ctx.send("No role with that name.")
@@ -59,12 +70,7 @@ class Blurplefy(commands.Cog):
 
         role_enabled = await self.config.guild(ctx.guild).role_enabled()
         await self.config.guild(ctx.guild).role_enabled.set(not role_enabled)
-
-        if not role_enabled:
-            word = "enabled"
-        else:
-            word = "disabled"
-        await ctx.send("Blurple role awarding {}.".format(word))
+        await ctx.send(f"Blurple role awarding {'enabled' if not role_enabled else 'disabled'}.")
 
     @commands.guild_only()
     @commands.command()
@@ -74,7 +80,7 @@ class Blurplefy(commands.Cog):
         await self.config.guild(ctx.guild).blurple_role.set(role_name.id)
         blurple_role_id = await self.config.guild(ctx.guild).blurple_role()
         blurple_role_obj = discord.utils.get(ctx.guild.roles, id=blurple_role_id)
-        await ctx.send("Blurple award role set to: {}.".format(blurple_role_obj.name))
+        await ctx.send(f"Blurple award role set to: {blurple_role_obj.name}.")
         blurple_role_enabled = await self.config.guild(ctx.guild).role_enabled()
         if not blurple_role_enabled:
             await ctx.invoke(self.blurplerole)
@@ -82,7 +88,6 @@ class Blurplefy(commands.Cog):
     async def blurplefy(self, ctx, user: discord.Member = None):
         """Blurplefy a user or image."""
         picture = None
-        await ctx.send("{}, starting blurple image analysis.".format(ctx.message.author.mention))
         link = ctx.message.attachments
         if user is None and not link:
             picture = ctx.author.avatar_url
@@ -94,19 +99,19 @@ class Blurplefy(commands.Cog):
             else:
                 picture = user.avatar_url
         try:
-            async with self.session.request("GET", str(picture)) as r:
+            async with self.session.get(str(picture)) as r:
                 response = await r.read()
         except ValueError:
-            await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
+            await ctx.send(f"{ctx.author.display_name}, please link a valid image URL.")
             return
 
     @commands.guild_only()
     @commands.command()
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
     async def blurple(self, ctx, user: discord.Member = None):
-        """Check a user or uploaded image for blurple content."""
+        """Check a user or an attached uploaded image for blurple content."""
+        await ctx.trigger_typing()
         picture = None
-        await ctx.send("{}, starting blurple image analysis.".format(ctx.message.author.mention))
         link = ctx.message.attachments
         if user is None and not link:
             picture = ctx.author.avatar_url
@@ -121,15 +126,19 @@ class Blurplefy(commands.Cog):
             role_check = False
 
         try:
-            async with self.session.request("GET", str(picture)) as r:
+            async with self.session.get(str(picture)) as r:
                 response = await r.read()
         except ValueError:
-            await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
+            await ctx.send(f"{ctx.author.display_name}, please link a valid image URL.")
             return
         try:
             im = Image.open(BytesIO(response))
-        except Exception:
-            await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
+        except UnidentifiedImageError:
+            await ctx.send(f"{ctx.author.display_name}, this doesn't look like an image.")
+            return
+        except Exception as exc:
+            log.exception("Blurplefy encountered an error:\n ", exc_info=exc)
+            await ctx.send(f"{ctx.author.display_name}, please link a valid image URL.")
             return
 
         im = im.convert("RGBA")
@@ -143,32 +152,30 @@ class Blurplefy(commands.Cog):
             im = resizeimage.resize_width(im, (imsize[0] * downsizefraction))
             imsize = list(im.size)
             impixels = imsize[0] * imsize[1]
-            await ctx.send("{}, image resized smaller for easier processing.".format(ctx.message.author.display_name))
 
-        image = self.blurple_imager(im, imsize)
-        image = discord.File(fp=image, filename="image.png")
+            msg = f"{ctx.author.display_name}, image resized smaller for easier processing."
+            await ctx.send(msg)
 
-        blurplenesspercentage = round(((nooftotalpixels / noofpixels) * 100), 2)
-        percentblurple = round(((noofblurplepixels / noofpixels) * 100), 2)
-        percentdblurple = round(((noofdarkblurplepixels / noofpixels) * 100), 2)
-        percentwhite = round(((noofwhitepixels / noofpixels) * 100), 2)
+        image_object = await self.blurple_imager(im, imsize)
+        image = discord.File(fp=image_object.file, filename=f"{random.randint(1,10000)}_image.png")
+
+        blurpleness_percentage = round(((image_object.nooftotalpixels / image_object.noofpixels) * 100), 2)
+        percent_blurple = round(((image_object.noofblurplepixels / image_object.noofpixels) * 100), 2)
+        percent_dblurple = round(((image_object.noofdarkblurplepixels / image_object.noofpixels) * 100), 2)
+        percent_white = round(((image_object.noofwhitepixels / image_object.noofpixels) * 100), 2)
 
         embed = discord.Embed(title="", colour=0x7289DA)
-        embed.add_field(name="Total amount of Blurple", value="{}%".format(blurplenesspercentage), inline=False)
-        embed.add_field(name="Blurple (rgb(114, 137, 218))", value="{}%".format(percentblurple), inline=True)
-        embed.add_field(name="White (rgb(255, 255, 255))", value="{}\\%".format(percentwhite), inline=True)
-        embed.add_field(
-            name="Dark Blurple (rgb(78, 93, 148))", value="{}\\%".format(percentdblurple), inline=True,
-        )
+        embed.add_field(name=f"Total amount of Blurple", value=f"{blurpleness_percentage}%", inline=False)
+        embed.add_field(name=f"Blurple (rgb(88, 101, 242))", value=f"{percent_blurple}%", inline=True)
+        embed.add_field(name=f"White (rgb(255, 255, 255))", value=f"{percent_white}%", inline=True)
+        embed.add_field(name=f"Dark Blurple (rgb(69, 79, 191))", value=f"{percent_dblurple}%", inline=True)
         embed.add_field(
             name="Guide",
             value="Blurple, White, Dark Blurple =  \nBlurple, White, and Dark Blurple (respectively) \nBlack = Not Blurple, White, or Dark Blurple",
             inline=False,
         )
         embed.set_footer(
-            text="Please note: Discord slightly reduces quality of the images, therefore the percentages may be slightly inaccurate. | Content requested by {}".format(
-                ctx.author
-            )
+            text=f"Please note: Discord slightly reduces quality of the images, therefore the percentages may be slightly inaccurate.\nContent requested by {str(ctx.author)}"
         )
         embed.set_image(url="attachment://image.png")
         embed.set_thumbnail(url=picture)
@@ -178,32 +185,34 @@ class Blurplefy(commands.Cog):
         if role_check and blurple_role_enabled:
             blurple_role_id = await self.config.guild(ctx.guild).blurple_role()
             blurple_role_obj = discord.utils.get(ctx.guild.roles, id=blurple_role_id)
+            if not blurple_role_obj:
+                msg = "The role that is set for the blurple role doesn't exist, so I can't award the role to any qualifying users."
+                return await ctx.send(msg)
+            if not ctx.channel.permissions_for(ctx.me).manage_roles:
+                msg = "I need the Manage Roles permission here to be able to add the set blurple role to users that have a qualifying profile picture set."
+                return await ctx.send(msg)
             if (
-                blurplenesspercentage > 75
+                blurpleness_percentage > 75
                 and picture == ctx.author.avatar_url
                 and blurple_role_obj not in ctx.author.roles
-                and percentblurple > 5
+                and percent_blurple > 5
             ):
-                await ctx.send(
-                    "{}, as your profile pic has enough blurple (over 75% in total and over 5% blurple), you have recieved the role **{}**!".format(
-                        ctx.message.author.display_name, blurple_role_obj.name
-                    )
-                )
+                msg = f"{ctx.author.display_name}, as your profile pic has enough blurple (over 75% in total and over 5% blurple), "
+                msg += f"you have recieved the role **{blurple_role_obj.name}**!"
+                await ctx.send(msg)
                 await ctx.author.add_roles(blurple_role_obj)
             elif picture == ctx.author.avatar_url and blurple_role_obj not in ctx.author.roles:
-                await ctx.send(
-                    "{}, your profile pic does not have enough blurple (over 75% in total and over 5% blurple), therefore you are not eligible for the role {}.".format(
-                        ctx.message.author.display_name, blurple_role_obj.name
-                    )
-                )
+                msg = f"{ctx.author.display_name}, your profile pic does not have enough blurple (over 75% in total and over 5% blurple), "
+                msg += f"therefore you are not eligible for the role {blurple_role_obj.name}."
+                await ctx.send(msg)
 
     @commands.guild_only()
     @commands.command()
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
     async def blurplefy(self, ctx, user: discord.Member = None):
-        """Blurplefy a user or uploaded image."""
+        """Blurplefy a user or an uploaded image attached to the command."""
+        await ctx.trigger_typing()
         picture = None
-        await ctx.send("{}, starting blurple image analysis.".format(ctx.message.author.mention))
         link = ctx.message.attachments
         if user is None and not link:
             picture = ctx.author.avatar_url
@@ -215,15 +224,19 @@ class Blurplefy(commands.Cog):
             else:
                 picture = user.avatar_url
         try:
-            async with self.session.request("GET", str(picture)) as r:
+            async with self.session.get(str(picture)) as r:
                 response = await r.read()
         except ValueError:
-            await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
+            await ctx.send(f"{ctx.author.display_name}, please link a valid image URL.")
             return
         try:
             im = Image.open(BytesIO(response))
-        except Exception:
-            await ctx.send("{}, please link a valid image URL.".format(ctx.author.display_name))
+        except UnidentifiedImageError:
+            await ctx.send(f"{ctx.author.display_name}, this doesn't look like an image.")
+            return
+        except Exception as exc:
+            log.exception("Blurplefy encountered an error:\n ", exc_info=exc)
+            await ctx.send(f"{ctx.author.display_name}, please link a valid image URL.")
             return
 
         imsize = list(im.size)
@@ -235,66 +248,57 @@ class Blurplefy(commands.Cog):
             i = im.info["version"]
             isgif = True
             gifloop = int(im.info["loop"])
-        except Exception:
+        except KeyError:
+            # no version key
             isgif = False
-
-        await ctx.send("{}, image fetched, analyzing image...".format(ctx.message.author.display_name))
+        except Exception as exc:
+            log.exception("Blurplefy encountered an error:\n ", exc_info=exc)
 
         if impixels > maxpixelcount:
             downsizefraction = math.sqrt(maxpixelcount / impixels)
             im = resizeimage.resize_width(im, (imsize[0] * downsizefraction))
             imsize = list(im.size)
             impixels = imsize[0] * imsize[1]
-            await ctx.send("{}, image resized smaller for easier processing".format(ctx.message.author.display_name))
+            await ctx.send(f"{ctx.author.display_name}, image resized smaller for easier processing.")
 
         if isgif is False:
-            image = self.imager(im, imsize)
+            image = await self.imager(im, imsize)
         else:
-            image = self.gifimager(im, gifloop, imsize)
-        await ctx.send("{}, image data extracted.".format(ctx.author.display_name))
+            image = await self.gifimager(im, gifloop, imsize)
+
+        max_size = 8 * 1024 * 1024
+        size = sys.getsizeof(image)
+        if size > max_size:
+            await ctx.send(
+                f"{ctx.author.display_name}, whoops! It looks like this image is too big to upload. Try a smaller image (less than 8mb)."
+            )
+            return
+
         if isgif is False:
             image = discord.File(fp=image, filename="image.png")
         else:
             image = discord.File(fp=image, filename="image.gif")
 
-        try:
-            embed = discord.Embed(title="", colour=0x7289DA)
-            embed.set_author(name="Blurplefier - makes your image blurple!")
-            if isgif is False:
-                embed.set_image(url="attachment://image.png")
-            else:
-                embed.set_image(url="attachment://image.gif")
-            embed.set_footer(
-                text="Please note - This blurplefier is automated and therefore may not always give you the best result. | Content requested by {}".format(
-                    ctx.author
-                )
-            )
-            embed.set_thumbnail(url=picture)
-            await ctx.send(embed=embed, file=image)
-        except Exception:
-            await ctx.send(
-                "{}, whoops! It looks like this gif is too big to upload. Try a smaller image (less than 8mb).".format(
-                    ctx.author.name
-                )
-            )
+        embed = discord.Embed(title="", colour=0x7289DA)
+        embed.set_author(name="Blurplefier - makes your image blurple!")
+        if isgif is False:
+            embed.set_image(url="attachment://image.png")
+        else:
+            embed.set_image(url="attachment://image.gif")
+        embed.set_footer(
+            text=f"Please note - This blurplefier is automated and therefore may not always give you the best result.\nContent requested by {str(ctx.author)}"
+        )
+        embed.set_thumbnail(url=picture)
+        await ctx.send(embed=embed, file=image)
 
     @staticmethod
-    def blurple_imager(im, imsize):
+    async def blurple_imager(im, imsize):
         colourbuffer = 20
-        global noofblurplepixels
         noofblurplepixels = 0
-        global noofwhitepixels
         noofwhitepixels = 0
-        global noofdarkblurplepixels
         noofdarkblurplepixels = 0
-        global nooftotalpixels
         nooftotalpixels = 0
-        global noofpixels
         noofpixels = 0
-
-        blurple = (114, 137, 218)
-        darkblurple = (78, 93, 148)
-        white = (255, 255, 255)
 
         img = im.load()
         for x in range(imsize[0]):
@@ -306,11 +310,11 @@ class Blurplefy(commands.Cog):
                 checkwhite = 1
                 checkdarkblurple = 1
                 for i in range(3):
-                    if not (blurple[i] + colourbuffer > pixel[i] > blurple[i] - colourbuffer):
+                    if not (BLURPLE[i] + colourbuffer > pixel[i] > BLURPLE[i] - colourbuffer):
                         checkblurple = 0
-                    if not (darkblurple[i] + colourbuffer > pixel[i] > darkblurple[i] - colourbuffer):
+                    if not (DARK_BLURPLE[i] + colourbuffer > pixel[i] > DARK_BLURPLE[i] - colourbuffer):
                         checkdarkblurple = 0
-                    if not (white[i] + colourbuffer > pixel[i] > white[i] - colourbuffer):
+                    if not (WHITE[i] + colourbuffer > pixel[i] > WHITE[i] - colourbuffer):
                         checkwhite = 0
                     if checkblurple == 0 and checkdarkblurple == 0 and checkwhite == 0:
                         check = 0
@@ -326,13 +330,20 @@ class Blurplefy(commands.Cog):
                     noofwhitepixels += 1
                 noofpixels += 1
 
-        image_file_object = io.BytesIO()
+        image_file_object = BytesIO()
         im.save(image_file_object, format="png")
         image_file_object.seek(0)
-        return image_file_object
+        return SimpleNamespace(
+            file=image_file_object,
+            noofblurplepixels=noofblurplepixels,
+            noofwhitepixels=noofwhitepixels,
+            noofdarkblurplepixels=noofdarkblurplepixels,
+            nooftotalpixels=nooftotalpixels,
+            noofpixels=noofpixels,
+        )
 
     @staticmethod
-    def imager(im, imsize):
+    async def imager(im, imsize):
         im = im.convert(mode="L")
         im = ImageEnhance.Contrast(im).enhance(1000)
         im = im.convert(mode="RGB")
@@ -345,15 +356,15 @@ class Blurplefy(commands.Cog):
                 pixel = img[x, y]
 
                 if pixel != (255, 255, 255):
-                    img[x, y] = (114, 137, 218)
+                    img[x, y] = BLURPLE
 
-        image_file_object = io.BytesIO()
+        image_file_object = BytesIO()
         im.save(image_file_object, format="png")
         image_file_object.seek(0)
         return image_file_object
 
     @staticmethod
-    def gifimager(im, gifloop, imsize):
+    async def gifimager(im, gifloop, imsize):
         frames = [frame.copy() for frame in ImageSequence.Iterator(im)]
         newgif = []
 
@@ -368,10 +379,10 @@ class Blurplefy(commands.Cog):
                 for y in range(imsize[1]):
                     pixel = img[x, y]
                     if pixel != (255, 255, 255):
-                        img[x, y] = (114, 137, 218)
+                        img[x, y] = BLURPLE
             newgif.append(frame)
 
-        image_file_object = io.BytesIO()
+        image_file_object = BytesIO()
         gif = newgif[0]
         gif.save(image_file_object, format="gif", save_all=True, append_images=newgif[1:], loop=0)
         image_file_object.seek(0)
@@ -379,17 +390,22 @@ class Blurplefy(commands.Cog):
 
     @commands.command()
     async def countdown(self, ctx):
-        """Countdown to Discord's 7th Anniversary."""
-        embed = discord.Embed(name="", colour=0x7289DA)
-        timeleft = datetime.datetime(2021, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
-        embed.set_author(name="Time left until Discord's 6th Anniversary")
-        if int(timeleft.total_seconds()) < 0:
-            timeleft = datetime.datetime(2022, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
-            embed.set_author(name="Time left until Discord's 6th Anniversary")
-        embed.add_field(
-            name="Countdown to midnight, May 13, California time (UTC-7):",
-            value=("{}".format(self._dynamic_time(int(timeleft.total_seconds())))),
-        )
+        """Countdown to Discord's next anniversary."""
+        embed = discord.Embed(name="\N{ZERO WIDTH SPACE}", colour=0x7289DA)
+        now = datetime.datetime.utcnow()
+
+        timeleft = datetime.datetime(now.year, 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
+        discord_years = now.year - 2015
+        if timeleft.total_seconds() < 0:
+            timeleft = (
+                datetime.datetime((now.year + 1), 5, 13) + datetime.timedelta(hours=7) - datetime.datetime.utcnow()
+            )
+            discord_years = (now.year + 1) - 2015
+
+        discord_years_suffix = self._get_suffix(discord_years)
+        embed.set_author(name=f"Time left until Discord's {discord_years}{discord_years_suffix} Anniversary")
+        time = self._dynamic_time(int(timeleft.total_seconds()))
+        embed.add_field(name="Countdown to midnight, May 13, California time (UTC-7):", value=f"{time}")
         await ctx.send(embed=embed)
 
     @staticmethod
@@ -409,6 +425,15 @@ class Blurplefy(commands.Cog):
         else:
             msg = ""
         return msg.format(d, h, m, s)
+
+    @staticmethod
+    def _get_suffix(num):
+        suffixes = {1: "st", 2: "nd", 3: "rd"}
+        if 10 <= num % 100 <= 20:
+            suffix = "th"
+        else:
+            suffix = suffixes.get(num % 10, "th")
+        return suffix
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
