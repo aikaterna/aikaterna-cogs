@@ -1,0 +1,10 @@
+{
+    "author" : ["ZeLarpMaster#0818", "aikaterna"],
+    "description" : "Lets users tell the bot to remind them about anything they want. Originally by ZeLarpMaster.",
+    "install_msg" : "Enjoy reminding yourself of whatever you wanna remind yourself of! Use `[p]help Reminder` to get started.\nIf you have had ZeLarpMaster's version of Reminder installed in the past, this version of it uses the same data location for ease of switching to a supported version of the cog, as his repo has been archived.",
+    "short" : "Allows users to remind themselves about anything they want.",
+    "hidden": false,
+    "disabled": false,
+    "permissions" : ["embed_links"],
+    "tags" : ["remind", "reminder", "remindme"]
+}

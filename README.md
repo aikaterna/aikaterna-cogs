@@ -49,6 +49,8 @@ pupper - A cog for Ryan5374. A pet that comes around on an on_message listener a
 
 quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
 
+reminder - A continued fork of ZeLarpMaster's reminder cog. This cog is licensed under the GPL-3.0 License.
+
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
 rss - Will's RSS cog ported for v3 with a lot of extra bells and whistles.
