@@ -186,7 +186,7 @@ class Reminder(commands.Cog):
             relative_timestamp = f"<t:{end_time}:R>"
             content = reminder_dict["content"]
             display_content = content if len(content) < 200 else f"{content[:200]} [...]"
-            reminder = f"`{i}`. {exact_time_timestamp}, {relative_timestamp}:\n{display_content}\n\n"
+            reminder = f"`{entry_number}`. {exact_time_timestamp}, {relative_timestamp}:\n{display_content}\n\n"
             reminder_list.append(reminder)
 
         reminder_text_chunks = await self.chunker(reminder_list, 7)
