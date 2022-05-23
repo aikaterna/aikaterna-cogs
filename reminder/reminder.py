@@ -144,7 +144,9 @@ class Reminder(commands.Cog):
             return await ctx.send("I need the `Embed Messages` permission here to be able to display this information.")
 
         embed_pages = await self.create_remind_list_embeds(ctx, user_data)
-        await menu(ctx, embed_pages, DEFAULT_CONTROLS)
+        await ctx.send(embed=embed_pages[0]) if len(embed_pages) == 1 else await menu(
+            ctx, embed_pages, DEFAULT_CONTROLS
+        )
 
     @command_remind.command(name="offset")
     async def command_remind_offset(self, ctx: Context, offset_time_in_hours: str):
