@@ -172,3 +172,13 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "Land-io"
         await self._create_invite(ctx, 903769130790969345, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def bobbleleague(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Bobble League voice channel invite.
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Bobble League"
+        await self._create_invite(ctx, 947957217959759964, invite_max_age_in_seconds, app_name)
