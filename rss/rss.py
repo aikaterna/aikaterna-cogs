@@ -9,6 +9,7 @@ import imghdr
 import io
 import logging
 import re
+import shutup
 import time
 from typing import Optional
 from types import MappingProxyType, SimpleNamespace
@@ -29,7 +30,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.8.1"
+__version__ = "1.8.2"
 
 
 class RSS(commands.Cog):
@@ -48,6 +49,8 @@ class RSS(commands.Cog):
         self._read_feeds_loop = None
 
         self._headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"}
+
+        shutup.please()
 
     async def red_delete_data_for_user(self, **kwargs):
         """Nothing to delete"""
