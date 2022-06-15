@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 import copy
 import datetime
 import discord
@@ -9,8 +9,8 @@ import imghdr
 import io
 import logging
 import re
-import shutup
 import time
+import warnings
 from typing import Optional
 from types import MappingProxyType, SimpleNamespace
 from urllib.parse import urlparse
@@ -30,7 +30,20 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.8.2"
+__version__ = "1.8.3"
+
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    # Ignore the warning in feedparser module *and* our module to account for the unreleased fix of this warning:
+    # https://github.com/kurtmckee/feedparser/pull/278
+    module=r"^(feedparser|rss)(\..+)?$",
+    message=(
+        "To avoid breaking existing software while fixing issue 310, a temporary mapping has been created from"
+        " `updated_parsed` to `published_parsed` if `updated_parsed` doesn't exist"
+    )
+)
+warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 
 class RSS(commands.Cog):
@@ -49,8 +62,6 @@ class RSS(commands.Cog):
         self._read_feeds_loop = None
 
         self._headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"}
-
-        shutup.please()
 
     async def red_delete_data_for_user(self, **kwargs):
         """Nothing to delete"""
