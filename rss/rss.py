@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 import copy
 import datetime
 import discord
@@ -43,6 +43,7 @@ warnings.filterwarnings(
         " `updated_parsed` to `published_parsed` if `updated_parsed` doesn't exist"
     )
 )
+warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 
 class RSS(commands.Cog):
