@@ -39,7 +39,11 @@ class DallE(commands.Cog):
             while not images:
                 if attempt < 100:
                     attempt += 1
-                    if attempt % 3 == 0:
+                    if attempt < 10:
+                        divisor = 2
+                    else:
+                        divisor = 5
+                    if attempt % divisor == 0:
                         status = f"This will take a very long time. Once a response is acquired, this counter will pause while processing.\n[attempt `{attempt}/100`]"
                         try:
                             await status_msg.edit(content=status)
