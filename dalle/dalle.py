@@ -32,7 +32,7 @@ class DallE(commands.Cog):
         if not embed_links:
             return await ctx.send("I need the `Embed Links` permission here before you can use this command.")
 
-        status_msg = await ctx.send("Image generator starting up...")
+        status_msg = await ctx.send("Image generator starting up, please be patient. This will take a very long time.")
         images = None
         attempt = 0
         async with ctx.typing():
@@ -62,7 +62,7 @@ class DallE(commands.Cog):
         for i, image in enumerate(file_images):
             em = embed.copy()
             em.set_image(url=f"attachment://{i}.png")
-            em.set_footer(text="View this output on a desktop client for best results.")
+            em.set_footer(text=f"Results for: {prompt}\nView this output on a desktop client for best results.")
             embeds.append(em)
 
         form = []
