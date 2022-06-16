@@ -13,6 +13,8 @@ chatchart - Generates a pie chart to display chat activity over the last 5000 me
 
 dadjokes - Another UltimatePancake cog. Get some dad jokes on command.
 
+dalle - A cog to generate images from the Dall-E mini service. This cog should not be used on a public bot.
+
 dictionary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
 
 discordexperiments - Create voice channel invites for various built-in apps. This is only for developers or for people that can read the code and assess the risk of using it.
