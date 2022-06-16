@@ -39,7 +39,7 @@ class DallE(commands.Cog):
             while not images:
                 if attempt < 100:
                     attempt += 1
-                    if attempt % 2 == 0:
+                    if attempt % 3 == 0:
                         status = f"This will take a very long time. Once a response is acquired, this counter will pause while processing.\n[attempt `{attempt}/100`]"
                         try:
                             await status_msg.edit(content=status)
@@ -62,7 +62,7 @@ class DallE(commands.Cog):
         for i, image in enumerate(file_images):
             em = embed.copy()
             em.set_image(url=f"attachment://{i}.png")
-            em.set_footer(text=f"Results for: {prompt}\nView this output on a desktop client for best results.")
+            em.set_footer(text=f"Results for: {prompt}, requested by {ctx.author}\nView this output on a desktop client for best results.")
             embeds.append(em)
 
         form = []
