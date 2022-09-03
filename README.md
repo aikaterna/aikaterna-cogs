@@ -45,8 +45,6 @@ pingtime - Show all shards' pingtimes.
 
 pressf - A port/rewrite of NekoTony's v2 pressf cog. Pay your respects by pressing F.
 
-pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
-
 quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
 
 reminder - A continued fork of ZeLarpMaster's reminder cog. This cog is licensed under the GPL-3.0 License.
