@@ -1,9 +1,0 @@
-{
-    "author": ["aikaterna"],
-    "install_msg": "While this cog can use Dall-E mini and retrieve images, the API is *very slow* and is overloaded, resulting in times where responses cannot be generated. Because of how slow this is, there are some restrictions in place:\n\n- This cog/command can only be used by 3 people globally at a time.\n\n- Do not use this cog on a public bot. I am not responsible if you get your bot IP banned from Dall-E by trying to send too many requests to this service. This cog could be used ideally on bots under 5-10 Discord servers, or under 1000 users total. Use at your own risk.\n\nIf you like this cog, give Jackenmen, Flame, and TrustyJAID a high five for helping me figure some things out. Use [p]generate with a prompt, after the cog is loaded with `[p]load dalle`, to generate images from Dall-E mini.",
-    "short": "Fetch images made by Dall-E mini from a prompt.",
-    "description": "Fetch images made by Dall-E mini from a prompt.",
-    "tags": ["dalle", "dall-e"],
-    "permissions": ["embed_links"],
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
-}

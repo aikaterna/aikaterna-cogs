@@ -1,9 +1,0 @@
-{
-    "author": ["aikaterna"],
-    "description": "Pupper is a configurable pet that can hand out credits.",
-    "install_msg": "This cog and its countdowns are triggered by messages. If your bot doesn't see any messages posted anywhere in any server, the pet will never come around. This pet helps to keep chat active but it needs to be slightly active in the first place. If you see a message asking for pats (or whatever other greeting message you set), the first person to react with a wave emoji will get a random amount of credits. This cog also deletes the messages involved in the game, which can lead to channels showing an unread message when there really isn't anything there any more. Use `[p]help pets` to get started. If this command doesn't work for you, the `pets` command is only usable by people with the bot's Admin or Mod role, or if the user has administrative perms on the Discord server.",
-    "short": "Pet the dog.",
-    "tags": ["pets"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
-}
