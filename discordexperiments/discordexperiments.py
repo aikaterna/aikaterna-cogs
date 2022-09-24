@@ -202,3 +202,13 @@ class DiscordExperiments(commands.Cog):
         """
         app_name = "Know What I Meme"
         await self._create_invite(ctx, 950505761862189096, invite_max_age_in_seconds, app_name)
+
+    @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
+    @commands.command()
+    async def bashout(self, ctx, invite_max_age_in_seconds=86400):
+        """
+        Create a Bash Out voice channel invite.
+        Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
+        """
+        app_name = "Bash Out"
+        await self._create_invite(ctx, 1006584476094177371, invite_max_age_in_seconds, app_name)
