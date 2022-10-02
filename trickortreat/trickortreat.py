@@ -508,7 +508,7 @@ class TrickOrTreat(commands.Cog):
         if chance > 18:
             await self.config.user(picked_user).candies.set(picked_candy_now - pieces)
             await self.config.user(ctx.author).candies.set(user_candy_now + pieces)
-            message = await ctx.reply(random.choice(sneak_phrases))
+            message = await ctx.send(random.choice(sneak_phrases), reference=ctx.message.to_reference(fail_if_not_exists=False))
             await asyncio.sleep(4)
             await message.edit(content="There seems to be an unsuspecting victim in the corner...")
             await asyncio.sleep(4)
@@ -518,7 +518,7 @@ class TrickOrTreat(commands.Cog):
         if chance in range(11, 17):
             await self.config.user(picked_user).candies.set(picked_candy_now - round(pieces / 2))
             await self.config.user(ctx.author).candies.set(user_candy_now + round(pieces / 2))
-            message = await ctx.reply(random.choice(sneak_phrases))
+            message = await ctx.send(random.choice(sneak_phrases), reference=ctx.message.to_reference(fail_if_not_exists=False))
             await asyncio.sleep(4)
             await message.edit(content="There seems to be an unsuspecting victim in the corner...")
             await asyncio.sleep(4)
@@ -526,7 +526,7 @@ class TrickOrTreat(commands.Cog):
                 content=f"You stole {round(pieces/2)} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
             )
         else:
-            message = await ctx.reply(random.choice(sneak_phrases))
+            message = await ctx.send(random.choice(sneak_phrases), reference=ctx.message.to_reference(fail_if_not_exists=False))
             await asyncio.sleep(4)
             noise_msg = [
                 "You hear a sound behind you! When you turn back, your target is gone.",
