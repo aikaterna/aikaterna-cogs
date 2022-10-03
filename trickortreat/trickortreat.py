@@ -32,6 +32,7 @@ class TrickOrTreat(commands.Cog):
         default_user = {
             "candies": 0,
             "chocolate": 0,
+            "cookies": 0,
             "eaten": 0,
             "last_tot": "2018-01-01 00:00:00.000001",
             "lollipops": 0,
