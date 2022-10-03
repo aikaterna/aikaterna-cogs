@@ -45,7 +45,7 @@ class DiscordExperiments(commands.Cog):
         await self._create_invite(ctx, 880218394199220334, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
+    @commands.command(hidden=True)
     async def betrayal(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Betrayal.io voice channel invite.
@@ -56,7 +56,7 @@ class DiscordExperiments(commands.Cog):
         await self._create_invite(ctx, 773336526917861400, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
+    @commands.command(hidden=True)
     async def fishington(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Fishington.io voice channel invite.
