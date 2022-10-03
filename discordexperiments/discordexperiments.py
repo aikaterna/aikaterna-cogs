@@ -24,7 +24,9 @@ class DiscordExperiments(commands.Cog):
 
         r = Route("POST", "/channels/{channel_id}/invites", channel_id=voice.channel.id)
         payload = {"max_age": max_age, "target_type": 2, "target_application_id": app_id}
-        reason = f"DiscordExperiments: {ctx.author} ({ctx.author.id}) created an invite for {app_name}."
+        reason = (
+            f"DiscordExperiments: {ctx.author} ({ctx.author.id}) created an invite for {app_name}."
+        )
         code = (await self.bot.http.request(r, json=payload, reason=reason))["code"]
 
         await ctx.send(
