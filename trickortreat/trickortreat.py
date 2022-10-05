@@ -195,7 +195,8 @@ class TrickOrTreat(commands.Cog):
         if candy_type in ["cookies", "cookie"]:
             pluralcookie = "cookie" if number == 1 else "cookies"
             new_sickness = random.randint(0, 100)
-            if new_sickness > userdata["sickness"]:
+            old_sickness = userdata["sickness"]
+            if new_sickness > old_sickness:
                 phrase = f"You feel worse!\n*Sickness has gone up by {new_sickness - old_sickness}*"
             else:
                 phrase = f"You feel better!\n*Sickness has gone down by {old_sickness - new_sickness}*"
