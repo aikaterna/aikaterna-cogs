@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 
 class TrickOrTreat(commands.Cog):
@@ -32,6 +32,7 @@ class TrickOrTreat(commands.Cog):
         default_user = {
             "candies": 0,
             "chocolate": 0,
+            "cookies": 0,
             "eaten": 0,
             "last_tot": "2018-01-01 00:00:00.000001",
             "lollipops": 0,
@@ -48,7 +49,7 @@ class TrickOrTreat(commands.Cog):
     async def eatcandy(self, ctx, number: Optional[int] = 1, candy_type=None):
         """Eat some candy.
 
-        Valid types: candy/candie(s), chocolate(s), lollipop(s), star(s)
+        Valid types: candy/candie(s), chocolate(s), lollipop(s), cookie(s), star(s)
         Examples:
             `[p]eatcandy 3 lollipops`
             `[p]eatcandy star`
@@ -61,6 +62,9 @@ class TrickOrTreat(commands.Cog):
 
         \N{LOLLIPOP}
         Reduces sickness by 20.
+
+        \N{FORTUNE COOKIE}
+        Sets sickness to a random amount - fortune favours the brave.
 
         \N{WHITE MEDIUM STAR}
         Resets sickness to 0.
@@ -80,8 +84,10 @@ class TrickOrTreat(commands.Cog):
         if candy_type in ["stars", "star"]:
             candy_type = "stars"
         if candy_type in ["chocolate", "chocolates"]:
-            candy_type = "chocolate"
-        candy_list = ["candies", "chocolate", "lollipops", "stars"]
+            candy_type = "chocolates"
+        if candy_type in ["cookie", "cookies"]:
+            candy_type = "cookies"
+        candy_list = ["candies", "chocolates", "lollipops", "cookies", "stars"]
         if candy_type not in candy_list:
             return await ctx.reply("That's not a candy type! Use the inventory command to see what you have.")
         if userdata[candy_type] < number:
@@ -184,6 +190,21 @@ class TrickOrTreat(commands.Cog):
                 new_sickness = 0
             await self.config.user(ctx.author).sickness.set(new_sickness)
             await self.config.user(ctx.author).lollipops.set(userdata["lollipops"] - number)
+            await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
+
+        if candy_type in ["cookies", "cookie"]:
+            pluralcookie = "cookie" if number == 1 else "cookies"
+            new_sickness = random.randint(0, 100)
+            old_sickness = userdata["sickness"]
+            if new_sickness > old_sickness:
+                phrase = f"You feel worse!\n*Sickness has gone up by {new_sickness - old_sickness}*"
+            else:
+                phrase = f"You feel better!\n*Sickness has gone down by {old_sickness - new_sickness}*"
+            await ctx.reply(
+                f"{random.choice(eat_phrase)} {number} {pluralcookie}. {phrase}"
+            )
+            await self.config.user(ctx.author).sickness.set(new_sickness)
+            await self.config.user(ctx.author).cookies.set(userdata["cookies"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
 
         if candy_type in ["stars", "star"]:
@@ -296,6 +317,8 @@ class TrickOrTreat(commands.Cog):
             em.description += f"\n{userdata['chocolate']} \N{CHOCOLATE BAR}"
         if userdata["lollipops"]:
             em.description += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
+        if userdata["cookies"]:
+            em.description += f"\n{userdata['cookies']} \N{FORTUNE COOKIE}"
         if userdata["stars"]:
             em.description += f"\n{userdata['stars']} \N{WHITE MEDIUM STAR}"
         if sickness in range(41, 56):
@@ -569,6 +592,7 @@ class TrickOrTreat(commands.Cog):
         lollipop = random.randint(0, 100)
         star = random.randint(0, 100)
         chocolate = random.randint(0, 100)
+        cookie = random.randint(0, 100)
         win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
         await self.config.user(message.author).candies.set(userdata["candies"] + candy)
 
@@ -603,6 +627,19 @@ class TrickOrTreat(commands.Cog):
         elif 84 >= lollipop >= 75:
             await self.config.user(message.author).lollipops.set(userdata["lollipops"] + 1)
             win_message += "\n**BONUS**: 1 \N{LOLLIPOP}"
+
+        if cookie == 100:
+            await self.config.user(message.author).cookies.set(userdata["cookies"] + 4)
+            win_message += "\n**BONUS**: 4 \N{FORTUNE COOKIE}"
+        elif 99 >= cookie >= 97:
+            await self.config.user(message.author).cookies.set(userdata["cookies"] + 3)
+            win_message += "\n**BONUS**: 3 \N{FORTUNE COOKIE}"
+        elif 96 >= cookie >= 85:
+            await self.config.user(message.author).cookies.set(userdata["cookies"] + 2)
+            win_message += "\n**BONUS**: 2 \N{FORTUNE COOKIE}"
+        elif 84 >= cookie >= 75:
+            await self.config.user(message.author).cookies.set(userdata["cookies"] + 1)
+            win_message += "\n**BONUS**: 1 \N{FORTUNE COOKIE}"
 
         if star == 100:
             await self.config.user(message.author).stars.set(userdata["stars"] + 4)
