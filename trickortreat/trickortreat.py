@@ -84,7 +84,7 @@ class TrickOrTreat(commands.Cog):
         if candy_type in ["stars", "star"]:
             candy_type = "stars"
         if candy_type in ["chocolate", "chocolates"]:
-            candy_type = "chocolates"
+            candy_type = "chocolate"
         if candy_type in ["cookie", "cookies"]:
             candy_type = "cookies"
         candy_list = ["candies", "chocolates", "lollipops", "cookies", "stars"]
