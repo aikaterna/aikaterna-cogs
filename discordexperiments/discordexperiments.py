@@ -24,7 +24,10 @@ class DiscordExperiments(commands.Cog):
 
         r = Route("POST", "/channels/{channel_id}/invites", channel_id=voice.channel.id)
         payload = {"max_age": max_age, "target_type": 2, "target_application_id": app_id}
-        code = (await self.bot.http.request(r, json=payload))["code"]
+        reason = (
+            f"DiscordExperiments: {ctx.author} ({ctx.author.id}) created an invite for {app_name}."
+        )
+        code = (await self.bot.http.request(r, json=payload, reason=reason))["code"]
 
         await ctx.send(
             embed=discord.Embed(
@@ -45,7 +48,7 @@ class DiscordExperiments(commands.Cog):
         await self._create_invite(ctx, 880218394199220334, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
+    @commands.command(hidden=True)
     async def betrayal(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Betrayal.io voice channel invite.
@@ -56,7 +59,7 @@ class DiscordExperiments(commands.Cog):
         await self._create_invite(ctx, 773336526917861400, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
-    @commands.command()
+    @commands.command(hidden=True)
     async def fishington(self, ctx, invite_max_age_in_seconds=86400):
         """
         Create a Fishington.io voice channel invite.
@@ -150,7 +153,7 @@ class DiscordExperiments(commands.Cog):
         Create a Blazing 8s voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Blazing 8s"
+        app_name = "the Blazing 8s game"
         await self._create_invite(ctx, 832025144389533716, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -160,7 +163,7 @@ class DiscordExperiments(commands.Cog):
         Create a Putt Party voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Putt Party"
+        app_name = "the Putt Party game"
         await self._create_invite(ctx, 945737671223947305, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -170,7 +173,7 @@ class DiscordExperiments(commands.Cog):
         Create a Land-io voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Land-io"
+        app_name = "the Land-io game"
         await self._create_invite(ctx, 903769130790969345, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -180,7 +183,7 @@ class DiscordExperiments(commands.Cog):
         Create a Bobble League voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Bobble League"
+        app_name = "the Bobble League game"
         await self._create_invite(ctx, 947957217959759964, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -190,7 +193,7 @@ class DiscordExperiments(commands.Cog):
         Create an Ask Away voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Ask Away"
+        app_name = "the Ask Away game"
         await self._create_invite(ctx, 976052223358406656, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -200,7 +203,7 @@ class DiscordExperiments(commands.Cog):
         Create a Know What I Meme voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Know What I Meme"
+        app_name = "the Know What I Meme game"
         await self._create_invite(ctx, 950505761862189096, invite_max_age_in_seconds, app_name)
 
     @commands.cooldown(1, 10, discord.ext.commands.BucketType.guild)
@@ -210,5 +213,5 @@ class DiscordExperiments(commands.Cog):
         Create a Bash Out voice channel invite.
         Use `0` for `invite_max_age_in_seconds` if you want the invite to be permanent.
         """
-        app_name = "Bash Out"
+        app_name = "the Bash Out game"
         await self._create_invite(ctx, 1006584476094177371, invite_max_age_in_seconds, app_name)
