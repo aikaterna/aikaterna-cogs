@@ -1,6 +1,8 @@
-from .trickortreat import TrickOrTreat
-import discord
 import asyncio
+
+import discord
+
+from .trickortreat import TrickOrTreat
 
 __red_end_user_data_statement__ = (
     "This cog does not persistently store end user data. "
