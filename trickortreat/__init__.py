@@ -1,4 +1,6 @@
 from .trickortreat import TrickOrTreat
+import discord
+import asyncio
 
 __red_end_user_data_statement__ = (
     "This cog does not persistently store end user data. "
@@ -10,5 +12,10 @@ __red_end_user_data_statement__ = (
 )
 
 
-def setup(bot):
-    bot.add_cog(TrickOrTreat(bot))
+async def setup(bot):
+    cog = TrickOrTreat(bot)
+    if discord.__version__ > "1.7.3":
+        await bot.add_cog(cog)
+    else:
+        bot.add_cog(cog)
+    asyncio.create_task(cog.cleanup())

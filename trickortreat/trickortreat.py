@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.1.7"
+__version__ = "0.2.7"
 
 
 class TrickOrTreat(commands.Cog):
@@ -28,10 +28,11 @@ class TrickOrTreat(commands.Cog):
         self.config = Config.get_conf(self, 2710311393, force_registration=True)
 
         default_guild = {"cooldown": 300, "channel": [], "pick": 50, "toggle": False}
+        default_global = {"schema": "v1"}
 
         default_user = {
             "candies": 0,
-            "chocolate": 0,
+            "chocolates": 0,
             "cookies": 0,
             "eaten": 0,
             "last_tot": "2018-01-01 00:00:00.000001",
@@ -42,6 +43,23 @@ class TrickOrTreat(commands.Cog):
 
         self.config.register_user(**default_user)
         self.config.register_guild(**default_guild)
+        self.config.register_global(**default_global)
+
+    async def cleanup(self):
+        # Schema didn't exist before, so it will be initialized at v1.
+        # This will also run once for new cog installs
+        schema = await self.config.schema()
+        if schema == "v2":
+            return
+        await self.bot.wait_until_red_ready()
+        users = await self.config.all_users()
+        for uid, data in users.items():
+            if "chocolate" not in data:
+                continue
+            async with self.config.user_from_id(uid).all() as user:
+                user["chocolates"] += user["chocolate"]
+                del user["chocolate"]
+        await self.config.schema.set("v2")
 
     @commands.guild_only()
     @commands.cooldown(1, 1, commands.BucketType.user)
@@ -84,10 +102,10 @@ class TrickOrTreat(commands.Cog):
         if candy_type in ["stars", "star"]:
             candy_type = "stars"
         if candy_type in ["chocolate", "chocolates"]:
-            candy_type = "chocolate"
+            candy_type = "chocolates"
         if candy_type in ["cookie", "cookies"]:
             candy_type = "cookies"
-        candy_list = ["candies", "chocolate", "lollipops", "cookies", "stars"]
+        candy_list = ["candies", "chocolates", "lollipops", "cookies", "stars"]
         if candy_type not in candy_list:
             return await ctx.reply("That's not a candy type! Use the inventory command to see what you have.")
         if userdata[candy_type] < number:
@@ -177,7 +195,7 @@ class TrickOrTreat(commands.Cog):
             if new_sickness < 0:
                 new_sickness = 0
             await self.config.user(ctx.author).sickness.set(new_sickness)
-            await self.config.user(ctx.author).chocolate.set(userdata["chocolate"] - number)
+            await self.config.user(ctx.author).chocolates.set(userdata["chocolates"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
 
         if candy_type in ["lollipops", "lollipop"]:
@@ -313,8 +331,8 @@ class TrickOrTreat(commands.Cog):
         msg = f"{ctx.author.mention}'s Candy Bag:"
         em = discord.Embed(color=await ctx.embed_color())
         em.description = f"{userdata['candies']} \N{CANDY}"
-        if userdata["chocolate"]:
-            em.description += f"\n{userdata['chocolate']} \N{CHOCOLATE BAR}"
+        if userdata["chocolates"]:
+            em.description += f"\n{userdata['chocolates']} \N{CHOCOLATE BAR}"
         if userdata["lollipops"]:
             em.description += f"\n{userdata['lollipops']} \N{LOLLIPOP}"
         if userdata["cookies"]:
@@ -591,28 +609,28 @@ class TrickOrTreat(commands.Cog):
         candy = random.randint(1, 25)
         lollipop = random.randint(0, 100)
         star = random.randint(0, 100)
-        chocolate = random.randint(0, 100)
+        chocolates = random.randint(0, 100)
         cookie = random.randint(0, 100)
         win_message = f"{message.author.mention}\nYou received:\n{candy}\N{CANDY}"
         await self.config.user(message.author).candies.set(userdata["candies"] + candy)
 
-        if chocolate == 100:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 6)
+        if chocolates == 100:
+            await self.config.user(message.author).chocolates.set(userdata["chocolates"] + 6)
             win_message += "\n**BONUS**: 6 \N{CHOCOLATE BAR}"
-        elif 99 >= chocolate >= 95:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 5)
+        elif 99 >= chocolates >= 95:
+            await self.config.user(message.author).chocolates.set(userdata["chocolates"] + 5)
             win_message += "\n**BONUS**: 5 \N{CHOCOLATE BAR}"
-        elif 94 >= chocolate >= 90:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 4)
+        elif 94 >= chocolates >= 90:
+            await self.config.user(message.author).chocolates.set(userdata["chocolates"] + 4)
             win_message += "\n**BONUS**: 4 \N{CHOCOLATE BAR}"
-        elif 89 >= chocolate >= 80:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 3)
+        elif 89 >= chocolates >= 80:
+            await self.config.user(message.author).chocolates.set(userdata["chocolates"] + 3)
             win_message += "\n**BONUS**: 3 \N{CHOCOLATE BAR}"
-        elif 79 >= chocolate >= 75:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 2)
+        elif 79 >= chocolates >= 75:
+            await self.config.user(message.author).chocolates.set(userdata["chocolates"] + 2)
             win_message += "\n**BONUS**: 2 \N{CHOCOLATE BAR}"
-        elif 74 >= chocolate >= 70:
-            await self.config.user(message.author).chocolate.set(userdata["chocolate"] + 1)
+        elif 74 >= chocolates >= 70:
+            await self.config.user(message.author).chocolates.set(userdata["chocolates"] + 1)
             win_message += "\n**BONUS**: 1 \N{CHOCOLATE BAR}"
 
         if lollipop == 100:
