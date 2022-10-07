@@ -128,9 +128,7 @@ class TrickOrTreat(commands.Cog):
                 if yuck == 10:
                     await self.config.user(ctx.author).sickness.set(userdata["sickness"] + 25)
                 if yuck in range(1, 9):
-                    await self.config.user(ctx.author).sickness.set(
-                        userdata["sickness"] + (yuck * 2)
-                    )
+                    await self.config.user(ctx.author).sickness.set(userdata["sickness"] + (yuck * 2))
 
                 if userdata["candies"] > 3 + number:
                     lost_candy = userdata["candies"] - random.randint(1, 3) - number
@@ -142,14 +140,10 @@ class TrickOrTreat(commands.Cog):
                     await self.config.user(ctx.author).candies.set(0)
                     await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
                 else:
-                    await self.config.user(ctx.author).candies.set(
-                        userdata["candies"] - lost_candy
-                    )
+                    await self.config.user(ctx.author).candies.set(userdata["candies"] - lost_candy)
                     await self.config.guild(ctx.guild).pick.set(pick_now + lost_candy)
 
-                await self.config.user(ctx.author).eaten.set(
-                    userdata["eaten"] + (userdata["candies"] - lost_candy)
-                )
+                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
 
                 return await ctx.send(
                     f"You begin to think you don't need all this candy, maybe...\n*{lost_candy} candies are left behind*",
@@ -173,12 +167,8 @@ class TrickOrTreat(commands.Cog):
                     )
                 await self.config.guild(ctx.guild).pick.set(pick + lost_candy)
                 await self.config.user(ctx.author).candies.set(0)
-                await self.config.user(ctx.author).eaten.set(
-                    userdata["eaten"] + (userdata["candies"] - lost_candy)
-                )
-                message = await ctx.send(
-                    "...", reference=ctx.message.to_reference(fail_if_not_exists=False)
-                )
+                await self.config.user(ctx.author).eaten.set(userdata["eaten"] + (userdata["candies"] - lost_candy))
+                message = await ctx.send("...", reference=ctx.message.to_reference(fail_if_not_exists=False))
                 await asyncio.sleep(2)
                 await message.edit(content="..........")
                 await asyncio.sleep(2)
@@ -323,12 +313,9 @@ class TrickOrTreat(commands.Cog):
         for page in pagify(temp_msg, delims=["\n"], page_length=1000):
             embed = discord.Embed(
                 colour=0xF4731C,
-                description=box(f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog")
-                + (box(page, lang="md")),
+                description=box(f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog") + (box(page, lang="md")),
             )
-            embed.set_footer(
-                text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 1500))}"
-            )
+            embed.set_footer(text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 1500))}")
             pages += 1
             page_list.append(embed)
         return await menu(ctx, page_list, DEFAULT_CONTROLS)
@@ -354,15 +341,11 @@ class TrickOrTreat(commands.Cog):
         elif sickness in range(56, 71):
             em.description += f"\n\n**Sickness is over 55/100**\n*You don't feel so good...*"
         elif sickness in range(71, 86):
-            em.description += (
-                f"\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
-            )
+            em.description += f"\n\n**Sickness is over 70/100**\n*You really don't feel so good...*"
         elif sickness in range(86, 101):
             em.description += f"\n\n**Sickness is over 85/100**\n*The thought of more sugar makes you feel awful...*"
         elif sickness > 100:
-            em.description += (
-                f"\n\n**Sickness is over 100/100**\n*Better wait a while for more candy...*"
-            )
+            em.description += f"\n\n**Sickness is over 100/100**\n*Better wait a while for more candy...*"
         await ctx.send(msg, embed=em)
 
     @commands.guild_only()
@@ -473,9 +456,7 @@ class TrickOrTreat(commands.Cog):
                     reference=ctx.message.to_reference(fail_if_not_exists=False),
                 )
                 await asyncio.sleep(random.randint(3, 6))
-                return await message.edit(
-                    content="You snuck around for a while but didn't find anything."
-                )
+                return await message.edit(content="You snuck around for a while but didn't find anything.")
         user_candy_now = await self.config.user(ctx.author).candies()
         multip = random.randint(1, 100) / 100
         if multip > 0.7:
@@ -487,9 +468,7 @@ class TrickOrTreat(commands.Cog):
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
             await asyncio.sleep(4)
-            return await message.edit(
-                content="You found someone to pickpocket, but they had nothing but pocket lint."
-            )
+            return await message.edit(content="You found someone to pickpocket, but they had nothing but pocket lint.")
         chance = random.randint(1, 25)
         sneak_phrases = [
             "You look around furtively...",
@@ -502,9 +481,7 @@ class TrickOrTreat(commands.Cog):
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
             await asyncio.sleep(random.randint(3, 5))
-            return await message.edit(
-                content="You snuck around for a while but didn't find anything."
-            )
+            return await message.edit(content="You snuck around for a while but didn't find anything.")
         if chance > 18:
             await self.config.user(picked_user).candies.set(picked_candy_now - pieces)
             await self.config.user(ctx.author).candies.set(user_candy_now + pieces)
@@ -549,9 +526,7 @@ class TrickOrTreat(commands.Cog):
     @commands.group()
     async def totchannel(self, ctx):
         """Channel management for Trick or Treat."""
-        if ctx.invoked_subcommand is not None or isinstance(
-            ctx.invoked_subcommand, commands.Group
-        ):
+        if ctx.invoked_subcommand is not None or isinstance(ctx.invoked_subcommand, commands.Group):
             return
         channel_list = await self.config.guild(ctx.guild).channel()
         channel_msg = "Trick or Treat Channels:\n"
@@ -648,10 +623,7 @@ class TrickOrTreat(commands.Cog):
         last_time = datetime.datetime.strptime(str(userdata["last_tot"]), "%Y-%m-%d %H:%M:%S.%f")
         now = datetime.datetime.now(datetime.timezone.utc)
         now = now.replace(tzinfo=None)
-        if (
-            int((now - last_time).total_seconds())
-            < await self.config.guild(message.guild).cooldown()
-        ):
+        if int((now - last_time).total_seconds()) < await self.config.guild(message.guild).cooldown():
             messages = [
                 "The thought of candy right now doesn't really sound like a good idea.",
                 "All the lights on this street are dark...",
@@ -662,7 +634,9 @@ class TrickOrTreat(commands.Cog):
                 "The house you were approaching just turned the light off.",
                 "The wind starts to pick up as you look for the next house...",
             ]
-            return await message.reply(random.choice(messages))
+            return await message.send(
+                random.choice(messages), reference=ctx.message.to_reference(fail_if_not_exists=False)
+            )
         await self.config.user(message.author).last_tot.set(str(now))
         candy = random.randint(1, 25)
         lollipop = random.randint(0, 100)
@@ -726,7 +700,9 @@ class TrickOrTreat(commands.Cog):
             "*You knock on the door...*",
             "*There's a movement in the shadows by the side of the house...*",
         ]
-        bot_talking = await message.reply(random.choice(walking_messages))
+        bot_talking = await message.send(
+            random.choice(walking_messages), reference=ctx.message.to_reference(fail_if_not_exists=False)
+        )
         await asyncio.sleep(random.randint(5, 8))
         door_messages = [
             "*The door slowly opens...*",
