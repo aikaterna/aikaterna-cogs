@@ -1,7 +1,5 @@
 import asyncio
 
-import discord
-
 from .trickortreat import TrickOrTreat
 
 __red_end_user_data_statement__ = (
@@ -14,10 +12,7 @@ __red_end_user_data_statement__ = (
 )
 
 
-async def setup(bot):
+def setup(bot):
     cog = TrickOrTreat(bot)
-    if discord.__version__ > "1.7.3":
-        await bot.add_cog(cog)
-    else:
-        bot.add_cog(cog)
+    bot.add_cog(cog)
     asyncio.create_task(cog.cleanup())
