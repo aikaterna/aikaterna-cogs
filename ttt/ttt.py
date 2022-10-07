@@ -4,7 +4,6 @@
 import discord
 import logging
 from redbot.core import commands
-from redbot.core.utils.predicates import ReactionPredicate
 
 
 log = logging.getLogger("red.aikaterna.ttt")

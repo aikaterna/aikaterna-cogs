@@ -76,7 +76,7 @@ class Seen(commands.Cog):
     @commands.guild_only()
     @commands.command(name="seen")
     @commands.bot_has_permissions(embed_links=True)
-    async def _seen(self, ctx, author: discord.Member):
+    async def _seen(self, ctx, *, author: discord.Member):
         """Shows last time a user was seen in chat."""
         member_seen_config = await self.config.member(author).seen()
         member_seen_cache = self._cache.get(author.guild.id, {}).get(author.id, None)

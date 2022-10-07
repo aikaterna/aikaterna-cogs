@@ -1,5 +1,5 @@
 {
-    "author": ["aikaterna", "Axas"],
+    "author": ["aikaterna", "Axas", "TrustyJAID"],
     "description": "Set and unset a user as being away. Originally by Paddo.",
     "short": "Away message toggle for users",
     "tags": ["away", "afk"],

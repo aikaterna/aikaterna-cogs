@@ -1,6 +1,7 @@
 import asyncio
 import discord
 import logging
+import re
 from random import randint
 from random import choice as randchoice
 
@@ -46,6 +47,7 @@ class Snacktime(commands.Cog):
             "SNACK_DURATION_VARIANCE": 120,
             "MSGS_BEFORE_EVENT": 8,
             "SNACK_AMOUNT": 200,
+            "USE_CURRENCY": False
         }
 
         default_channel = {"repeatMissedSnacktimes": 0}
@@ -78,6 +80,14 @@ class Snacktime(commands.Cog):
         phrase = randchoice(SNACKBURR_PHRASES[phrase_type])
         return f"`{persona_phrase} {phrase}`"
 
+    # Is snackburr gonna like the currency or nah
+    @staticmethod
+    def is_custom(currency_name: str):
+        custom = re.search(r'<:\w*:\d*>', currency_name)
+        animated = re.search(r'<a:\w*:\d*>', currency_name)
+        if custom or animated:
+            return True
+
     @commands.cooldown(1, 1, commands.BucketType.channel)
     @commands.guild_only()
     @commands.command()
@@ -87,17 +97,27 @@ class Snacktime(commands.Cog):
 
         how bout you guys?
         """
+        use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
+        if use_red_currency:
+            currency_name = await bank.get_currency_name(ctx.guild)
+        else:
+            currency_name = "pb jars"
+        if self.is_custom(currency_name):
+            currency_name = f"`{currency_name}`"
         persona = await self.persona_choice(ctx=ctx, message=None)
         if amount < 0:
             return await ctx.send(f"`{persona} Woah slow down!`")
         if amount > await bank.get_balance(ctx.author):
-            return await ctx.send(f"`{persona} You don't got that much pb!.. don't look at me..`")
+            return await ctx.send(f"`{persona} You don't got that much {currency_name}!.. don't look at me..`")
 
         await bank.withdraw_credits(ctx.author, amount)
 
         first_phrase = randchoice(SNACKBURR_PHRASES["EAT_BEFORE"])
         second_phrase = randchoice(SNACKBURR_PHRASES["EAT_AFTER"])
-        await ctx.send(f"`{persona} {ctx.author.display_name} {first_phrase} {second_phrase} {amount} whole pb jars!`")
+
+        await ctx.send(
+            f"`{persona} {ctx.author.display_name} {first_phrase} {second_phrase} {amount} whole {currency_name}!`"
+        )
 
     @commands.guild_only()
     @commands.group()
@@ -122,12 +142,15 @@ class Snacktime(commands.Cog):
             else:
                 invite_friends = "Everyone's invited!"
 
+            use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
+
             msg = f"[Delivering in]:           {humanize_list(channel_names)}\n"
             msg += f"[Event start delay]:       {guild_data['EVENT_START_DELAY']} seconds\n"
             msg += f"[Event start variance]:    {guild_data['EVENT_START_DELAY_VARIANCE']} seconds\n"
             msg += f"[Friends status]:          {invite_friends}\n"
             msg += f"[Messages before event]:   {guild_data['MSGS_BEFORE_EVENT']}\n"
-            msg += f"[Snack amount limit]:      {guild_data['SNACK_AMOUNT']} pb\n"
+            msg += f"[Snack amount limit]:      {guild_data['SNACK_AMOUNT']}\n"
+            msg += f"[Use custom currency]:     {use_red_currency}\n"
             msg += f"[Snack duration]:          {guild_data['SNACK_DURATION']} seconds\n"
             msg += f"[Snack duration variance]: {guild_data['SNACK_DURATION_VARIANCE']} seconds\n"
 
@@ -194,12 +217,33 @@ class Snacktime(commands.Cog):
     @snackset.command()
     async def amount(self, ctx, amt: int):
         """How much pb max snackburr should give out to each person per snacktime"""
-
         if amt <= 0:
             await ctx.send("amount must be greater than 0")
         else:
             await self.config.guild(ctx.guild).SNACK_AMOUNT.set(amt)
-            await ctx.send(f"snackburr will now give out {amt} pb max per person per snacktime.")
+            use_red_currency = await self.config.guild(ctx.guild).USE_CURRENCY()
+            if use_red_currency:
+                currency_name = await bank.get_currency_name(ctx.guild)
+            else:
+                currency_name = "pb jars"
+            if self.is_custom(currency_name):
+                currency_name = f"`{currency_name}`"
+            await ctx.send(f"snackburr will now give out {amt} {currency_name} max per person per snacktime.")
+
+    @snackset.command()
+    async def togglecurrency(self, ctx):
+        """Toggle whether to use server currency name instead of pb"""
+        toggled = await self.config.guild(ctx.guild).USE_CURRENCY()
+        if not toggled:
+            currency_name = await bank.get_currency_name(ctx.guild)
+            if self.is_custom(currency_name):
+                await ctx.send("snackburr doesnt like that currency name.. but will use it anyway :unamused:")
+            else:
+                await ctx.send("snackburr will now use the bots currency name... lame.....")
+            await self.config.guild(ctx.guild).USE_CURRENCY.set(True)
+        else:
+            await self.config.guild(ctx.guild).USE_CURRENCY.set(False)
+            await ctx.send("snackburr will now use pb again yay!")
 
     @snackset.command(name="friends")
     async def snackset_friends(self, ctx, choice: int):
@@ -448,10 +492,22 @@ class Snacktime(commands.Cog):
                             if self.acceptInput.get(scid, False):
                                 resp = await self.get_response(message, "GIVE")
                                 resp = resp.format(message.author.name, snackAmt)
+                                use_red_currency = await self.config.guild(message.guild).USE_CURRENCY()
+                                if use_red_currency:
+                                    currency_name = await bank.get_currency_name(message.guild)
+                                    if self.is_custom(currency_name):
+                                        currency_name = f"`{currency_name}`"
+                                    resp = resp.replace("pb", currency_name)
                                 await message.channel.send(resp)
                             else:
                                 resp = await self.get_response(message, "LAST_SECOND")
                                 resp = resp.format(message.author.name, snackAmt)
+                                use_red_currency = await self.config.guild(message.guild).USE_CURRENCY()
+                                if use_red_currency:
+                                    currency_name = await bank.get_currency_name(message.guild)
+                                    if self.is_custom(currency_name):
+                                        currency_name = f"`{currency_name}`"
+                                    resp = resp.replace("pb", currency_name)
                                 await message.channel.send(resp)
                             try:
                                 await bank.deposit_credits(message.author, snackAmt)

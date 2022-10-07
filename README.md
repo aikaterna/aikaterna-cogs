@@ -45,9 +45,9 @@ pingtime - Show all shards' pingtimes.
 
 pressf - A port/rewrite of NekoTony's v2 pressf cog. Pay your respects by pressing F.
 
-pupper - A cog for Ryan5374. A pet that comes around on an on_message listener and waits for someone to pet it (react with a standard wave emoji), and rewards with credits. Many attributes are configurable.
-
 quiz - A kahoot-like trivia game. Originally by Keane for Red v2.
+
+reminder - A continued fork of ZeLarpMaster's reminder cog. This cog is licensed under the GPL-3.0 License.
 
 rndstatus - A v3 port of Twentysix's rndstatus cog with a couple extra settings.
 
@@ -67,8 +67,10 @@ ttt - A Tic Tac Toe cog originally for Red V2 by HizikiFW. This cog is licensed 
 
 urlfetch - Fetch text from a URL. Mainly used for simple text API queries (not JSON).
 
+voicelogs - A record of people's time spent in voice channels by ZeLarpMaster for v2, and ported here for v3 use. This cog is licensed under the GPL-3.0 License.
+
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
 youtube - A v3 port of Paddo's youtube search cog for v2.
 
-Support for these cogs is via opened issues on the appropriate repo or in the Red - Cog Support server at https://discord.gg/KcAbsvD, in the support-aikaterna-cogs channel.
+Support for these cogs is via opened issues on the appropriate repo or in the Red - Cog Support server at https://discord.gg/GET4DVk, in the support_aikaterna-cogs channel.

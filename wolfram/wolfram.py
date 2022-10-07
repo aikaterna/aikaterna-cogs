@@ -6,13 +6,14 @@ import urllib.parse
 
 from redbot.core import Config, commands, checks
 from redbot.core.utils.chat_formatting import box, pagify
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 
 class Wolfram(commands.Cog):
     """Ask Wolfram Alpha any question."""
 
     async def red_delete_data_for_user(self, **kwargs):
-        """ Nothing to delete """
+        """Nothing to delete."""
         return
 
     def __init__(self, bot):
@@ -50,7 +51,13 @@ class Wolfram(commands.Cog):
             if "Current geoip location" in message:
                 message = "There is as yet insufficient data for a meaningful answer."
 
-        await ctx.send(box(message))
+        if len(message) > 1990:
+            menu_pages = []
+            for page in pagify(message, delims=[" | ", "\n"], page_length=1990):
+                menu_pages.append(box(page))
+            await menu(ctx, menu_pages, DEFAULT_CONTROLS)
+        else:
+            await ctx.send(box(message))
 
     @commands.command(name="wolframimage")
     async def _image(self, ctx, *arguments: str):
