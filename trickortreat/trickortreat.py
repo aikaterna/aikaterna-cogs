@@ -657,8 +657,8 @@ class TrickOrTreat(commands.Cog):
                 "The house you were approaching just turned the light off.",
                 "The wind starts to pick up as you look for the next house...",
             ]
-            return await message.send(
-                random.choice(messages), reference=ctx.message.to_reference(fail_if_not_exists=False)
+            return await message.channel.send(
+                random.choice(messages), reference=message.to_reference(fail_if_not_exists=False)
             )
         await self.config.user(message.author).last_tot.set(str(now))
         candy = random.randint(1, 25)
@@ -737,8 +737,8 @@ class TrickOrTreat(commands.Cog):
             "*You knock on the door...*",
             "*There's a movement in the shadows by the side of the house...*",
         ]
-        bot_talking = await message.send(
-            random.choice(walking_messages), reference=ctx.message.to_reference(fail_if_not_exists=False)
+        bot_talking = await message.channel.send(
+            random.choice(walking_messages), reference=message.to_reference(fail_if_not_exists=False)
         )
         await asyncio.sleep(random.randint(5, 8))
         door_messages = [
