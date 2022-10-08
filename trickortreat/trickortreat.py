@@ -275,10 +275,11 @@ class TrickOrTreat(commands.Cog):
                     user_obj = await self.bot.fetch_user(account[0])
             except AttributeError:
                 user_obj = await self.bot.fetch_user(account[0])
-
-            user_name = f"{user_obj.name}#{user_obj.discriminator}"
+            
+            _user_name = discord.utils.escape_markdown(user_obj.name)
+            user_name = f"{_user_name}#{user_obj.discriminator}"
             if len(user_name) > 28:
-                user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+                user_name = f"{_user_name[:19]}...#{user_obj.discriminator}"
             user_idx = pos + 1
             if user_obj == ctx.author:
                 temp_msg += (
