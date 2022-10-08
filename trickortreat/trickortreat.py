@@ -278,7 +278,7 @@ class TrickOrTreat(commands.Cog):
 
             user_name = f"{user_obj.name}#{user_obj.discriminator}"
             if len(user_name) > 28:
-                user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+                user_name = discord.utils.escape_markdown(f"{user_obj.name[:19]}...#{user_obj.discriminator}")
             user_idx = pos + 1
             if user_obj == ctx.author:
                 temp_msg += (
