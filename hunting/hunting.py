@@ -14,7 +14,7 @@ from redbot.core.utils.chat_formatting import (bold, box, humanize_list,
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
-__version__ = "3.1.8"
+__version__ = "3.1.9"
 
 
 class Hunting(commands.Cog):
@@ -208,8 +208,8 @@ class Hunting(commands.Cog):
     async def next(self, ctx):
         """When will the next occurrence happen?"""
         try:
-            self.next_bang[ctx.guild.id]
-            time = abs(datetime.datetime.utcnow() - self.next_bang[ctx.guild.id])
+            hunt = self.next_bang[ctx.guild.id]
+            time = abs(datetime.datetime.utcnow() - hunt)
             total_seconds = int(time.total_seconds())
             hours, remainder = divmod(total_seconds, 60 * 60)
             minutes, seconds = divmod(remainder, 60)
@@ -480,7 +480,7 @@ class Hunting(commands.Cog):
         self.game_tasks.append(task)
         try:
             del self.next_bang[message.guild.id]
-        except KeyError:
+        except (KeyError, AttributeError):
             pass
 
     def cog_unload(self):
