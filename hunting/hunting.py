@@ -14,7 +14,7 @@ from redbot.core.utils.chat_formatting import (bold, box, humanize_list,
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
-__version__ = "3.1.8"
+__version__ = "3.1.9"
 
 
 class Hunting(commands.Cog):
