@@ -348,29 +348,29 @@ class RSS(commands.Cog):
         except aiohttp.ClientConnectorError:
             friendly_msg = "There was an OSError or the connection failed."
             msg = f"aiohttp failure accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
         except aiohttp.ClientPayloadError as e:
             friendly_msg = "The website closed the connection prematurely or the response was malformed.\n"
             friendly_msg += f"The error returned was: `{str(e)}`\n"
             friendly_msg += "For more technical information, check your bot's console or logs."
             msg = f"content error while reading feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
         except asyncio.exceptions.TimeoutError:
             friendly_msg = "The bot timed out while trying to access that content."
             msg = f"asyncio timeout while accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
         except aiohttp.ServerDisconnectedError:
             friendly_msg = "The target server disconnected early without a response."
             msg = f"server disconnected while accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
         except Exception:
             friendly_msg = "There was an unexpected error. Check your console for more information."
             msg = f"General failure accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
 
     async def _fetch_feedparser_object(self, url: str):
@@ -497,7 +497,7 @@ class RSS(commands.Cog):
         try:
             result = urlparse(url)
         except Exception as e:
-            log.exception(e, exc_info=e)
+            log.debug(e, exc_info=e)
             return False
 
         if not all([result.scheme, result.netloc, result.path]):
@@ -532,10 +532,10 @@ class RSS(commands.Cog):
         except aiohttp.InvalidURL:
             return None
         except asyncio.exceptions.TimeoutError:
-            log.error(f"asyncio timeout while accessing image at url:\n\t{url}", exc_info=True)
+            log.warning(f"asyncio timeout while accessing image at url:\n\t{url}", exc_info=True)
             return None
         except Exception:
-            log.error(f"Failure accessing image in embed feed at url:\n\t{url}", exc_info=True)
+            log.warning(f"Failure accessing image in embed feed at url:\n\t{url}", exc_info=True)
             return None
 
     @commands.guild_only()
@@ -796,7 +796,7 @@ class RSS(commands.Cog):
                         "There was an issue trying to find a feed in that site. "
                         "Please check your console for more information."
                     )
-                    log.exception(e, exc_info=e)
+                    log.warning(e, exc_info=e)
                     await ctx.send(msg)
                     return
 
@@ -1259,7 +1259,7 @@ class RSS(commands.Cog):
         if not feedparser_obj:
             return
         with contextlib.suppress(AttributeError):
-            log.debug(f"{feedparser_obj.error} Channel: {channel.id}")
+            log.verbose(f"{feedparser_obj.error} Channel: {channel.id}")
             return
         # sorting the entire feedparser object by updated_parsed time if it exists, if not then published_parsed
         # certain feeds can be rearranged by a user, causing all posts to be out of sequential post order
@@ -1274,7 +1274,7 @@ class RSS(commands.Cog):
         if not force:
             entry_time = await self._time_tag_validation(sorted_feed_by_post_time[0])
             if (last_time and entry_time) is not None and last_time > entry_time:
-                log.debug("Not posting because new entry is older than last saved entry.")
+                log.verbose("Not posting because new entry is older than last saved entry.")
                 return
             try:
                 title = sorted_feed_by_post_time[0].title
@@ -1314,12 +1314,12 @@ class RSS(commands.Cog):
                 # where an update on the last post should be posted
                 # this can be overridden by a bot owner in the rss parse command, per problematic website
                 if (last_title == entry_title) and (last_link == entry_link) and (last_time < entry_time):
-                    log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
+                    log.verbose(f"New update found for an existing post in {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
                 # regular feed qualification after this
                 if (last_link != entry_link) and (last_time < entry_time):
-                    log.debug(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
+                    log.verbose(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
                 if (
@@ -1328,21 +1328,21 @@ class RSS(commands.Cog):
                     and last_link != entry_link
                     and last_time < entry_time
                 ):
-                    log.debug(f"New entry found via time validation for feed {name} on cid {channel.id} - no title")
+                    log.verbose(f"New entry found via time validation for feed {name} on cid {channel.id} - no title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
 
             elif (entry_time or last_time) is None:
                 if last_title == entry_title and last_link == entry_link:
-                    log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
+                    log.verbose(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
                     break
                 else:
-                    log.debug(f"New entry found for feed {name} on cid {channel.id} via new link or title")
+                    log.verbose(f"New entry found for feed {name} on cid {channel.id} via new link or title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
 
             else:
-                log.debug(
+                log.verbose(
                     f"Breaking rss entry loop for {name} on {channel.id}, we found where we are supposed to be caught up to"
                 )
                 break
@@ -1369,7 +1369,7 @@ class RSS(commands.Cog):
             except AttributeError:
                 curr_title = ""
             except IndexError:
-                log.debug(f"No entries found for feed {name} on cid {channel.id}")
+                log.verbose(f"No entries found for feed {name} on cid {channel.id}")
                 return
 
             # allowed tag verification section
@@ -1379,7 +1379,7 @@ class RSS(commands.Cog):
                 feed_tag_list = [x.lower() for x in feedparser_plus_obj.get("tags_list", [])]
                 intersection = list(set(feed_tag_list).intersection(allowed_post_tags))
                 if not intersection:
-                    log.debug(
+                    log.verbose(
                         f"{name} feed post in {channel.name} ({channel.id}) was denied because of an allowed tag mismatch."
                     )
                     continue
@@ -1392,7 +1392,7 @@ class RSS(commands.Cog):
                 message = None
 
             if not message:
-                log.debug(f"{name} feed in {channel.name} ({channel.id}) has no valid tags, not posting anything.")
+                log.verbose(f"{name} feed in {channel.name} ({channel.id}) has no valid tags, not posting anything.")
                 return
 
             embed_toggle = rss_feed["embed"]
@@ -1516,17 +1516,17 @@ class RSS(commands.Cog):
                     config_data = await self.config.all_channels()
                     if not config_data:
                         # nothing to check
-                        log.debug("Sleeping, nothing to do")
+                        log.trace("Sleeping, nothing to do")
                         await asyncio.sleep(30)
                         continue
                     wait = 300 - self._post_queue_size if self._post_queue_size < 300 else 0
-                    log.debug(f"Waiting {wait}s before starting...")
+                    log.trace(f"Waiting {wait}s before starting...")
                     await asyncio.sleep(wait)
                     await self._put_feeds_in_queue()
                     if self._post_queue.qsize() > self._post_queue_size:
                         # there's been more feeds added so let's update the total size
                         # so feeds have the proper wait time @ > 300 feeds
-                        log.debug(f"Updating total queue size to {self._post_queue.qsize()}")
+                        log.trace(f"Updating total queue size to {self._post_queue.qsize()}")
                         self._post_queue_size = self._post_queue.qsize()
                     continue
                 else:
@@ -1536,17 +1536,17 @@ class RSS(commands.Cog):
                             queue_item[2].channel, queue_item[2].feed_name, queue_item[2].feed_data
                         )
                     except aiohttp.InvalidURL:
-                        log.debug(f"Feed at {queue_item[2].feed_name} is bad or took too long to respond.")
+                        log.trace(f"Feed at {queue_item[2].feed_name} is bad or took too long to respond.")
                         continue
 
                     wait = 1 if self._post_queue_size < 300 else (300 - 10) / self._post_queue_size
-                    log.debug(f"sleeping for {wait}...")
+                    log.trace(f"sleeping for {wait}...")
                     await asyncio.sleep(wait)
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                log.error("An error has occurred in the RSS cog. Please report it.", exc_info=e)
+                log.warning("An error has occurred in the RSS cog. Please report it.", exc_info=e)
                 continue
 
     async def _put_feeds_in_queue(self):
@@ -1569,11 +1569,11 @@ class RSS(commands.Cog):
                         channel_index = keys.index(feed_name)
                         total_index += 1
                         queue_entry = [channel_index, total_index, rss_feed]
-                        log.debug(f"Putting {channel_index}-{total_index}-{channel}-{feed_name} in queue")
+                        log.verbose(f"Putting {channel_index}-{total_index}-{channel}-{feed_name} in queue")
                         await self._post_queue.put(queue_entry)
 
         except Exception as e:
-            log.exception(e, exc_info=e)
+            log.warning(e, exc_info=e)
 
     async def _get_next_in_queue(self):
         try:
