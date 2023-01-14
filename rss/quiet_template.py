@@ -8,8 +8,8 @@ class QuietTemplate(Template):
     https://github.com/python/cpython/blob/919f0bc8c904d3aa13eedb2dd1fe9c6b0555a591/Lib/string.py#L123
     """
 
-    def quiet_safe_substitute(self, mapping={}, /, **kws):
-        if mapping is {}:
+    def quiet_safe_substitute(self, mapping=None, /, **kws):
+        if mapping is None:
             mapping = kws
         elif kws:
             mapping = ChainMap(kws, mapping)

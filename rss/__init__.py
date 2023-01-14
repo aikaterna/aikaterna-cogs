@@ -7,5 +7,5 @@ __red_end_user_data_statement__ = "This cog does not persistently store data or 
 
 async def setup(bot: commands.Bot):
     n = RSS(bot)
-    bot.add_cog(n)
+    await bot.add_cog(n)
     n.initialize()
