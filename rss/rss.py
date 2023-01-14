@@ -1396,7 +1396,7 @@ class RSS(commands.Cog):
                 return
 
             embed_toggle = rss_feed["embed"]
-            red_embed_settings = await self.bot.embed_requested(channel)
+            red_embed_settings = await self.bot.embed_requested(channel=channel)
             embed_permissions = channel.permissions_for(channel.guild.me).embed_links
 
             rss_limit = rss_feed.get("limit", 0)
