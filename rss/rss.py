@@ -30,7 +30,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.8.1"
+__version__ = "1.9.0"
 
 
 class RSS(commands.Cog):
