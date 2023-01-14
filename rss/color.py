@@ -1,3 +1,4 @@
+import contextlib
 from math import sqrt
 import discord
 import re
@@ -74,26 +75,17 @@ class Color:
         Input:    discord.Color name, CSS3 color name, 0xFFFFFF, #FFFFFF, FFFFFF
         Output:   0xFFFFFF
         """
-        # #FFFFFF and FFFFFF to 0xFFFFFF
-        hex_match = re.match(r"#?[a-f0-9]{6}", hex_code_or_color_word.lower())
-        if hex_match:
-            hex_code = f"0x{hex_code_or_color_word.lstrip('#')}"
-            return hex_code
-
+        if hex_match := re.match(r"#?[a-f0-9]{6}", hex_code_or_color_word.lower()):
+            return f"0x{hex_code_or_color_word.lstrip('#')}"
         # discord.Color checking
         if hasattr(discord.Color, hex_code_or_color_word):
             hex_code = str(getattr(discord.Color, hex_code_or_color_word)())
-            hex_code = hex_code.replace("#", "0x")
-            return hex_code
-
+            return hex_code.replace("#", "0x")
         # CSS3 color name checking
-        try:
+        with contextlib.suppress(ValueError):
             hex_code = webcolors.name_to_hex(hex_code_or_color_word, spec="css3")
             hex_code = hex_code.replace("#", "0x")
             return hex_code
-        except ValueError:
-            pass
-
         return None
 
     async def _hex_to_css3_name(self, hex_code: str):
@@ -121,7 +113,7 @@ class Color:
         Input:  0xFFFFFF
         Output: #FFFFFF or None
         """
-        if hex_code[:2] == "0x":
+        if hex_code.startswith("0x"):
             hex_code = hex_code.replace("0x", "#")
         try:
             # just a check to make sure it's a real color hex code
