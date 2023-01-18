@@ -1245,7 +1245,7 @@ class RSS(commands.Cog):
 
     async def get_current_feed(self, channel: discord.TextChannel, name: str, rss_feed: dict, *, force: bool = False):
         """Takes an RSS feed and builds an object with all extra tags"""
-        log.debug(f"getting feed {name} on cid {channel.id}")
+        log.verbose(f"getting feed {name} on cid {channel.id}")
         url = rss_feed["url"]
         last_title = rss_feed["last_title"]
         # last_link is a get for feeds saved before RSS 1.1.5 which won't have this attrib till it's checked once
@@ -1550,7 +1550,7 @@ class RSS(commands.Cog):
                 continue
 
     async def _put_feeds_in_queue(self):
-        log.debug("Putting feeds in queue")
+        log.verbose("Putting feeds in queue")
         try:
             config_data = await self.config.all_channels()
             total_index = 0
