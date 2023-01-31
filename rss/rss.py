@@ -43,7 +43,7 @@ warnings.filterwarnings(
         " `updated_parsed` to `published_parsed` if `updated_parsed` doesn't exist"
     )
 )
-warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
+warnings.filterwarnings("ignore", module="rss", category=MarkupResemblesLocatorWarning)
 
 
 class RSS(commands.Cog):
