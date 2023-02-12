@@ -19,7 +19,7 @@ discordexperiments - Create voice channel invites for various built-in apps. Thi
 
 embedpeek - Take a closer look at or unpack embed content. This cog is mostly a developer tool.
 
-hunting - A long overdue port of Paddo's v2 hunting game to v3.
+hunting - Hunting has moved to Vertyco's repo at https://github.com/vertyco/vrt-cogs
 
 icyparser - Show icecast/shoutcast stream information. An audio addon cog to show the current stream info, or provide a url yourself.
 
