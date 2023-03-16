@@ -1,3 +1,5 @@
+import asyncio
+
 from .trickortreat import TrickOrTreat
 
 __red_end_user_data_statement__ = (
@@ -11,4 +13,6 @@ __red_end_user_data_statement__ = (
 
 
 def setup(bot):
-    bot.add_cog(TrickOrTreat(bot))
+    cog = TrickOrTreat(bot)
+    bot.add_cog(cog)
+    asyncio.create_task(cog.cleanup())
