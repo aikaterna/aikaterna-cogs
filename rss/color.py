@@ -75,6 +75,7 @@ class Color:
         Input:    discord.Color name, CSS3 color name, 0xFFFFFF, #FFFFFF, FFFFFF
         Output:   0xFFFFFF
         """
+        # #FFFFFF and FFFFFF to 0xFFFFFF
         if hex_match := re.match(r"#?[a-f0-9]{6}", hex_code_or_color_word.lower()):
             return f"0x{hex_code_or_color_word.lstrip('#')}"
         # discord.Color checking
