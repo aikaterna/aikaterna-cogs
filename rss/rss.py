@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
+import contextlib
 import copy
 import datetime
 import discord
@@ -16,6 +17,7 @@ from typing import Optional, Union
 from types import MappingProxyType, SimpleNamespace
 from urllib.parse import urlparse
 
+from red_commons.logging import getLogger
 from redbot.core import checks, commands, Config
 from redbot.core.utils import can_user_send_messages_in
 from redbot.core.utils.chat_formatting import bold, box, escape, humanize_list, pagify
@@ -25,7 +27,7 @@ from .quiet_template import QuietTemplate
 from .rss_feed import RssFeed
 from .tag_type import INTERNAL_TAGS, VALID_IMAGES, TagType
 
-log = logging.getLogger("red.aikaterna.rss")
+log = getLogger("red.aikaterna.rss")
 
 
 IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
@@ -82,15 +84,12 @@ class RSS(commands.Cog):
         $content_images should always be marked as a special tag as the tags will
         be dynamically generated based on the content included in the latest post.
         """
-        content_images = bs4_soup.find_all("img")
-        if content_images:
+        if content_images := bs4_soup.find_all("img"):
             for i, image in enumerate(content_images):
                 tag_name = f"content_image{str(i + 1).zfill(2)}"
-                try:
+                with contextlib.suppress(KeyError):
                     rss_object[tag_name] = image["src"]
                     rss_object["is_special"].append(tag_name)
-                except KeyError:
-                    pass
         return rss_object
 
     async def _add_feed(self, ctx, feed_name: str, channel: GuildMessageable, url: str):
@@ -135,7 +134,7 @@ class RSS(commands.Cog):
         for element in bs4_soup.descendants:
             if isinstance(element, str):
                 text += element
-            elif element.name == "br" or element.name == "p" or element.name == "li":
+            elif element.name in {"br", "p", "li"}:
                 text += "\n"
         text = re.sub("\\n+", "\n", text)
         text = text.replace("*", "\\*")
@@ -159,25 +158,16 @@ class RSS(commands.Cog):
 
             if tag_content_check == TagType.HTML:
                 # this is a tag that is only html content
-                try:
+                with contextlib.suppress(TypeError):
                     soup = BeautifulSoup(tag_content, "html.parser")
-                except TypeError:
-                    pass
-
                 # this is a standard html format summary_detail tag
                 # the tag was determined to be html through the type attrib that
                 # was attached from the feed publisher but it's really a dict.
-                try:
+                with contextlib.suppress(KeyError, TypeError):
                     soup = BeautifulSoup(tag_content["value"], "html.parser")
-                except (KeyError, TypeError):
-                    pass
-
                 # this is a standard html format content or summary tag
-                try:
+                with contextlib.suppress(KeyError, TypeError):
                     soup = BeautifulSoup(tag_content[0]["value"], "html.parser")
-                except (KeyError, TypeError):
-                    pass
-
                 if soup:
                     rss_object[f"{tag_name}_plaintext"] = self._add_generic_html_plaintext(soup)
 
@@ -187,12 +177,12 @@ class RSS(commands.Cog):
                 for list_item in tag_content:
                     list_item_check = await self._get_tag_content_type(list_item)
 
-                    # for common "links" format or when "content" is a list
-                    list_html_content_counter = 0
                     if list_item_check == TagType.HTML:
                         list_tags = ["value", "href"]
+                        # for common "links" format or when "content" is a list
+                        list_html_content_counter = 0
                         for tag in list_tags:
-                            try:
+                            with contextlib.suppress(KeyError, TypeError):
                                 url_check = await self._valid_url(list_item[tag], feed_check=False)
                                 if not url_check:
                                     # bs4 will cry if you try to give it a url to parse, so let's only
@@ -205,30 +195,24 @@ class RSS(commands.Cog):
                                 name = f"{tag_name}_plaintext{str(list_html_content_counter).zfill(2)}"
                                 rss_object[name] = tag_content
                                 rss_object["is_special"].append(name)
-                            except (KeyError, TypeError):
-                                pass
-
                     if list_item_check == TagType.DICT:
                         authors_content_counter = 0
                         enclosure_content_counter = 0
                         enclosure_url_counter = 0
 
                         # common "authors" tag format
-                        try:
+                        with contextlib.suppress(KeyError):
                             authors_content_counter += 1
                             name = f"{tag_name}_plaintext{str(authors_content_counter).zfill(2)}"
                             tag_content = BeautifulSoup(list_item["name"], "html.parser")
                             rss_object[name] = tag_content.get_text()
                             rss_object["is_special"].append(name)
-                        except KeyError:
-                            pass
-
                         # common "enclosure" tag image format
                         # note: this is not adhering to RSS feed specifications
                         # proper enclosure tags should have `length`, `type`, `url`
                         # and not `href`, `type`, `rel`
                         # but, this is written for the first feed I have seen with an "enclosure" tag
-                        try:
+                        with contextlib.suppress(KeyError):
                             image_url = list_item["href"]
                             image_type = list_item["type"]
                             image_rel = list_item["rel"]
@@ -236,64 +220,46 @@ class RSS(commands.Cog):
                             name = f"media_plaintext{str(enclosure_content_counter).zfill(2)}"
                             rss_object[name] = image_url
                             rss_object["is_special"].append(name)
-                        except KeyError:
-                            pass
 
                         # special tag for enclosure["url"] so that users can differentiate them
                         # from image urls found in enclosure["href"]
-                        try:
+                        with contextlib.suppress(KeyError):
                             image_url = list_item["url"]
                             enclosure_url_counter += 1
                             name = f"media_url{str(enclosure_url_counter).zfill(2)}"
                             rss_object[name] = image_url
                             rss_object["is_special"].append(name)
-                        except KeyError:
-                            pass
 
                         # common "tags" tag format
-                        try:
+                        with contextlib.suppress(KeyError):
                             tag = list_item["term"]
                             tags_content_counter += 1
                             name = f"{tag_name}_plaintext{str(tags_content_counter).zfill(2)}"
                             rss_object[name] = tag
                             rss_object["is_special"].append(name)
                             tags_list.append(tag) if tag not in tags_list else tags_list
-                        except KeyError:
-                            pass
-
-                if len(tags_list) > 0:
+                if tags_list:
                     rss_object["tags_list"] = tags_list
                     rss_object["tags_plaintext_list"] = humanize_list(tags_list)
                     rss_object["is_special"].append("tags_list")
                     rss_object["is_special"].append("tags_plaintext_list")
 
         # if image dict tag exists, check for an image
-        try:
+        with contextlib.suppress(KeyError):
             rss_object["image_plaintext"] = rss_object["image"]["href"]
             rss_object["is_special"].append("image_plaintext")
-        except KeyError:
-            pass
-
         # if media_thumbnail or media_content exists, return the first friendly url
-        try:
+        with contextlib.suppress(KeyError):
             rss_object["media_content_plaintext"] = rss_object["media_content"][0]["url"]
             rss_object["is_special"].append("media_content_plaintext")
-        except KeyError:
-            pass
-        try:
+        with contextlib.suppress(KeyError):
             rss_object["media_thumbnail_plaintext"] = rss_object["media_thumbnail"][0]["url"]
             rss_object["is_special"].append("media_thumbnail_plaintext")
-        except KeyError:
-            pass
-
         # change published_parsed and updated_parsed into a datetime object for embed footers
         for time_tag in ["updated_parsed", "published_parsed"]:
-            try:
+            with contextlib.suppress(KeyError):
                 if isinstance(rss_object[time_tag], time.struct_time):
                     rss_object[f"{time_tag}_datetime"] = datetime.datetime(*rss_object[time_tag][:6])
-            except KeyError:
-                pass
-
         if soup:
             rss_object = self._add_content_images(soup, rss_object)
 
@@ -331,10 +297,7 @@ class RSS(commands.Cog):
 
     async def _check_feed_existing(self, ctx, feed_name: str, channel: GuildMessageable):
         """Helper for rss functions."""
-        rss_feed = await self.config.channel(channel).feeds.get_raw(feed_name, default=None)
-        if not rss_feed:
-            return False
-        return True
+        return bool(await self.config.channel(channel).feeds.get_raw(feed_name, default=None))
 
     async def _delete_feed(self, ctx, feed_name: str, channel: GuildMessageable):
         """Helper for rss delete."""
@@ -362,12 +325,10 @@ class RSS(commands.Cog):
     def _find_website(website_url: str):
         """Helper for rss parse."""
         result = urlparse(website_url)
-        if result.scheme:
-            # https://www.website.com/...
-            if result.netloc:
-                website = result.netloc
-            else:
-                return None
+        if result.scheme and result.netloc:
+            website = result.netloc
+        elif result.scheme or not result.path:
+            return None
         else:
             # www.website.com/...
             if result.path:
@@ -433,32 +394,32 @@ class RSS(commands.Cog):
                         return None, friendly_msg
                     html = await resp.read()
             return html, None
-        except aiohttp.client_exceptions.ClientConnectorError:
+        except aiohttp.ClientConnectorError:
             friendly_msg = "There was an OSError or the connection failed."
             msg = f"aiohttp failure accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
-        except aiohttp.client_exceptions.ClientPayloadError as e:
+        except aiohttp.ClientPayloadError as e:
             friendly_msg = "The website closed the connection prematurely or the response was malformed.\n"
             friendly_msg += f"The error returned was: `{str(e)}`\n"
             friendly_msg += "For more technical information, check your bot's console or logs."
             msg = f"content error while reading feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
         except asyncio.exceptions.TimeoutError:
             friendly_msg = "The bot timed out while trying to access that content."
             msg = f"asyncio timeout while accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
-        except aiohttp.client_exceptions.ServerDisconnectedError:
+        except aiohttp.ServerDisconnectedError:
             friendly_msg = "The target server disconnected early without a response."
             msg = f"server disconnected while accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
         except Exception:
             friendly_msg = "There was an unexpected error. Check your console for more information."
             msg = f"General failure accessing feed at url:\n\t{url}"
-            log.error(msg, exc_info=True)
+            log.warning(msg, exc_info=True)
             return None, friendly_msg
 
     async def _fetch_feedparser_object(self, url: str):
@@ -505,7 +466,7 @@ class RSS(commands.Cog):
         except KeyError:
             feedparser_plus_obj_link = ""
 
-        rss_object = RssFeed(
+        return RssFeed(
             name=feed_name.lower(),
             last_title=feedparser_plus_obj_title,
             last_link=feedparser_plus_obj_link,
@@ -516,8 +477,6 @@ class RSS(commands.Cog):
             is_special=feedparser_plus_obj["is_special"],
             embed=True,
         )
-
-        return rss_object
 
     async def _sort_by_post_time(self, feedparser_obj: feedparser.util.FeedParserDict):
         base_url = urlparse(feedparser_obj[0].get("link")).netloc
@@ -540,8 +499,7 @@ class RSS(commands.Cog):
 
     async def _time_tag_validation(self, entry: feedparser.util.FeedParserDict):
         """Gets a unix timestamp if it's available from a single feedparser post entry."""
-        feed_link = entry.get("link", None)
-        if feed_link:
+        if feed_link := entry.get("link", None):
             base_url = urlparse(feed_link).netloc
         else:
             return None
@@ -558,9 +516,7 @@ class RSS(commands.Cog):
 
         if isinstance(entry_time, time.struct_time):
             entry_time = time.mktime(entry_time)
-        if entry_time:
-            return int(entry_time)
-        return None
+        return int(entry_time) if entry_time else None
 
     @staticmethod
     async def _title_case(phrase: str):
@@ -580,45 +536,38 @@ class RSS(commands.Cog):
     ):
         """Updates last title and last link seen for comparison on next feed pull."""
         async with self.config.channel(channel).feeds() as feed_data:
-            try:
+            with contextlib.suppress(KeyError):
                 feed_data[feed_name]["last_title"] = current_feed_title
                 feed_data[feed_name]["last_link"] = current_feed_link
                 feed_data[feed_name]["last_time"] = current_feed_time
-            except KeyError:
-                # the feed was deleted during a _get_current_feed execution
-                pass
 
     async def _valid_url(self, url: str, feed_check=True):
         """Helper for rss add."""
         try:
             result = urlparse(url)
         except Exception as e:
-            log.exception(e, exc_info=e)
+            log.debug(e, exc_info=e)
             return False
 
-        if all([result.scheme, result.netloc, result.path]):
-            if feed_check:
-                text, error_msg = await self._get_url_content(url)
-                if not text:
-                    raise NoFeedContent(error_msg)
-                    return False
+        if not all([result.scheme, result.netloc, result.path]):
+            return False
+        if not feed_check:
+            return True
+        text, error_msg = await self._get_url_content(url)
+        if not text:
+            raise NoFeedContent(error_msg)
 
-                rss = feedparser.parse(text)
-                if rss.bozo:
-                    error_message = rss.feed.get("summary", str(rss))[:1500]
-                    error_message = re.sub(IPV4_RE, "[REDACTED IP ADDRESS]", error_message)
-                    error_message = re.sub(IPV6_RE, "[REDACTED IP ADDRESS]", error_message)
-                    msg = f"Bozo feed: feedparser is unable to parse the response from {url}.\n\n"
-                    msg += "Received content preview:\n"
-                    msg += box(error_message)
-                    raise NoFeedContent(msg)
-                    return False
-                else:
-                    return True
-            else:
-                return True
+        rss = feedparser.parse(text)
+        if rss.bozo:
+            error_message = rss.feed.get("summary", str(rss))[:1500]
+            error_message = re.sub(IPV4_RE, "[REDACTED IP ADDRESS]", error_message)
+            error_message = re.sub(IPV6_RE, "[REDACTED IP ADDRESS]", error_message)
+            msg = f"Bozo feed: feedparser is unable to parse the response from {url}.\n\n"
+            msg += "Received content preview:\n"
+            msg += box(error_message)
+            raise NoFeedContent(msg)
         else:
-            return False
+            return True
 
     async def _validate_image(self, url: str):
         """Helper for _get_current_feed_embed."""
@@ -635,10 +584,10 @@ class RSS(commands.Cog):
         except aiohttp.client_exceptions.InvalidURL:
             return None
         except asyncio.exceptions.TimeoutError:
-            log.error(f"asyncio timeout while accessing image at url:\n\t{url}", exc_info=True)
+            log.warning(f"asyncio timeout while accessing image at url:\n\t{url}", exc_info=True)
             return None
         except Exception:
-            log.error(f"Failure accessing image in embed feed at url:\n\t{url}", exc_info=True)
+            log.warning(f"Failure accessing image in embed feed at url:\n\t{url}", exc_info=True)
             return None
 
     @commands.guild_only()
@@ -880,24 +829,26 @@ class RSS(commands.Cog):
                 try:
                     async with session.get(website_url) as response:
                         soup = BeautifulSoup(await response.text(errors="replace"), "html.parser")
-                except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientPayloadError):
+                except (aiohttp.ClientConnectorError, aiohttp.ClientPayloadError):
                     await ctx.send("I can't reach that website.")
                     return
-                except aiohttp.client_exceptions.InvalidURL:
+                except aiohttp.InvalidURL:
                     await ctx.send(
                         "That seems to be an invalid URL. Use a full website URL like `https://www.site.com/`."
                     )
                     return
-                except aiohttp.client_exceptions.ServerDisconnectedError:
+                except aiohttp.ServerDisconnectedError:
                     await ctx.send("The server disconnected early without a response.")
                     return
                 except asyncio.exceptions.TimeoutError:
                     await ctx.send("The site didn't respond in time or there was no response.")
                     return
                 except Exception as e:
-                    msg = "There was an issue trying to find a feed in that site. "
-                    msg += "Please check your console for more information."
-                    log.exception(e, exc_info=e)
+                    msg = (
+                        "There was an issue trying to find a feed in that site. "
+                        "Please check your console for more information."
+                    )
+                    log.warning(e, exc_info=e)
                     await ctx.send(msg)
                     return
 
@@ -1009,10 +960,7 @@ class RSS(commands.Cog):
 
         feeds = await self._get_feed_names(channel)
         msg = f"[ Available Feeds for #{channel.name} ]\n\n\t"
-        if feeds:
-            msg += "\n\t".join(sorted(feeds))
-        else:
-            msg += "\n\tNone."
+        msg += "\n\t".join(sorted(feeds)) if feeds else "\n\tNone."
         for page in pagify(msg, delims=["\n"], page_length=1800):
             await ctx.send(box(page, lang="ini"))
 
@@ -1136,10 +1084,11 @@ class RSS(commands.Cog):
         For more information, use `[p]help rss parse`.
         """
         override_list = await self.config.use_published()
-        if not override_list:
-            msg = "No site overrides saved."
-        else:
-            msg = "Active for:\n" + "\n".join(override_list)
+        msg = (
+            "Active for:\n{0}".format("\n".join(override_list))
+            if override_list
+            else "No site overrides saved."
+        )
         await ctx.send(box(msg))
 
     @_rss_parse.command(name="remove", aliases=["delete", "del"])
@@ -1191,35 +1140,36 @@ class RSS(commands.Cog):
             return
 
         space = "\N{SPACE}"
-        embed_toggle = f"[ ] Embed:{space*16}Off" if not rss_feed["embed"] else f"[X] Embed:{space*16}On"
+        embed_toggle = (
+            f"[X] Embed:{space * 16}On"
+            if rss_feed["embed"]
+            else f"[ ] Embed:{space * 16}Off"
+        )
         embed_image = (
-            f"[ ] Embed image tag:{space*6}None"
-            if not rss_feed["embed_image"]
-            else f"[X] Embed image tag:{space*6}${rss_feed['embed_image']}"
+            f"[X] Embed image tag:{space * 6}${rss_feed['embed_image']}"
+            if rss_feed["embed_image"]
+            else f"[ ] Embed image tag:{space * 6}None"
         )
         embed_thumbnail = (
-            f"[ ] Embed thumbnail tag:{space*2}None"
-            if not rss_feed["embed_thumbnail"]
-            else f"[X] Embed thumbnail tag:{space*2}${rss_feed['embed_thumbnail']}"
+            f"[X] Embed thumbnail tag:{space * 2}${rss_feed['embed_thumbnail']}"
+            if rss_feed["embed_thumbnail"]
+            else f"[ ] Embed thumbnail tag:{space * 2}None"
         )
-        hex_color = rss_feed.get("embed_color", None)
-        if hex_color:
+        if hex_color := rss_feed.get("embed_color", None):
             color_name = await Color()._hex_to_css3_name(hex_color)
             hex_color = hex_color.lstrip("0x")
-        embed_color = (
-            f"[ ] Embed hex color:{space*6}None"
-            if not hex_color
-            else f"[X] Embed hex color:{space*6}{hex_color} ({color_name})"
-        )
-
-        allowed_tags = rss_feed.get("allowed_tags", [])
-        if not allowed_tags:
-            tag_msg = "[ ] No restrictions\n\tAll tags are allowed."
+            embed_color = f"[X] Embed hex color:{space*6}{hex_color} ({color_name})"
         else:
+            embed_color = "[ ] Embed hex color:{space*6}None"
+
+
+        if allowed_tags := rss_feed.get("allowed_tags", []):
             tag_msg = "[X] Feed is restricted to posts that include:"
             for tag in allowed_tags:
                 tag_msg += f"\n\t{await self._title_case(tag)}"
 
+        else:
+            tag_msg = "[ ] No restrictions\n\tAll tags are allowed."
         character_limit = rss_feed.get("limit", 0)
         if character_limit == 0:
             length_msg = "[ ] Feed length is unlimited."
@@ -1279,13 +1229,12 @@ class RSS(commands.Cog):
             return
 
         msg = f"[ Allowed Tags for {feed_name} ]\n\n\t"
-        allowed_tags = rss_feed.get("allowed_tags", [])
-        if not allowed_tags:
-            msg += "All tags are allowed."
-        else:
+        if allowed_tags := rss_feed.get("allowed_tags", []):
             for tag in allowed_tags:
                 msg += f"{await self._title_case(tag)}\n"
 
+        else:
+            msg += "All tags are allowed."
         await ctx.send(box(msg, lang="ini"))
 
     @_rss_tag.command(name="remove", aliases=["delete"])
@@ -1401,25 +1350,22 @@ class RSS(commands.Cog):
 
     async def get_current_feed(self, channel: GuildMessageable, name: str, rss_feed: dict, *, force: bool = False):
         """Takes an RSS feed and builds an object with all extra tags"""
-        log.debug(f"getting feed {name} on cid {channel.id}")
+        log.verbose(f"getting feed {name} on cid {channel.id}")
         url = rss_feed["url"]
         last_title = rss_feed["last_title"]
         # last_link is a get for feeds saved before RSS 1.1.5 which won't have this attrib till it's checked once
-        last_link = rss_feed.get("last_link", None)
+        last_link = rss_feed.get("last_link")
         # last_time is a get for feeds saved before RSS 1.1.7 which won't have this attrib till it's checked once
-        last_time = rss_feed.get("last_time", None)
+        last_time = rss_feed.get("last_time")
         template = rss_feed["template"]
         message = None
 
         feedparser_obj = await self._fetch_feedparser_object(url)
         if not feedparser_obj:
             return
-        try:
-            log.debug(f"{feedparser_obj.error} Channel: {channel.id}")
+        with contextlib.suppress(AttributeError):
+            log.verbose(f"{feedparser_obj.error} Channel: {channel.id}")
             return
-        except AttributeError:
-            pass
-
         # sorting the entire feedparser object by updated_parsed time if it exists, if not then published_parsed
         # certain feeds can be rearranged by a user, causing all posts to be out of sequential post order
         # or some feeds are out of time order by default
@@ -1432,10 +1378,9 @@ class RSS(commands.Cog):
 
         if not force:
             entry_time = await self._time_tag_validation(sorted_feed_by_post_time[0])
-            if (last_time and entry_time) is not None:
-                if last_time > entry_time:
-                    log.debug("Not posting because new entry is older than last saved entry.")
-                    return
+            if (last_time and entry_time) is not None and last_time > entry_time:
+                log.verbose("Not posting because new entry is older than last saved entry.")
+                return
             try:
                 title = sorted_feed_by_post_time[0].title
             except AttributeError:
@@ -1475,25 +1420,25 @@ class RSS(commands.Cog):
                 # if a feed is spamming updated times with no content update, consider adding the full website
                 # (www.website.com) to the rss parse command
                 if (last_title == entry_title) and (last_link == entry_link) and (last_time < entry_time):
-                    log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
+                    log.verbose(f"New update found for an existing post in {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
                 else:
                     # a post from the future, or we are caught up
                     if last_time >= entry_time:
-                        log.debug(f"Up to date on {name} on cid {channel.id}")
+                        log.verbose(f"Up to date on {name} on cid {channel.id}")
                         break
 
                     # a new post
                     if last_link != entry_link:
-                        log.debug(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
+                        log.verbose(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
                         feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                         feedparser_plus_objects.append(feedparser_plus_obj)
 
                     else:
                         # I don't belive this ever should be hit but this is a catch to debug
                         # a feed in case one ever appears that does this
-                        log.debug(
+                        log.verbose(
                             f"*** This post qualified via timestamp check but has the same link as last: {entry_title[:25]} | {entry_link}"
                         )
 
@@ -1502,16 +1447,15 @@ class RSS(commands.Cog):
             # this may need more definition in the future if there is a feed that provides new titles but not new links etc
             elif entry_time is None or last_time is None:
                 if last_title == entry_title and last_link == entry_link:
-                    log.debug(f"Up to date on {name} on {channel.id} via link match, no time to compare")
+                    log.verbose(f"Up to date on {name} on {channel.id} via link match, no time to compare")
                     break
                 else:
-                    log.debug(f"New entry found for feed {name} on cid {channel.id} via new link or title")
+                    log.verbose(f"New entry found for feed {name} on cid {channel.id} via new link or title")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
 
-            # we found a match for a previous feed post
             else:
-                log.debug(
+                log.verbose(
                     f"Breaking rss entry loop for {name} on {channel.id}, we found where we are supposed to be caught up to"
                 )
                 break
@@ -1520,7 +1464,7 @@ class RSS(commands.Cog):
 
         #  if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
         #      msg = (f"Couldn't match anything for feed {name} on cid {channel.id}, or switching between feed header and feed entry, only posting 1 post")
-        #      log.debug(msg)
+        #      log.verbose(msg)
         #      feedparser_plus_objects = [feedparser_plus_objects[0]]
 
         if not feedparser_plus_objects:
@@ -1540,7 +1484,7 @@ class RSS(commands.Cog):
             except AttributeError:
                 curr_title = ""
             except IndexError:
-                log.debug(f"No entries found for feed {name} on cid {channel.id}")
+                log.verbose(f"No entries found for feed {name} on cid {channel.id}")
                 return
 
             # allowed tag verification section
@@ -1549,8 +1493,8 @@ class RSS(commands.Cog):
                 allowed_post_tags = [x.lower() for x in allowed_tags]
                 feed_tag_list = [x.lower() for x in feedparser_plus_obj.get("tags_list", [])]
                 intersection = list(set(feed_tag_list).intersection(allowed_post_tags))
-                if len(intersection) == 0:
-                    log.debug(
+                if not intersection:
+                    log.verbose(
                         f"{name} feed post in {channel.name} ({channel.id}) was denied because of an allowed tag mismatch."
                     )
                     continue
@@ -1563,7 +1507,7 @@ class RSS(commands.Cog):
                 message = None
 
             if not message:
-                log.debug(f"{name} feed in {channel.name} ({channel.id}) has no valid tags, not posting anything.")
+                log.verbose(f"{name} feed in {channel.name} ({channel.id}) has no valid tags, not posting anything.")
                 return
 
             embed_toggle = rss_feed["embed"]
@@ -1643,7 +1587,7 @@ class RSS(commands.Cog):
             embed = discord.Embed(description=page)
             if rss_feed["embed_color"]:
                 color = int(rss_feed["embed_color"], 16)
-                embed.color = discord.Color(color)
+                embed.colour = discord.Color(color)
             embed_list.append(embed)
 
         if len(embed_list) == 0:
@@ -1652,36 +1596,27 @@ class RSS(commands.Cog):
         # Add published timestamp to the last footer if it exists
         time_tags = ["updated_parsed_datetime", "published_parsed_datetime"]
         for time_tag in time_tags:
-            try:
+            with contextlib.suppress(KeyError):
                 published_time = feedparser_plus_obj[time_tag]
                 embed = embed_list[-1]
                 embed.timestamp = published_time
                 break
-            except KeyError:
-                pass
-
         # Add embed image to last embed if it's set
-        try:
+        with contextlib.suppress(KeyError):
             embed_image_tag = rss_feed["embed_image"]
             embed_image_url = feedparser_plus_obj[embed_image_tag]
             img_type = await self._validate_image(embed_image_url)
             if img_type in VALID_IMAGES:
                 embed = embed_list[-1]
                 embed.set_image(url=embed_image_url)
-        except KeyError:
-            pass
-
         # Add embed thumbnail to first embed if it's set
-        try:
+        with contextlib.suppress(KeyError):
             embed_thumbnail_tag = rss_feed["embed_thumbnail"]
             embed_thumbnail_url = feedparser_plus_obj[embed_thumbnail_tag]
             img_type = await self._validate_image(embed_thumbnail_url)
             if img_type in VALID_IMAGES:
                 embed = embed_list[0]
                 embed.set_thumbnail(url=embed_thumbnail_url)
-        except KeyError:
-            pass
-
         for embed in embed_list:
             await channel.send(embed=embed)
 
@@ -1700,25 +1635,17 @@ class RSS(commands.Cog):
                     config_data = await self.config.all_channels()
                     if not config_data:
                         # nothing to check
-                        log.debug(f"Sleeping, nothing to do")
+                        log.trace("Sleeping, nothing to do")
                         await asyncio.sleep(30)
                         continue
-                    if self._post_queue_size < 300:
-                        # less than 300 entries to check means 1/sec check times
-                        # the wait is (5 min - entry count) before posting again
-                        wait = 300 - self._post_queue_size
-                    else:
-                        # more than 300 entries means we used the whole 5 min
-                        # to check and post feeds so don't wait any longer to start again
-                        wait = 0
-
-                    log.debug(f"Waiting {wait}s before starting...")
+                    wait = 300 - self._post_queue_size if self._post_queue_size < 300 else 0
+                    log.trace(f"Waiting {wait}s before starting...")
                     await asyncio.sleep(wait)
                     await self._put_feeds_in_queue()
                     if self._post_queue.qsize() > self._post_queue_size:
                         # there's been more feeds added so let's update the total size
                         # so feeds have the proper wait time @ > 300 feeds
-                        log.debug(f"Updating total queue size to {self._post_queue.qsize()}")
+                        log.trace(f"Updating total queue size to {self._post_queue.qsize()}")
                         self._post_queue_size = self._post_queue.qsize()
                     continue
                 else:
@@ -1728,24 +1655,21 @@ class RSS(commands.Cog):
                             queue_item[2].channel, queue_item[2].feed_name, queue_item[2].feed_data
                         )
                     except aiohttp.client_exceptions.InvalidURL as e:
-                        log.debug(f"Feed at {e.url} is bad or took too long to respond.")
+                        log.trace(f"Feed at {e.url} is bad or took too long to respond.")
                         continue
 
-                    if self._post_queue_size < 300:
-                        wait = 1
-                    else:
-                        wait = (300 - 10) / self._post_queue_size
-                    log.debug(f"sleeping for {wait}...")
+                    wait = 1 if self._post_queue_size < 300 else (300 - 10) / self._post_queue_size
+                    log.trace(f"sleeping for {wait}...")
                     await asyncio.sleep(wait)
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                log.error("An error has occurred in the RSS cog. Please report it.", exc_info=e)
+                log.warning("An error has occurred in the RSS cog. Please report it.", exc_info=e)
                 continue
 
     async def _put_feeds_in_queue(self):
-        log.debug("Putting feeds in queue")
+        log.verbose("Putting feeds in queue")
         try:
             config_data = await self.config.all_channels()
             total_index = 0
@@ -1764,11 +1688,11 @@ class RSS(commands.Cog):
                         channel_index = keys.index(feed_name)
                         total_index += 1
                         queue_entry = [channel_index, total_index, rss_feed]
-                        log.debug(f"Putting {channel_index}-{total_index}-{channel}-{feed_name} in queue")
+                        log.verbose(f"Putting {channel_index}-{total_index}-{channel}-{feed_name} in queue")
                         await self._post_queue.put(queue_entry)
 
         except Exception as e:
-            log.exception(e, exc_info=e)
+            log.warning(e, exc_info=e)
 
     async def _get_next_in_queue(self):
         try:
