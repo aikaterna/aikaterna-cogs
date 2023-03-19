@@ -1160,7 +1160,7 @@ class RSS(commands.Cog):
             hex_color = hex_color.lstrip("0x")
             embed_color = f"[X] Embed hex color:{space*6}{hex_color} ({color_name})"
         else:
-            embed_color = "[ ] Embed hex color:{space*6}None"
+            embed_color = f"[ ] Embed hex color:{space*6}None"
 
 
         if allowed_tags := rss_feed.get("allowed_tags", []):
