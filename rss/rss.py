@@ -5,7 +5,7 @@ import copy
 import datetime
 import discord
 import feedparser
-import imghdr
+import filetype
 import io
 import logging
 import re
@@ -602,10 +602,12 @@ class RSS(commands.Cog):
             timeout = aiohttp.ClientTimeout(total=20)
             async with aiohttp.ClientSession(headers=self._headers, timeout=timeout) as session:
                 async with session.get(url) as resp:
-                    image = await resp.read()
+                    image = await resp.content.read(261)
             img = io.BytesIO(image)
-            image_test = imghdr.what(img)
-            return image_test
+            file_type = filetype.guess(img)
+            if not file_type:
+                return None
+            return file_type.extension
         except aiohttp.client_exceptions.InvalidURL:
             return None
         except asyncio.exceptions.TimeoutError:
