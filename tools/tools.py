@@ -150,7 +150,7 @@ class Tools(commands.Cog):
     async def banlist(self, ctx):
         """Displays the server's banlist."""
         try:
-            banlist = await ctx.guild.bans()
+            banlist = [bans async for bans in ctx.guild.bans()]
         except discord.errors.Forbidden:
             await ctx.send("I do not have the `Ban Members` permission.")
             return
