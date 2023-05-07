@@ -382,9 +382,16 @@ class Otherbot(commands.Cog):
                     if not data["ping"]:
                         await channel.send(f"{after.mention} is offline. {data['offline_emoji']}")
                     else:
-                        await channel.send(
-                            f"<@&{data['ping']}>, {after.mention} is offline. {data['offline_emoji']}"
-                        )
+                        if discord.version_info.minor < 4:
+                            await channel.send(
+                                f"<@&{data['ping']}>, {after.mention} is offline. {data['offline_emoji']}"
+                            )
+                        else:
+                            await channel.send(
+                                f"<@&{data['ping']}>, {after.mention} is offline. {data['offline_emoji']}",
+                                allowed_mentions=discord.AllowedMentions(roles=True)
+                            )
+                            
             except discord.Forbidden:
                 async with self.config.guild(after.guild).watching() as old_data:
                     old_data.remove(after.id)
@@ -414,9 +421,17 @@ class Otherbot(commands.Cog):
                             f"{after.mention} is back online. {data['online_emoji']}"
                         )
                     else:
-                        await channel.send(
-                            f"<@&{data['ping']}>, {after.mention} is back online. {data['online_emoji']}"
-                        )
+                        if discord.version_info.minor < 4:
+                            await channel.send(
+                                f"<@&{data['ping']}>, {after.mention} is back online. {data['online_emoji']}"
+                            )
+                            
+                        else:
+                            await channel.send(
+                                f"<@&{data['ping']}>, {after.mention} is back online. {data['online_emoji']}",
+                                allowed_mentions=discord.AllowedMentions(roles=True),
+                            )
+                            
             except discord.Forbidden:
                 async with self.config.guild(after.guild).online_watching() as old_data:
                     old_data.remove(after.id)
