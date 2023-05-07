@@ -1499,14 +1499,13 @@ class RSS(commands.Cog):
 
             embed_toggle = rss_feed["embed"]
             red_embed_settings = await self.bot.embed_requested(channel)
-            embed_permissions = channel.permissions_for(channel.guild.me).embed_links
 
             rss_limit = rss_feed.get("limit", 0)
             if rss_limit > 0:
                 # rss_limit needs + 8 characters for pagify counting codeblock characters
                 message = list(pagify(message, delims=["\n", " "], priority=True, page_length=(rss_limit + 8)))[0]
 
-            if embed_toggle and red_embed_settings and embed_permissions:
+            if embed_toggle and red_embed_settings:
                 await self._get_current_feed_embed(channel, rss_feed, feedparser_plus_obj, message)
             else:
                 for page in pagify(message, delims=["\n"]):
