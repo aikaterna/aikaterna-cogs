@@ -11,11 +11,12 @@ import logging
 import re
 import time
 import warnings
-from typing import Optional
+from typing import Optional, Union
 from types import MappingProxyType, SimpleNamespace
 from urllib.parse import urlparse
 
 from redbot.core import checks, commands, Config
+from redbot.core.utils import can_user_send_messages_in
 from redbot.core.utils.chat_formatting import bold, box, escape, humanize_list, pagify
 
 from .color import Color
@@ -28,9 +29,10 @@ log = logging.getLogger("red.aikaterna.rss")
 
 IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
+GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 warnings.filterwarnings(
     "ignore",
@@ -90,7 +92,7 @@ class RSS(commands.Cog):
                     pass
         return rss_object
 
-    async def _add_feed(self, ctx, feed_name: str, channel: discord.TextChannel, url: str):
+    async def _add_feed(self, ctx, feed_name: str, channel: GuildMessageable, url: str):
         """Helper for rss add."""
         rss_exists = await self._check_feed_existing(ctx, feed_name, channel)
         if not rss_exists:
@@ -286,18 +288,27 @@ class RSS(commands.Cog):
 
         return rss_object
 
-    async def _check_channel_permissions(self, ctx, channel: discord.TextChannel, addl_send_messages_check=True):
+    async def _check_channel_permissions(self, ctx, channel: GuildMessageable, addl_send_messages_check=True):
         """Helper for rss functions."""
         if not channel.permissions_for(ctx.me).read_messages:
             await ctx.send("I don't have permissions to read that channel.")
             return False
-        elif not channel.permissions_for(ctx.author).read_messages:
+        author_perms = channel.permissions_for(ctx.author)
+        if not author_perms.read_messages:
             await ctx.send("You don't have permissions to read that channel.")
             return False
-        elif addl_send_messages_check:
+        # bot can only see threads that it has permissions to read messages in so no special handling needed
+        # if author has read messages perm, they can read all public threads *but also* private threads they are in
+        if isinstance(channel, discord.Thread) and channel.is_private() and not author_perms.manage_threads:
+            try:
+                await thread.fetch_member(ctx.author.id)
+            except discord.NotFound:
+                # author is not in a private thread
+                return False
+        if addl_send_messages_check:
             # check for send messages perm if needed, like on an rss add
             # not needed on something like rss delete
-            if not channel.permissions_for(ctx.me).send_messages:
+            if not can_user_send_messages_in(ctx.me, channel):
                 await ctx.send("I don't have permissions to send messages in that channel.")
                 return False
             else:
@@ -305,14 +316,14 @@ class RSS(commands.Cog):
         else:
             return True
 
-    async def _check_feed_existing(self, ctx, feed_name: str, channel: discord.TextChannel):
+    async def _check_feed_existing(self, ctx, feed_name: str, channel: GuildMessageable):
         """Helper for rss functions."""
         rss_feed = await self.config.channel(channel).feeds.get_raw(feed_name, default=None)
         if not rss_feed:
             return False
         return True
 
-    async def _delete_feed(self, ctx, feed_name: str, channel: discord.TextChannel):
+    async def _delete_feed(self, ctx, feed_name: str, channel: GuildMessageable):
         """Helper for rss delete."""
         rss_exists = await self._check_feed_existing(ctx, feed_name, channel)
 
@@ -322,7 +333,7 @@ class RSS(commands.Cog):
                 return True
         return False
 
-    async def _edit_template(self, ctx, feed_name: str, channel: discord.TextChannel, template: str):
+    async def _edit_template(self, ctx, feed_name: str, channel: GuildMessageable, template: str):
         """Helper for rss template."""
         rss_exists = await self._check_feed_existing(ctx, feed_name, channel)
 
@@ -361,11 +372,11 @@ class RSS(commands.Cog):
                 channel = await self.bot.fetch_channel(channel_id)
             except (discord.errors.Forbidden, discord.errors.NotFound):
                 return None
-        if channel and channel.permissions_for(channel.guild.me).send_messages:
+        if channel and can_user_send_messages_in(channel.guild.me, channel):
             return channel
         return None
 
-    async def _get_feed_names(self, channel: discord.TextChannel):
+    async def _get_feed_names(self, channel: GuildMessageable):
         """Helper for rss list/listall."""
         feed_list = []
         space = "\N{SPACE}"
@@ -545,7 +556,7 @@ class RSS(commands.Cog):
 
     async def _update_last_scraped(
         self,
-        channel: discord.TextChannel,
+        channel: GuildMessageable,
         feed_name: str,
         current_feed_title: str,
         current_feed_link: str,
@@ -622,7 +633,7 @@ class RSS(commands.Cog):
         pass
 
     @rss.command(name="add")
-    async def _rss_add(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, *, url: str):
+    async def _rss_add(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, url: str):
         """
         Add an RSS feed to a channel.
 
@@ -658,7 +669,7 @@ class RSS(commands.Cog):
 
     @_rss_embed.command(name="color", aliases=["colour"])
     async def _rss_embed_color(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, *, color: str = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, color: str = None
     ):
         """
         Set an embed color for a feed.
@@ -716,7 +727,7 @@ class RSS(commands.Cog):
 
     @_rss_embed.command(name="image")
     async def _rss_embed_image(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, image_tag_name: str = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, image_tag_name: str = None
     ):
         """
         Set a tag to be a large embed image.
@@ -767,7 +778,7 @@ class RSS(commands.Cog):
 
     @_rss_embed.command(name="thumbnail")
     async def _rss_embed_thumbnail(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, thumbnail_tag_name: str = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, thumbnail_tag_name: str = None
     ):
         """
         Set a tag to be a thumbnail image.
@@ -818,7 +829,7 @@ class RSS(commands.Cog):
             )
 
     @_rss_embed.command(name="toggle")
-    async def _rss_embed_toggle(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
+    async def _rss_embed_toggle(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
         """
         Toggle whether a feed is sent in an embed or not.
 
@@ -909,7 +920,7 @@ class RSS(commands.Cog):
             await ctx.send("No RSS feeds found in the link provided.")
 
     @rss.command(name="force")
-    async def _rss_force(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
+    async def _rss_force(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
         """Forces a feed alert."""
         channel = channel or ctx.channel
         channel_permission_check = await self._check_channel_permissions(ctx, channel)
@@ -932,7 +943,7 @@ class RSS(commands.Cog):
 
     @rss.command(name="limit")
     async def _rss_limit(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, character_limit: int = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, character_limit: int = None
     ):
         """
         Set a character limit for feed posts. Use 0 for unlimited.
@@ -973,7 +984,7 @@ class RSS(commands.Cog):
         await ctx.send(f"{extra_msg}Character limit for {bold(feed_name)} is now {characters} characters.")
 
     @rss.command(name="list")
-    async def _rss_list(self, ctx, channel: discord.TextChannel = None):
+    async def _rss_list(self, ctx, channel: GuildMessageable = None):
         """List saved feeds for this channel or a specific channel."""
         channel = channel or ctx.channel
         channel_permission_check = await self._check_channel_permissions(ctx, channel)
@@ -997,7 +1008,7 @@ class RSS(commands.Cog):
         msg = ""
         for channel_id, data in all_channels.items():
             if channel_id in all_guild_channels:
-                channel_obj = ctx.guild.get_channel(channel_id)
+                channel_obj = ctx.guild.get_channel_or_thread(channel_id)
                 feeds = await self._get_feed_names(channel_obj)
                 if not feeds:
                     continue
@@ -1011,7 +1022,7 @@ class RSS(commands.Cog):
             await ctx.send(box(page, lang="ini"))
 
     @rss.command(name="listtags")
-    async def _rss_list_tags(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
+    async def _rss_list_tags(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
         """List the tags available from a specific feed."""
         channel = channel or ctx.channel
         channel_permission_check = await self._check_channel_permissions(ctx, channel)
@@ -1133,7 +1144,7 @@ class RSS(commands.Cog):
             await ctx.send(f"`{website}` isn't in the parsing override list.")
 
     @rss.command(name="remove", aliases=["delete", "del"])
-    async def _rss_remove(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
+    async def _rss_remove(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
         """
         Removes a feed from a channel.
 
@@ -1151,7 +1162,7 @@ class RSS(commands.Cog):
             await ctx.send("Feed not found!")
 
     @rss.command(name="showtemplate")
-    async def _rss_show_template(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
+    async def _rss_show_template(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
         """Show the template in use for a specific feed."""
         channel = channel or ctx.channel
         channel_permission_check = await self._check_channel_permissions(ctx, channel)
@@ -1214,7 +1225,7 @@ class RSS(commands.Cog):
 
     @_rss_tag.command(name="allow")
     async def _rss_tag_allow(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, *, tag: str = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, tag: str = None
     ):
         """
         Set an allowed tag for a feed to be posted. The tag must match exactly (without regard to title casing).
@@ -1243,7 +1254,7 @@ class RSS(commands.Cog):
         )
 
     @_rss_tag.command(name="allowlist")
-    async def _rss_tag_allowlist(self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None):
+    async def _rss_tag_allowlist(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
         """
         List allowed tags for feed post qualification.
         """
@@ -1265,7 +1276,7 @@ class RSS(commands.Cog):
 
     @_rss_tag.command(name="remove", aliases=["delete"])
     async def _rss_tag_remove(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, *, tag: str = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, tag: str = None
     ):
         """
         Remove a tag from the allow list. The tag must match exactly (without regard to title casing).
@@ -1292,7 +1303,7 @@ class RSS(commands.Cog):
 
     @rss.command(name="template")
     async def _rss_template(
-        self, ctx, feed_name: str, channel: Optional[discord.TextChannel] = None, *, template: str = None
+        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, template: str = None
     ):
         """
         Set a template for the feed alert.
@@ -1319,7 +1330,7 @@ class RSS(commands.Cog):
         """Show the RSS version."""
         await ctx.send(f"RSS version {__version__}")
 
-    async def get_current_feed(self, channel: discord.TextChannel, name: str, rss_feed: dict, *, force: bool = False):
+    async def get_current_feed(self, channel: GuildMessageable, name: str, rss_feed: dict, *, force: bool = False):
         """Takes an RSS feed and builds an object with all extra tags"""
         log.debug(f"getting feed {name} on cid {channel.id}")
         url = rss_feed["url"]
@@ -1505,7 +1516,7 @@ class RSS(commands.Cog):
             # This may (and most likely will) get changes in the future
             # so I suggest accepting **kwargs in the listeners using this event.
             #
-            # channel: discord.TextChannel
+            # channel: Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
             #     The channel feed alert went to.
             # feed_data: Mapping[str, Any]
             #     Read-only mapping with feed's data.
@@ -1531,7 +1542,7 @@ class RSS(commands.Cog):
         # This may (and most likely will) get changes in the future
         # so I suggest accepting **kwargs in the listeners using this event.
         #
-        # channel: discord.TextChannel
+        # channel: Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
         #     The channel feed alerts went to.
         # feed_data: Mapping[str, Any]
         #     Read-only mapping with feed's data.
@@ -1554,7 +1565,7 @@ class RSS(commands.Cog):
 
     async def _get_current_feed_embed(
         self,
-        channel: discord.TextChannel,
+        channel: GuildMessageable,
         rss_feed: dict,
         feedparser_plus_obj: feedparser.util.FeedParserDict,
         message: str,
