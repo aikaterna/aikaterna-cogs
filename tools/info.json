@@ -1,11 +1,12 @@
 {
     "author": ["aikaterna", "sitryk"],
     "description": "Mod and admin tools.",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "Thanks for installing. Use `[p]help` Tools to get started.",
+    "min_bot_version": "3.5.0",
     "permissions" : ["ban_members", "manage_channels"],
     "requirements": ["tabulate", "unidecode"],
     "short": "Mod and admin tools.",
     "tags": ["tools"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "type": "COG"
 }

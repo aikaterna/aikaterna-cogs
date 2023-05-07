@@ -1,10 +1,11 @@
 {
     "author": ["aikaterna", "Predä"],
     "description": "Alerts a role when bot(s) go offline.",
+    "end_user_data_statement": "This cog does not persistently store end user data. This cog does store Discord IDs as needed for operation.",
     "install_msg": "Thanks for installing, have fun.",
+    "min_bot_version": "3.5.0",
     "permissions" : ["manage_roles"],
     "short": "Alerts a role when bot(s) go offline.",
     "tags": ["bot", "offline", "uptime"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does not persistently store end user data. This cog does store discord IDs as needed for operation. "
+    "type": "COG"
 }

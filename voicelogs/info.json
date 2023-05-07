@@ -1,9 +1,10 @@
 {
     "author": ["ZeLarpMaster#0818", "aikaterna"],
     "description": "Allows moderators to access users' and channels' voice activity with timestamps and duration.",
+    "end_user_data_statement": "This cog stores discord IDs as needed for operation. This cog stores voice channel connection time per-user when toggled on in a server. This cog does not support data requests, but will respect deletion requests.",
     "install_msg": "Thanks for installing. Use `[p]voicelog` to get started once the cog is loaded.",
+    "min_bot_version": "3.5.0",
     "short": "Voice activity logs",
     "tags": ["voice", "activity", "logs"],
-    "type": "COG",
-    "end_user_data_statement": "This cog stores discord IDs as needed for operation. This cog stores voice channel connection time per-user when toggled on in a server. This cog does not support data requests, but will respect deletion requests."
+    "type": "COG"
 }

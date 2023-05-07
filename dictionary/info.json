@@ -1,10 +1,11 @@
 {
     "author": ["UltimatePancake", "aikaterna"],
     "description": "Gets definitions, antonyms, or synonyms for given words",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "After loading the cog with `[p]load dictionary`, use [p]help Dictionary to view commands.",
+    "min_bot_version": "3.5.0",
     "short": "Gets definitions, antonyms, or synonyms for given words",
     "tags": ["dictionary", "synonym", "antonym"],
     "requirements": ["beautifulsoup4"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "type": "COG"
 }

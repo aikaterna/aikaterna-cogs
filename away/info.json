@@ -1,6 +1,7 @@
 {
     "author": ["aikaterna", "Axas", "TrustyJAID"],
     "description": "Set and unset a user as being away. Originally by Paddo.",
+    "min_bot_version": "3.5.0",
     "short": "Away message toggle for users",
     "tags": ["away", "afk"],
     "type": "COG",

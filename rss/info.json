@@ -1,10 +1,11 @@
 {
     "author": ["aikaterna"],
-    "install_msg": "Thanks for installing.",
-    "short": "Read RSS feeds.",
     "description": "Read RSS feeds.",
-    "tags": ["rss"],
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
+    "install_msg": "Thanks for installing.",
+    "min_bot_version": "3.5.0",
     "permissions": ["embed_links"],
     "requirements": ["bs4", "feedparser>=6.0.0", "webcolors==1.3", "filetype"],
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "short": "Read RSS feeds.",
+    "tags": ["rss"]
 }

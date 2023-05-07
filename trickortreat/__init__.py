@@ -12,7 +12,7 @@ __red_end_user_data_statement__ = (
 )
 
 
-def setup(bot):
+async def setup(bot):
     cog = TrickOrTreat(bot)
-    bot.add_cog(cog)
+    await bot.add_cog(cog)
     asyncio.create_task(cog.cleanup())

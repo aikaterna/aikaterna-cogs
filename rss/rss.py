@@ -30,7 +30,7 @@ IPV4_RE = re.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")
 IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 
 
-__version__ = "1.8.3"
+__version__ = "2.0.0"
 
 warnings.filterwarnings(
     "ignore",
@@ -41,7 +41,7 @@ warnings.filterwarnings(
     message=(
         "To avoid breaking existing software while fixing issue 310, a temporary mapping has been created from"
         " `updated_parsed` to `published_parsed` if `updated_parsed` doesn't exist"
-    )
+    ),
 )
 warnings.filterwarnings("ignore", module="rss", category=MarkupResemblesLocatorWarning)
 
@@ -350,9 +350,6 @@ class RSS(commands.Cog):
                 website = result.path.split("/")[0]
             else:
                 return None
-
-        if len(website.split(".")) < 3:
-            return None
 
         return website
 
@@ -1390,33 +1387,42 @@ class RSS(commands.Cog):
                 feedparser_plus_objects.append(feedparser_plus_obj)
                 break
 
-            # if this feed has a published_parsed or an updated_parsed tag, it will use
-            # that time value present in entry_time to verify that the post is new.
+            # TODO: spammy debug logs to vvv
+
+            # there's a post time to compare
             elif (entry_time and last_time) is not None:
-                # now that we are sorting by/saving updated_parsed instead of published_parsed (rss 1.4.0+)
-                # we can post an update for a post that already exists and has already been posted.
-                # this will only work for rss sites that are single-use like cloudflare status, discord status, etc
-                # where an update on the last post should be posted
-                # this can be overridden by a bot owner in the rss parse command, per problematic website
+                # this is a post with an updated time with the same link and title, maybe an edited post.
+                # if a feed is spamming updated times with no content update, consider adding the full website
+                # (www.website.com) to the rss parse command
                 if (last_title == entry_title) and (last_link == entry_link) and (last_time < entry_time):
                     log.debug(f"New update found for an existing post in {name} on cid {channel.id}")
                     feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
                     feedparser_plus_objects.append(feedparser_plus_obj)
-                # regular feed qualification after this
-                if (last_link != entry_link) and (last_time < entry_time):
-                    log.debug(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
-                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
-                    feedparser_plus_objects.append(feedparser_plus_obj)
-                if (last_title == "" and entry_title == "") and (last_link != entry_link) and (last_time < entry_time):
-                    log.debug(f"New entry found via time validation for feed {name} on cid {channel.id} - no title")
-                    feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
-                    feedparser_plus_objects.append(feedparser_plus_obj)
+                else:
+                    # a post from the future, or we are caught up
+                    if last_time >= entry_time:
+                        log.debug(f"Up to date on {name} on cid {channel.id}")
+                        break
 
-            # this is a post that has no time information attached to it and we can only
-            # verify that the title and link did not match the previously posted entry
-            elif (entry_time or last_time) is None:
+                    # a new post
+                    if last_link != entry_link:
+                        log.debug(f"New entry found via time and link validation for feed {name} on cid {channel.id}")
+                        feedparser_plus_obj = await self._add_to_feedparser_object(entry, url)
+                        feedparser_plus_objects.append(feedparser_plus_obj)
+
+                    else:
+                        # I don't belive this ever should be hit but this is a catch to debug
+                        # a feed in case one ever appears that does this
+                        log.debug(
+                            f"*** This post qualified via timestamp check but has the same link as last: {entry_title[:25]} | {entry_link}"
+                        )
+
+            # this is a post that has no time comparison information because one or both timestamps are None.
+            # compare the title and link to see if it's the same post as previous.
+            # this may need more definition in the future if there is a feed that provides new titles but not new links etc
+            elif entry_time is None or last_time is None:
                 if last_title == entry_title and last_link == entry_link:
-                    log.debug(f"Breaking rss entry loop for {name} on {channel.id}, via link match")
+                    log.debug(f"Up to date on {name} on {channel.id} via link match, no time to compare")
                     break
                 else:
                     log.debug(f"New entry found for feed {name} on cid {channel.id} via new link or title")
@@ -1430,10 +1436,12 @@ class RSS(commands.Cog):
                 )
                 break
 
-        # nothing in the whole feed matched to what was saved, so let's only post 1 instead of every single post
-        if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
-            log.debug(f"Couldn't match anything for feed {name} on cid {channel.id}, only posting 1 post")
-            feedparser_plus_objects = [feedparser_plus_objects[0]]
+        #  TODO: just going to keep this here for now in case something explodes later
+
+        #  if len(feedparser_plus_objects) == len(sorted_feed_by_post_time):
+        #      msg = (f"Couldn't match anything for feed {name} on cid {channel.id}, or switching between feed header and feed entry, only posting 1 post")
+        #      log.debug(msg)
+        #      feedparser_plus_objects = [feedparser_plus_objects[0]]
 
         if not feedparser_plus_objects:
             # early-exit so that we don't dispatch when there's no updates
@@ -1479,7 +1487,7 @@ class RSS(commands.Cog):
                 return
 
             embed_toggle = rss_feed["embed"]
-            red_embed_settings = await self.bot.embed_requested(channel, None)
+            red_embed_settings = await self.bot.embed_requested(channel)
             embed_permissions = channel.permissions_for(channel.guild.me).embed_links
 
             rss_limit = rss_feed.get("limit", 0)
@@ -1559,6 +1567,9 @@ class RSS(commands.Cog):
                 embed.color = discord.Color(color)
             embed_list.append(embed)
 
+        if len(embed_list) == 0:
+            return
+
         # Add published timestamp to the last footer if it exists
         time_tags = ["updated_parsed_datetime", "published_parsed_datetime"]
         for time_tag in time_tags:
@@ -1600,6 +1611,8 @@ class RSS(commands.Cog):
         await self.bot.wait_until_red_ready()
         await self._put_feeds_in_queue()
         self._post_queue_size = self._post_queue.qsize()
+
+        # TODO: very large queues with a lot of RSS feeds (1000+) cause this to fall behind
         while True:
             try:
                 queue_item = await self._get_next_in_queue()

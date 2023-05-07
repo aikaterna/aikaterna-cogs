@@ -196,7 +196,7 @@ class Reminder(commands.Cog):
         menu_pages = []
         for chunk in reminder_text_chunks:
             embed = discord.Embed(title="", description="".join(chunk))
-            embed.set_author(name=f"Reminders for {ctx.author}", icon_url=ctx.author.avatar_url)
+            embed.set_author(name=f"Reminders for {ctx.author}", icon_url=ctx.author.avatar.url)
             embed.set_footer(text=f"Page {len(menu_pages) + 1} of {max_pages}{offset_text}")
             menu_pages.append(embed)
         return menu_pages

@@ -1,7 +1,6 @@
 import discord
 from redbot.core import Config, commands, checks
 from typing import Optional, Literal
-import datetime
 import re
 
 IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
@@ -37,7 +36,7 @@ class Away(commands.Cog):
     def _draw_play(self, song):
         song_start_time = song.start
         total_time = song.duration
-        current_time = datetime.datetime.utcnow()
+        current_time = discord.utils.utcnow()
         elapsed_time = current_time - song_start_time
         sections = 12
         loc_time = round((elapsed_time / total_time) * sections)  # 10 sections
@@ -60,7 +59,7 @@ class Away(commands.Cog):
         """
             Makes the embed reply
         """
-        avatar = author.avatar_url_as()  # This will return default avatar if no avatar is present
+        avatar = author.display_avatar  # This will return default avatar if no avatar is present
         color = author.color
         if message:
             link = IMAGE_LINKS.search(message)
@@ -226,7 +225,7 @@ class Away(commands.Cog):
         return False
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message_without_command(self, message: discord.Message):
         guild = message.guild
         if not guild or not message.mentions or message.author.bot:
             return
@@ -254,10 +253,10 @@ class Away(commands.Cog):
                     delete_after = None
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, away_msg, "away")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, away_msg, "away")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             idle_msg = user_data["IDLE_MESSAGE"]
             # Convert possible `delete_after` of < 5s of before PR#212
@@ -271,10 +270,10 @@ class Away(commands.Cog):
                     delete_after = None
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, idle_msg, "idle")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, idle_msg, "idle")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             dnd_msg = user_data["DND_MESSAGE"]
             # Convert possible `delete_after` of < 5s of before PR#212
@@ -288,10 +287,10 @@ class Away(commands.Cog):
                     delete_after = None
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, dnd_msg, "dnd")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, dnd_msg, "dnd")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             offline_msg = user_data["OFFLINE_MESSAGE"]
             # Convert possible `delete_after` of < 5s of before PR#212
@@ -305,7 +304,7 @@ class Away(commands.Cog):
                     delete_after = None
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, offline_msg, "offline")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, offline_msg, "offline")
                     await message.channel.send(msg, delete_after=delete_after)
@@ -319,10 +318,10 @@ class Away(commands.Cog):
                 streaming_msg, delete_after = streaming_msg
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, streaming_msg, "streaming")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, streaming_msg, "streaming")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             if streaming_msg and type(author.activity) is discord.CustomActivity:
                 stream_status = [c for c in author.activities if c.type == discord.ActivityType.streaming]
@@ -331,10 +330,10 @@ class Away(commands.Cog):
                 streaming_msg, delete_after = streaming_msg
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, streaming_msg, "streamingcustom")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, streaming_msg, "streamingcustom")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             listening_msg = user_data["LISTENING_MESSAGE"]
             # Convert possible `delete_after` of < 5s of before PR#212
@@ -345,10 +344,10 @@ class Away(commands.Cog):
                 listening_msg, delete_after = listening_msg
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, listening_msg, "listening")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, listening_msg, "listening")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             if listening_msg and type(author.activity) is discord.CustomActivity:
                 listening_status = [c for c in author.activities if c.type == discord.ActivityType.listening]
@@ -357,10 +356,10 @@ class Away(commands.Cog):
                 listening_msg, delete_after = listening_msg
                 if embed_links and not guild_config["TEXT_ONLY"]:
                     em = await self.make_embed_message(author, listening_msg, "listeningcustom")
-                    await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(embed=em, delete_after=delete_after)
                 elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                     msg = await self.make_text_message(author, listening_msg, "listeningcustom")
-                    await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                    await message.channel.send(msg, delete_after=delete_after)
                 continue
             gaming_msgs = user_data["GAME_MESSAGE"]
             # Convert possible `delete_after` of < 5s of before PR#212
@@ -373,11 +372,11 @@ class Away(commands.Cog):
                         game_msg, delete_after = gaming_msgs[game]
                         if embed_links and not guild_config["TEXT_ONLY"]:
                             em = await self.make_embed_message(author, game_msg, "gaming")
-                            await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                            await message.channel.send(embed=em, delete_after=delete_after)
                             break  # Let's not accidentally post more than one
                         elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                             msg = await self.make_text_message(author, game_msg, "gaming")
-                            await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                            await message.channel.send(msg, delete_after=delete_after)
                             break
             if gaming_msgs and type(author.activity) is discord.CustomActivity:
                 game_status = [c for c in author.activities if c.type == discord.ActivityType.playing]
@@ -388,11 +387,11 @@ class Away(commands.Cog):
                         game_msg, delete_after = gaming_msgs[game]
                         if embed_links and not guild_config["TEXT_ONLY"]:
                             em = await self.make_embed_message(author, game_msg, "gamingcustom")
-                            await message.channel.send(embed=em, delete_after=delete_after, reference=message, mention_author=False)
+                            await message.channel.send(embed=em, delete_after=delete_after)
                             break  # Let's not accidentally post more than one
                         elif (embed_links and guild_config["TEXT_ONLY"]) or not embed_links:
                             msg = await self.make_text_message(author, game_msg, "gamingcustom")
-                            await message.channel.send(msg, delete_after=delete_after, reference=message, mention_author=False)
+                            await message.channel.send(msg, delete_after=delete_after)
                             break
 
     @commands.command(name="away")
@@ -667,7 +666,7 @@ class Away(commands.Cog):
 
         if ctx.channel.permissions_for(ctx.me).embed_links:
             em = discord.Embed(description=msg[:2048], color=author.color)
-            em.set_author(name=f"{author.display_name}'s away settings", icon_url=author.avatar_url)
+            em.set_author(name=f"{author.display_name}'s away settings", icon_url=author.avatar.url)
             await ctx.send(embed=em)
         else:
             await ctx.send(f"{author.display_name} away settings\n" + msg)

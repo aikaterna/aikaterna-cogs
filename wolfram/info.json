@@ -1,10 +1,11 @@
 {
     "author": ["aikaterna"],
     "description": "Query Wolfram|Alpha for answers. Requires a free API key. Originally by Paddo.",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "Thanks for installing, have fun.",
+    "min_bot_version": "3.5.0",
     "short": "Query Wolfram|Alpha for answers.",
     "tags": ["wolfram"],
     "requirements": ["pillow"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "type": "COG"
 }

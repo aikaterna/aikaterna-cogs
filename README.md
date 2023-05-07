@@ -1,24 +1,18 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
-### >>> These cogs are for Red 3.4.x <<<
-### The default branch will switch to Red 3.5 compatible cogs in the near future
+### >>> These cogs are for Red 3.5 <<<
+If you need a Red 3.4 version of these cogs, see [here](https://github.com/aikaterna/aikaterna-cogs/tree/v3.4).
 
 adventure - Original concept & cog by locastan. My version is a collaboration between TrustyJAID, Draper, and myself and is now markedly different than locastan's version. The repo can be found on my repo page here on github.
 
 away - Originally by Paddo, written for v3 by Axas, final tests by aikaterna, and large improvements by TrustyJAID. Set and unset a user as being "away", or other statuses.
-
-blurplefy - Make an avatar or an image upload blurple for Discord's anniversaries.
-
-cah - Cards Against Humanity, played in DM's. This can rate limit large bots via the sheer number of messages sent. Install and use with caution on larger bots.
 
 chatchart - Generates a pie chart to display chat activity over the last 5000 messages. Requested by violetnyte.
 
 dadjokes - Another UltimatePancake cog. Get some dad jokes on command.
 
 dictionary - Define words and look up antonyms and synonyms. Originally by UltimatePancake.
-
-discordexperiments - Create voice channel invites for various built-in apps. This is only for developers or for people that can read the code and assess the risk of using it.
 
 embedpeek - Take a closer look at or unpack embed content. This cog is mostly a developer tool.
 
@@ -35,10 +29,6 @@ invites - Display invites that are available on the server and the information t
 latex - A simple cog originally by Stevy for v2 that displayes LaTeX expressions in an image.
 
 luigipoker - Play the Luigi Poker minigame from New Super Mario Brothers. Ported from the v2 version written by themario30.
-
-massunban - Bot Admins or guild Administrators can use this tool to mass unban users via ban reason keywords, or mass unban everyone on the ban list.
-
-noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.
 
 otherbot - Alert a role when bot(s) go offline.
 
@@ -75,5 +65,19 @@ voicelogs - A record of people's time spent in voice channels by ZeLarpMaster fo
 wolfram - A v3 port of Paddo's abandoned Wolfram Alpha cog.
 
 youtube - A v3 port of Paddo's youtube search cog for v2.
+
+
+# Recently moved to my aikaterna-cogs-unsupported repo:
+
+blurplefy - Make an avatar or an image upload blurple for Discord's anniversaries.
+
+cah - Cards Against Humanity, played in DM's. This can rate limit large bots via the sheer number of messages sent. Install and use with caution on larger bots.
+
+discordexperiments - Create voice channel invites for various built-in apps. This is only for developers or for people that can read the code and assess the risk of using it.
+
+massunban - Bot Admins or guild Administrators can use this tool to mass unban users via ban reason keywords, or mass unban everyone on the ban list.
+
+noflippedtables - A v3 port of irdumb's v2 cog with a little extra surprise included. Unflip all the tables.
+
 
 Support for these cogs is via opened issues on the appropriate repo or in the Red - Cog Support server at https://discord.gg/GET4DVk, in the support_aikaterna-cogs channel.

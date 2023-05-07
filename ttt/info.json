@@ -1,10 +1,11 @@
 {
     "author": ["aikaterna", "HizkiFW"],
     "description": "Tic Tac Toe",
+    "end_user_data_statement": "This cog does store temporarily (in memory) data about users, which is cleared after the game is done.",
     "install_msg": "Thanks for installing.",
+    "min_bot_version": "3.5.0",
+    "permissions": ["add_reactions"],
     "short": "Tic Tac Toe",
     "tags": ["game", "games", "tic tac toe", "ttt"],
-    "permissions": ["add_reactions"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does store temporarily (in memory) data about users, which is cleared after the game is done."
+    "type": "COG"
 }

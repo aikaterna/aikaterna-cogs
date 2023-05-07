@@ -24,7 +24,7 @@ class Tools(commands.Cog):
     """Mod and Admin tools."""
 
     async def red_delete_data_for_user(self, **kwargs):
-        """ Nothing to delete """
+        """Nothing to delete"""
         return
 
     def __init__(self, bot):
@@ -47,9 +47,7 @@ class Tools(commands.Cog):
 
     @access.command()
     async def compare(self, ctx, user: discord.Member, guild: int = None):
-        """Compare channel access with [user]."""
-        if user is None:
-            return
+        """Compare channel access with another user."""
         if guild is None:
             guild = ctx.guild
         else:
@@ -67,42 +65,35 @@ class Tools(commands.Cog):
         user_text_channels = [c for c in tcs if c.permissions_for(user).read_messages is True]
         user_voice_channels = [c for c in vcs if c.permissions_for(user).connect is True]
 
-        author_only_t = set(author_text_channels) - set(
-            user_text_channels
-        )  # text channels only the author has access to
-        author_only_v = set(author_voice_channels) - set(
-            user_voice_channels
-        )  # voice channels only the author has access to
+        # text channels only the author has access to
+        author_only_t = set(author_text_channels) - set(user_text_channels)
+        # voice channels only the author has access to
+        author_only_v = set(author_voice_channels) - set(user_voice_channels)
 
-        user_only_t = set(user_text_channels) - set(author_text_channels)  # text channels only the user has access to
-        user_only_v = set(user_voice_channels) - set(
-            author_voice_channels
-        )  # voice channels only the user has access to
+        # text channels only the user has access to
+        user_only_t = set(user_text_channels) - set(author_text_channels)
+        # voice channels only the user has access to
+        user_only_v = set(user_voice_channels) - set(author_voice_channels)
 
-        common_t = list(
-            set([c for c in tcs]) - author_only_t - user_only_t
-        )  # text channels that author and user have in common
-        common_v = list(
-            set([c for c in vcs]) - author_only_v - user_only_v
-        )  # voice channels that author and user have in common
+        # text channels that author and user have in common
+        common_t = list(set([c for c in tcs]) - author_only_t - user_only_t)
+        # voice channels that author and user have in common
+        common_v = list(set([c for c in vcs]) - author_only_v - user_only_v)
 
-        msg = "```ini\n"
-        msg += "{} [TEXT CHANNELS IN COMMON]:\n\n{}\n\n".format(len(common_t), ", ".join([c.name for c in common_t]))
-        msg += "{} [TEXT CHANNELS {} HAS EXCLUSIVE ACCESS TO]:\n\n{}\n\n".format(
-            len(user_only_t), user.name.upper(), ", ".join([c.name for c in user_only_t])
-        )
-        msg += "{} [TEXT CHANNELS YOU HAVE EXCLUSIVE ACCESS TO]:\n\n{}\n\n\n".format(
-            len(author_only_t), ", ".join([c.name for c in author_only_t])
-        )
-        msg += "{} [VOICE CHANNELS IN COMMON]:\n\n{}\n\n".format(len(common_v), ", ".join([c.name for c in common_v]))
-        msg += "{} [VOICE CHANNELS {} HAS EXCLUSIVE ACCESS TO]:\n\n{}\n\n".format(
-            len(user_only_v), user.name.upper(), ", ".join([c.name for c in user_only_v])
-        )
-        msg += "{} [VOICE CHANNELS YOU HAVE EXCLUSIVE ACCESS TO]:\n\n{}\n\n".format(
-            len(author_only_v), ", ".join([c.name for c in author_only_v])
-        )
-        msg += "```"
-        for page in cf.pagify(msg, delims=["\n"], shorten_by=16):
+        text_common_access = ", ".join([c.name for c in common_t])
+        text_user_exclusive_access = ", ".join([c.name for c in user_only_t])
+        text_author_exclusive_access = ", ".join([c.name for c in author_only_t])
+        voice_common_access = ", ".join([c.name for c in common_v])
+        voice_user_exclusive_access = ", ".join([c.name for c in user_only_v])
+        voice_author_exclusive_access = ", ".join([c.name for c in author_only_v])
+
+        msg = f"{len(common_t)} [TEXT CHANNELS IN COMMON]:\n\n{text_common_access}\n\n"
+        msg += f"{len(user_only_t)} [TEXT CHANNELS {user.name.upper()} HAS EXCLUSIVE ACCESS TO]:\n\n{text_user_exclusive_access}\n\n"
+        msg += f"{len(author_only_t)} [TEXT CHANNELS YOU HAVE EXCLUSIVE ACCESS TO]:\n\n{text_author_exclusive_access}\n\n\n"
+        msg += f"{len(common_v)} [VOICE CHANNELS IN COMMON]:\n\n{voice_common_access}\n\n"
+        msg += f"{len(user_only_v)} [VOICE CHANNELS {user.name.upper()} HAS EXCLUSIVE ACCESS TO]:\n\n{voice_user_exclusive_access}\n\n"
+        msg += f"{len(author_only_v)} [VOICE CHANNELS YOU HAVE EXCLUSIVE ACCESS TO]:\n\n{voice_author_exclusive_access}\n\n"
+        for page in cf.pagify(cf.box(msg, lang="ini"), delims=["\n"], shorten_by=16):
             await ctx.send(page)
 
     @access.command()
@@ -122,13 +113,11 @@ class Tools(commands.Cog):
             return await ctx.send("User is not in that guild or I do not have access to that guild.")
 
         prefix = "You have" if user.id == ctx.author.id else user.name + " has"
-        msg = "```ini\n[{} access to {} out of {} text channels]\n\n".format(
-            prefix, len(can_access), len(text_channels)
-        )
-
-        msg += "[ACCESS]:\n{}\n\n".format(", ".join(can_access))
-        msg += "[NO ACCESS]:\n{}\n```".format(", ".join(list(set(text_channels) - set(can_access))))
-        for page in cf.pagify(msg, delims=["\n"], shorten_by=16):
+        no_access = ", ".join(list(set(text_channels) - set(can_access)))
+        msg = f"\n[{prefix} access to {len(can_access)} out of {len(text_channels)} text channels]\n\n"
+        msg += f"[ACCESS]:\n{', '.join(can_access)}\n\n"
+        msg += f"[NO ACCESS]:\n{no_access}"
+        for page in cf.pagify(cf.box(msg, lang="ini"), delims=["\n"], shorten_by=16):
             await ctx.send(page)
 
     @access.command()
@@ -148,13 +137,11 @@ class Tools(commands.Cog):
             return await ctx.send("User is not in that guild or I do not have access to that guild.")
 
         prefix = "You have" if user.id == ctx.author.id else user.name + " has"
-        msg = "```ini\n[{} access to {} out of {} voice channels]\n\n".format(
-            prefix, len(can_access), len(voice_channels)
-        )
-
-        msg += "[ACCESS]:\n{}\n\n".format(", ".join(can_access))
-        msg += "[NO ACCESS]:\n{}\n```".format(", ".join(list(set(voice_channels) - set(can_access))))
-        for page in cf.pagify(msg, delims=["\n"], shorten_by=16):
+        no_access = ", ".join(list(set(voice_channels) - set(can_access)))
+        msg = f"\n[{prefix} access to {len(can_access)} out of {len(voice_channels)} voice channels]\n\n"
+        msg += f"[ACCESS]:\n{', '.join(can_access)}\n\n"
+        msg += f"[NO ACCESS]:\n{no_access}"
+        for page in cf.pagify(cf.box(msg, lang="ini"), delims=["\n"], shorten_by=16):
             await ctx.send(page)
 
     @commands.guild_only()
@@ -163,7 +150,7 @@ class Tools(commands.Cog):
     async def banlist(self, ctx):
         """Displays the server's banlist."""
         try:
-            banlist = await ctx.guild.bans()
+            banlist = [bans async for bans in ctx.guild.bans()]
         except discord.errors.Forbidden:
             await ctx.send("I do not have the `Ban Members` permission.")
             return
@@ -178,20 +165,27 @@ class Tools(commands.Cog):
                 msg += f"`{user_obj.user.id} - {user_name}`\n"
 
         banlist = sorted(msg)
-        embed_list = []
-        for page in cf.pagify(msg, shorten_by=1400):
-            embed = discord.Embed(
-                description="**Total bans:** {}\n\n{}".format(bancount, page),
-                colour=await ctx.embed_colour(),
-            )
-            embed_list.append(embed)
-        await menu(ctx, embed_list, DEFAULT_CONTROLS)
+        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            embed_list = []
+            for page in cf.pagify(msg, shorten_by=1400):
+                embed = discord.Embed(
+                    description=f"**Total bans:** {bancount}\n\n{page}",
+                    colour=await ctx.embed_colour(),
+                )
+                embed_list.append(embed)
+            await menu(ctx, embed_list, DEFAULT_CONTROLS)
+        else:
+            text_list = []
+            for page in cf.pagify(msg, shorten_by=1400):
+                text = f"**Total bans:** {bancount}\n{page}"
+                text_list.append(text)
+            await menu(ctx, text_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()
     async def cid(self, ctx):
-        """Shows the channel ID."""
-        await ctx.send("**#{0.name} ID:** {0.id}".format(ctx.channel))
+        """Shows the channel id for the current channel."""
+        await ctx.send(f"**#{ctx.channel.name} ID:** {ctx.channel.id}")
 
     @commands.guild_only()
     @commands.command()
@@ -213,32 +207,41 @@ class Tools(commands.Cog):
             discord.TextChannel: "Text Channel",
             discord.VoiceChannel: "Voice Channel",
             discord.CategoryChannel: "Category",
+            discord.StageChannel: "Stage Channel",
+            discord.Thread: "Thread",
         }
-
-        load = "```\nLoading channel info...```"
-        waiting = await ctx.send(load)
 
         with sps(Exception):
             caller = inspect.currentframe().f_back.f_code.co_name.strip()
 
-        data = "```ini\n"
+        data = ""
         if caller == "invoke" or channel.guild != ctx.guild:
-            data += "[Server]:     {}\n".format(channel.guild.name)
-        data += "[Name]:       {}\n".format(cf.escape(str(channel)))
-        data += "[ID]:         {}\n".format(channel.id)
-        data += "[Private]:    {}\n".format(yesno[isinstance(channel, discord.abc.PrivateChannel)])
-        if isinstance(channel, discord.TextChannel) and channel.topic != "":
-            data += "[Topic]:      {}\n".format(channel.topic)
-        data += "[Position]:   {}\n".format(channel.position)
-        data += "[Created]:    {}\n".format(self._dynamic_time(channel.created_at))
-        data += "[Type]:       {}\n".format(typemap[type(channel)])
+            data += f"[Server]:          {channel.guild.name}\n"
+        data += f"[Name]:            {cf.escape(str(channel))}\n"
+        data += f"[ID]:              {channel.id}\n"
+        data += f"[Private]:         {yesno[isinstance(channel, discord.abc.PrivateChannel)]}\n"
+        if isinstance(channel, discord.TextChannel) and channel.topic != None:
+            data += f"[Topic]:           {channel.topic}\n"
+        try:
+            data += f"[Position]:        {channel.position}\n"
+        except AttributeError:
+            # this is a thread
+            data += f"[Parent Channel]:  {channel.parent.name} ({channel.parent.id})\n"
+            data += f"[Parent Position]: {channel.parent.position}\n"
+        try:
+            data += f"[Created]:         {self._dynamic_time(channel.created_at)}\n"
+        except AttributeError:
+            # this is a thread
+            data += f"[Updated]:         {self._dynamic_time(channel.archive_timestamp)}\n"
+        data += f"[Type]:            {typemap[type(channel)]}\n"
+        if isinstance(channel, discord.TextChannel) and channel.is_news():
+            data += f"[News Channel]:    {yesno[channel.is_news()]}\n"
         if isinstance(channel, discord.VoiceChannel):
-            data += "[Users]:      {}\n".format(len(channel.members))
-            data += "[User limit]: {}\n".format(channel.user_limit)
-            data += "[Bitrate]:    {}kbps\n".format(int(channel.bitrate / 1000))
-        data += "```"
-        await asyncio.sleep(1)
-        await waiting.edit(content=data)
+            data += f"[Users]:           {len(channel.members)}\n"
+            data += f"[User limit]:      {channel.user_limit}\n"
+            data += f"[Bitrate]:         {int(channel.bitrate / 1000)}kbps\n"
+
+        await ctx.send(cf.box(data, lang="ini"))
 
     @commands.guild_only()
     @commands.command()
@@ -250,22 +253,20 @@ class Tools(commands.Cog):
     @commands.command()
     async def einfo(self, ctx, emoji: discord.Emoji):
         """Emoji information."""
-        e = emoji
+        yesno = {True: "Yes", False: "No"}
+        header = f"{str(emoji)}\n"
         m = (
-            f"{str(e)}\n"
-            f"```ini\n"
-            f"[NAME]:       {e.name}\n"
-            f"[GUILD]:      {e.guild}\n"
-            f"[URL]:        {e.url}\n"
-            f"[ANIMATED]:   {e.animated}"
-            "```"
+            f"[Name]:       {emoji.name}\n"
+            f"[Guild]:      {emoji.guild}\n"
+            f"[URL]:        {emoji.url}\n"
+            f"[Animated]:   {yesno[emoji.animated]}"
         )
-        await ctx.send(m)
+        await ctx.send(header + cf.box(m, lang="ini"))
 
     @commands.guild_only()
     @commands.command()
     @checks.mod_or_permissions(manage_guild=True)
-    async def inrole(self, ctx, *, rolename):
+    async def inrole(self, ctx, *, rolename: str):
         """Check members in the role specified."""
         guild = ctx.guild
         await ctx.trigger_typing()
@@ -286,7 +287,7 @@ class Tools(commands.Cog):
             if len(roles) == 1:
                 role = roles[0]
             elif len(roles) < 1:
-                await ctx.send("No roles were found.")
+                await ctx.send(f"No roles containing `{rolename}` were found.")
                 return
             else:
                 msg = (
@@ -320,41 +321,46 @@ class Tools(commands.Cog):
                 else:
                     role = roles[response - 1]
 
-        awaiter = await ctx.send(
-            embed=discord.Embed(description="Getting member names...", colour=await ctx.embed_colour())
-        )
-        await asyncio.sleep(1.5)  # taking time to retrieve the names
         users_in_role = "\n".join(sorted(m.display_name for m in guild.members if role in m.roles))
         if len(users_in_role) == 0:
-            embed = discord.Embed(
-                description=cf.bold(f"0 users found in the {role.name} role."),
-                colour=await ctx.embed_colour(),
-            )
-            await awaiter.edit(embed=embed)
-            return
-        try:
-            await awaiter.delete()
-        except discord.NotFound:
-            pass
+            if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+                embed = discord.Embed(
+                    description=cf.bold(f"0 users found in the {role.name} role."),
+                    colour=await ctx.embed_colour(),
+                )
+                return await ctx.send(embed=embed)
+            else:
+                return await ctx.send(cf.bold(f"0 users found in the {role.name} role."))
+
         embed_list = []
-        for page in cf.pagify(users_in_role, delims=["\n"], page_length=200):
-            embed = discord.Embed(
-                description=cf.bold("{1} users found in the {0} role.\n").format(
-                    role.name, len([m for m in guild.members if role in m.roles])
-                ),
-                colour=await ctx.embed_colour(),
-            )
-            embed.add_field(name="Users", value=page)
-            embed_list.append(embed)
-        final_embed_list = []
-        for i, embed in enumerate(embed_list):
-            embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
-            final_embed_list.append(embed)
-        if len(embed_list) == 1:
-            close_control = {"\N{CROSS MARK}": close_menu}
-            await menu(ctx, final_embed_list, close_control)
+        role_len = len([m for m in guild.members if role in m.roles])
+        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            for page in cf.pagify(users_in_role, delims=["\n"], page_length=200):
+                embed = discord.Embed(
+                    description=cf.bold(f"{role_len} users found in the {role.name} role.\n"),
+                    colour=await ctx.embed_colour(),
+                )
+                embed.add_field(name="Users", value=page)
+                embed_list.append(embed)
+            final_embed_list = []
+            for i, embed in enumerate(embed_list):
+                embed.set_footer(text=f"Page {i + 1}/{len(embed_list)}")
+                final_embed_list.append(embed)
+            if len(embed_list) == 1:
+                close_control = {"\N{CROSS MARK}": close_menu}
+                await menu(ctx, final_embed_list, close_control)
+            else:
+                await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
         else:
-            await menu(ctx, final_embed_list, DEFAULT_CONTROLS)
+            for page in cf.pagify(users_in_role, delims=["\n"], page_length=200):
+                msg = f"**{role_len} users found in the {role.name} role.**\n"
+                msg += page
+                embed_list.append(msg)
+            if len(embed_list) == 1:
+                close_control = {"\N{CROSS MARK}": close_menu}
+                await menu(ctx, embed_list, close_control)
+            else:
+                await menu(ctx, embed_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
     @commands.command()
@@ -376,18 +382,15 @@ class Tools(commands.Cog):
             )
             await ctx.send(embed=embed)
         else:
-            await ctx.send(f"{user.display_name} joined this guild on {joined_on}.")
+            await ctx.send(f"**{user.display_name}** joined this guild on **{joined_on}**.")
 
     @commands.command(name="listguilds", aliases=["listservers", "guildlist", "serverlist"])
     @checks.mod_or_permissions()
     async def listguilds(self, ctx):
         """List the guilds|servers the bot is in."""
-        asciidoc = lambda m: "```asciidoc\n{}\n```".format(m)
         guilds = sorted(self.bot.guilds, key=lambda g: -g.member_count)
-        header = ("```\n" "The bot is in the following {} server{}:\n" "```").format(
-            len(guilds), "s" if len(guilds) > 1 else ""
-        )
-
+        plural = "s" if len(guilds) > 1 else ""
+        header = f"The bot is in the following {len(guilds)} server{plural}:\n"
         max_zpadding = max([len(str(g.member_count)) for g in guilds])
         form = "{gid} :: {mems:0{zpadding}} :: {name}"
         all_forms = [
@@ -396,13 +399,13 @@ class Tools(commands.Cog):
         ]
         final = "\n".join(all_forms)
 
-        await ctx.send(header)
+        await ctx.send(cf.box(header))
         page_list = []
         for page in cf.pagify(final, delims=["\n"], page_length=1000):
-            page_list.append(asciidoc(page))
+            page_list.append(cf.box(page, lang="asciidoc"))
 
         if len(page_list) == 1:
-            return await ctx.send(asciidoc(page))
+            return await ctx.send(cf.box(page, lang="asciidoc"))
         await menu(ctx, page_list, DEFAULT_CONTROLS)
 
     @commands.guild_only()
@@ -412,38 +415,40 @@ class Tools(commands.Cog):
         """
         List the channels of the current server
         """
-        asciidoc = lambda m: "```asciidoc\n{}\n```".format(m)
-        channels = ctx.guild.channels
         top_channels, category_channels = self.sort_channels(ctx.guild.channels)
 
-        topChannels_formed = "\n".join(self.channels_format(top_channels))
+        top_channels_formed = "\n".join(self.channels_format(top_channels))
         categories_formed = "\n\n".join([self.category_format(tup) for tup in category_channels])
 
-        await ctx.send(f"{ctx.guild.name} has {len(channels)} channel{'s' if len(channels) > 1 else ''}.")
+        await ctx.send(
+            f"{ctx.guild.name} has {len(ctx.guild.channels)} channel{'s' if len(ctx.guild.channels) > 1 else ''}."
+        )
 
-        for page in cf.pagify(topChannels_formed, delims=["\n"], shorten_by=16):
-            await ctx.send(asciidoc(page))
+        for page in cf.pagify(top_channels_formed, delims=["\n"], shorten_by=16):
+            await ctx.send(cf.box(page, lang="asciidoc"))
 
         for page in cf.pagify(categories_formed, delims=["\n\n"], shorten_by=16):
-            await ctx.send(asciidoc(page))
+            await ctx.send(cf.box(page, lang="asciidoc"))
 
     @commands.guild_only()
     @commands.command()
     @checks.mod_or_permissions(manage_guild=True)
-    async def newusers(self, ctx, count: int = 5, fm: str = "py"):
-        """Lists the newest 5 members."""
-        guild = ctx.guild
+    async def newusers(self, ctx, count: int = 5, text_format: str = "py"):
+        """
+        Lists the newest 5 members.
+
+        `text_format` is the markdown language to use. Defaults to `py`.
+        """
         count = max(min(count, 25), 5)
-        members = sorted(guild.members, key=lambda m: m.joined_at, reverse=True)[:count]
+        members = sorted(ctx.guild.members, key=lambda m: m.joined_at, reverse=True)[:count]
 
-        head1 = "{} newest members".format(count)
-        header = "{:>33}\n{}\n\n".format(head1, "-" * 57)
+        header = f"{count} newest members"
+        disp = "{:>33}\n{}\n\n".format(header, "-" * 57)
 
-        user_body = (
-            " {mem} ({memid})\n" " {spcs}Joined Guild:    {sp1}{join}\n" " {spcs}Account Created: {sp2}{created}\n\n"
-        )
+        user_body = " {mem} ({memid})\n"
+        user_body += " {spcs}Joined Guild:    {sp1}{join}\n"
+        user_body += " {spcs}Account Created: {sp2}{created}\n\n"
 
-        disp = header
         spcs = [" " * (len(m.name) // 2) for m in members]
         smspc = min(spcs, key=lambda it: len(it))
 
@@ -473,7 +478,7 @@ class Tools(commands.Cog):
             )
 
         for page in cf.pagify(disp, delims=["\n\n"]):
-            await ctx.send(cf.box(page, lang=fm))
+            await ctx.send(cf.box(page, lang=text_format))
 
     @commands.guild_only()
     @commands.command()
@@ -488,10 +493,10 @@ class Tools(commands.Cog):
         perms_we_dont = ""
         for x in sorted(perms):
             if "True" in str(x):
-                perms_we_have += "+\t{0}\n".format(str(x).split("'")[1])
+                perms_we_have += "+ {0}\n".format(str(x).split("'")[1])
             else:
-                perms_we_dont += "-\t{0}\n".format(str(x).split("'")[1])
-        await ctx.send(cf.box("{0}{1}".format(perms_we_have, perms_we_dont), lang="diff"))
+                perms_we_dont += "- {0}\n".format(str(x).split("'")[1])
+        await ctx.send(cf.box(f"{perms_we_have}{perms_we_dont}", lang="diff"))
 
     @commands.guild_only()
     @commands.command()
@@ -501,9 +506,9 @@ class Tools(commands.Cog):
         if rolename is discord.Role:
             role = rolename
         else:
-            role = self._role_from_string(ctx.guild, rolename)
+            role = self.role_from_string(ctx.guild, rolename)
         if role is None:
-            await ctx.send(embed=discord.Embed(description="Cannot find role.", colour=await ctx.embed_colour()))
+            await ctx.send(f"Cannot find role: `{rolename}`")
             return
         await ctx.send(f"**{rolename} ID:** {role.id}")
 
@@ -511,9 +516,7 @@ class Tools(commands.Cog):
     @commands.command()
     async def rinfo(self, ctx, *, rolename: discord.Role):
         """Shows role info."""
-        channel = ctx.channel
-        guild = ctx.guild
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             caller = inspect.currentframe().f_back.f_code.co_name
@@ -521,16 +524,18 @@ class Tools(commands.Cog):
             pass
 
         if not isinstance(rolename, discord.Role):
-            role = self._role_from_string(guild, rolename, guild.roles)
+            role = self.role_from_string(ctx.guild, rolename, ctx.guild.roles)
         else:
             role = rolename
         if role is None:
             await ctx.send("That role cannot be found.")
             return
-        if role is not None:
-            perms = iter(role.permissions)
-            perms_we_have = ""
-            perms_we_dont = ""
+
+        perms = iter(role.permissions)
+        perms_we_have = ""
+        perms_we_dont = ""
+
+        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
             for x in sorted(perms):
                 if "True" in str(x):
                     perms_we_have += "{0}\n".format(str(x).split("'")[1])
@@ -540,52 +545,42 @@ class Tools(commands.Cog):
                 perms_we_have = "None"
             if perms_we_dont == "":
                 perms_we_dont = "None"
-            msg = discord.Embed(description="Gathering role stats...", colour=role.color)
-            if role.color is None:
-                role.color = discord.Colour(value=0x000000)
-            loadingmsg = await ctx.send(embed=msg)
-            em = discord.Embed(colour=role.colour)
+            role_color = role.color if role.color else discord.Colour(value=0x000000)
+            em = discord.Embed(colour=role_color)
             if caller == "invoke":
                 em.add_field(name="Server", value=role.guild.name)
             em.add_field(name="Role Name", value=role.name)
             em.add_field(name="Created", value=self._dynamic_time(role.created_at))
-            em.add_field(name="Users in Role", value=len([m for m in guild.members if role in m.roles]))
+            em.add_field(name="Users in Role", value=len([m for m in ctx.guild.members if role in m.roles]))
             em.add_field(name="ID", value=role.id)
             em.add_field(name="Color", value=role.color)
             em.add_field(name="Position", value=role.position)
-            em.add_field(name="Valid Permissions", value="{}".format(perms_we_have))
-            em.add_field(name="Invalid Permissions", value="{}".format(perms_we_dont))
-            em.set_thumbnail(url=role.guild.icon_url)
-        try:
-            await loadingmsg.edit(embed=em)
-        except discord.HTTPException:
-            permss = "```diff\n"
-            role = self._role_from_string(guild, rolename, guild.roles)
+            em.add_field(name="Valid Permissions", value=perms_we_have)
+            em.add_field(name="Invalid Permissions", value=perms_we_dont)
+            if role.guild.icon:
+                em.set_thumbnail(url=role.guild.icon.url)
+            await ctx.send(embed=em)
+        else:
+            role = self.role_from_string(ctx.guild, rolename, ctx.guild.roles)
             if role is None:
                 await ctx.send("That role cannot be found.")
                 return
-            if role is not None:
-                perms = iter(role.permissions)
-                perms_we_have2 = ""
-                perms_we_dont2 = ""
-                for x in sorted(perms):
-                    if "True" in str(x):
-                        perms_we_have2 += "+{0}\n".format(str(x).split("'")[1])
-                    else:
-                        perms_we_dont2 += "-{0}\n".format(str(x).split("'")[1])
-            await ctx.send(
-                "{}Name: {}\nCreated: {}\nUsers in Role : {}\nId : {}\nColor : {}\nPosition : {}\nValid Perms : \n{}\nInvalid Perms : \n{}```".format(
-                    permss,
-                    role.name,
-                    self._dynamic_time(role.created_at),
-                    len([m for m in guild.members if role in m.roles]),
-                    role.id,
-                    role.color,
-                    role.position,
-                    perms_we_have2,
-                    perms_we_dont2,
-                )
-            )
+
+            for x in sorted(perms):
+                if "True" in str(x):
+                    perms_we_have += "+ {0}\n".format(str(x).split("'")[1])
+                else:
+                    perms_we_dont += "- {0}\n".format(str(x).split("'")[1])
+            msg = ""
+            msg += f"Name: {role.name}\n"
+            msg += f"Created: {self._dynamic_time(role.created_at)}\n"
+            msg += f"Users in Role : {len([m for m in role.guild.members if role in m.roles])}\n"
+            msg += f"ID: {role.id}\n"
+            msg += f"Color: {role.color}\n"
+            msg += f"Position: {role.position}\n"
+            msg += f"Valid Perms: \n{perms_we_have}\n"
+            msg += f"Invalid Perms: \n{perms_we_dont}"
+            await ctx.send(cf.box(msg, lang="diff"))
 
     @commands.guild_only()
     @commands.command(aliases=["listroles"])
@@ -598,25 +593,28 @@ class Tools(commands.Cog):
             form.format(rpos=r.position, zpadding=max_zpadding, rid=r.id, rment=r.mention, rcolor=r.color)
             for r in ctx.guild.roles
         ]
-
         rolelist = sorted(rolelist, reverse=True)
         rolelist = "\n".join(rolelist)
         embed_list = []
-        for page in cf.pagify(rolelist, shorten_by=1400):
-            embed = discord.Embed(
-                description=f"**Total roles:** {len(ctx.guild.roles)}\n\n{page}",
-                colour=await ctx.embed_colour(),
-            )
-            embed_list.append(embed)
+        if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            for page in cf.pagify(rolelist, shorten_by=1400):
+                embed = discord.Embed(
+                    description=f"**Total roles:** {len(ctx.guild.roles)}\n\n{page}",
+                    colour=await ctx.embed_colour(),
+                )
+                embed_list.append(embed)
+        else:
+            for page in cf.pagify(rolelist, shorten_by=1400):
+                msg = f"**Total roles:** {len(ctx.guild.roles)}\n{page}"
+                embed_list.append(msg)
+
         await menu(ctx, embed_list, DEFAULT_CONTROLS)
 
     @commands.command(hidden=True)
     async def sharedservers(self, ctx, user: discord.Member = None):
         """Shows shared server info. Defaults to author."""
-        author = ctx.author
-        guild = ctx.guild
         if not user:
-            user = author
+            user = ctx.author
 
         mutual_guilds = user.mutual_guilds
         data = f"[Guilds]:     {len(mutual_guilds)} shared\n"
@@ -624,13 +622,13 @@ class Tools(commands.Cog):
         data += f"[In Guilds]:  {cf.humanize_list(shared_servers, style='unit')}"
 
         for page in cf.pagify(data, ["\n"], page_length=1800):
-            await ctx.send(f"```ini\n{data}```")
+            await ctx.send(cf.box(data, lang="ini"))
 
     @commands.guild_only()
     @commands.command()
     async def sid(self, ctx):
-        """Show the server ID."""
-        await ctx.send("**{0.name} ID:** {0.id}".format(ctx.guild))
+        """Show the server id."""
+        await ctx.send(f"**{ctx.guild.name} ID:** {ctx.guild.id}")
 
     @commands.guild_only()
     @commands.command(aliases=["ginfo"])
@@ -648,22 +646,49 @@ class Tools(commands.Cog):
         text_channels = [x for x in guild.channels if isinstance(x, discord.TextChannel)]
         voice_channels = [x for x in guild.channels if isinstance(x, discord.VoiceChannel)]
 
-        load = "```\nLoading guild info...```"
-        waiting = await ctx.send(load)
+        data = f"[Name]:     {guild.name}\n"
+        data += f"[ID]:       {guild.id}\n"
+        data += f"[Owner]:    {guild.owner}\n"
+        data += f"[Users]:    {online}/{total_users}\n"
+        data += f"[Text]:     {len(text_channels)} channels\n"
+        data += f"[Voice]:    {len(voice_channels)} channels\n"
+        data += f"[Emojis]:   {len(guild.emojis)}\n"
+        data += f"[Stickers]: {len(guild.stickers)}\n"
+        data += f"[Roles]:    {len(guild.roles)}\n"
+        data += f"[Created]:  {self._dynamic_time(guild.created_at)}\n"
 
-        data = "```ini\n"
-        data += "[Name]:     {}\n".format(guild.name)
-        data += "[ID]:       {}\n".format(guild.id)
-        data += "[Region]:   {}\n".format(guild.region)
-        data += "[Owner]:    {}\n".format(guild.owner)
-        data += "[Users]:    {}/{}\n".format(online, total_users)
-        data += "[Text]:     {} channels\n".format(len(text_channels))
-        data += "[Voice]:    {} channels\n".format(len(voice_channels))
-        data += "[Emojis]:   {}\n".format(len(guild.emojis))
-        data += "[Roles]:    {} \n".format(len(guild.roles))
-        data += "[Created]:  {}\n```".format(self._dynamic_time(guild.created_at))
-        await asyncio.sleep(1)
-        await waiting.edit(content=data)
+        await ctx.send(cf.box(data, lang="ini"))
+
+    @commands.guild_only()
+    @commands.command(aliases=["stickerinfo"])
+    async def stinfo(self, ctx, message_link: str = None):
+        """
+        Sticker information.
+
+        Attach a sticker to the command message or provide a link to a message with a sticker.
+        """
+        if message_link:
+            message = await self.message_from_message_link(ctx, message_link)
+        else:
+            message = ctx.message
+
+        if isinstance(message, str):
+            return await ctx.send(message)
+
+        stickers = message.stickers
+        for sticker_item in stickers:
+            sticker = await sticker_item.fetch()
+
+            msg = f"[Name]:        {sticker.name}\n"
+            msg += f"[Guild]:       {sticker.guild if sticker.guild != None else 'Guild name is unavailable'}\n"
+            msg += f"[ID]:          {sticker.id}\n"
+            msg += f"[URL]:         {str(sticker.url)}\n"
+            msg += f"[Format]:      {sticker.format.file_extension if sticker.format.file_extension else 'lottie'}\n"
+            if sticker.description:
+                msg += f"[Description]: {sticker.description}\n"
+            msg += f"[Created]:     {self._dynamic_time(sticker.created_at)}\n"
+
+            await ctx.send(cf.box(msg, lang="ini"))
 
     @commands.guild_only()
     @commands.command()
@@ -690,6 +715,40 @@ class Tools(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
+    async def uimages(self, ctx, user: discord.Member = None, embed=False):
+        """
+        Shows user image urls. Defaults to author.
+
+        `embed` is a True/False value for whether to display the info in an embed.
+        """
+        if user is None:
+            user = ctx.author
+
+        fetch_user = await self.bot.fetch_user(user.id)
+
+        if not embed or not ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            data = f"[Name]:              {cf.escape(str(user))}\n"
+            data += f"[Avatar URL]:        {user.avatar if user.avatar is not None else user.default_avatar}\n"
+            if user.guild_avatar:
+                data += f"[Server Avatar URL]: {user.guild_avatar}\n"
+            if fetch_user.banner:
+                data += f"[Banner URL]:        {fetch_user.banner}\n"
+
+            await ctx.send(cf.box(data, lang="ini"))
+        else:
+            embed = discord.Embed(
+                description=f"**{cf.escape(str(user))}**",
+                colour=await ctx.embed_colour(),
+            )
+            if user.guild_avatar:
+                embed.add_field(name="Server Avatar", value=user.guild_avatar, inline=False)
+            embed.set_thumbnail(url=user.avatar if user.avatar is not None else user.default_avatar)
+            if fetch_user.banner:
+                embed.set_image(url=fetch_user.banner)
+            await ctx.send(embed=embed)
+
+    @commands.guild_only()
+    @commands.command()
     async def uinfo(self, ctx, user: discord.Member = None):
         """Shows user information. Defaults to author."""
         if user is None:
@@ -704,51 +763,46 @@ class Tools(commands.Cog):
                 roles[0].name,
             ] + [f"{r.name:>{len(r.name)+17}}" for r in roles[1:]]
         except IndexError:
-            # if there are no roles then roles[0] will raise the IndexError here
             _roles = ["None"]
 
         seen = str(len(set([member.guild.name for member in self.bot.get_all_members() if member.id == user.id])))
 
-        load = "```\nLoading user info...```"
-        waiting = await ctx.send(load)
-
-        data = "```ini\n"
-        data += "[Name]:          {}\n".format(cf.escape(str(user)))
-        data += "[ID]:            {}\n".format(user.id)
-        data += "[Status]:        {}\n".format(user.status)
-        data += "[Servers]:       {} shared\n".format(seen)
+        data = f"[Name]:          {cf.escape(str(user))}\n"
+        data += f"[ID]:            {user.id}\n"
+        data += f"[Status]:        {user.status}\n"
+        data += f"[Servers]:       {seen} shared\n"
         if actplay := discord.utils.get(user.activities, type=discord.ActivityType.playing):
-            data += "[Playing]:       {}\n".format(cf.escape(str(actplay.name)))
+            data += f"[Playing]:       {cf.escape(str(actplay.name))}\n"
         if actlisten := discord.utils.get(user.activities, type=discord.ActivityType.listening):
             if isinstance(actlisten, discord.Spotify):
-                _form = "{} - {}".format(actlisten.artist, actlisten.title)
+                _form = f"{actlisten.artist} - {actlisten.title}"
             else:
                 _form = actlisten.name
-            data += "[Listening]:     {}\n".format(cf.escape(_form))
+            data += f"[Listening]:     {cf.escape(_form)}\n"
         if actwatch := discord.utils.get(user.activities, type=discord.ActivityType.watching):
-            data += "[Watching]:      {}\n".format(cf.escape(str(actwatch.name)))
+            data += f"[Watching]:      {cf.escape(str(actwatch.name))}\n"
         if actstream := discord.utils.get(user.activities, type=discord.ActivityType.streaming):
-            data += "[Streaming]: [{}]({})\n".format(cf.escape(str(actstream.name)), cf.escape(actstream.url))
+            data += f"[Streaming]: [{cf.escape(str(actstream.name))}]({cf.escape(actstream.url)})\n"
         if actcustom := discord.utils.get(user.activities, type=discord.ActivityType.custom):
             if actcustom.name is not None:
-                data += "[Custom status]: {}\n".format(cf.escape(str(actcustom.name)))
+                data += f"[Custom Status]: {cf.escape(str(actcustom.name))}\n"
         passed = (ctx.message.created_at - user.created_at).days
-        data += "[Created]:       {}\n".format(self._dynamic_time(user.created_at))
+        data += f"[Created]:       {self._dynamic_time(user.created_at)}\n"
         joined_at = self.fetch_joined_at(user, ctx.guild)
         if caller != "invoke":
-            data += "[Joined]:        {}\n".format(self._dynamic_time(joined_at))
-            data += "[Roles]:         {}\n".format("\n".join(_roles))
+            role_list = "\n".join(_roles)
+            data += f"[Joined]:        {self._dynamic_time(joined_at)}\n"
+            data += f"[Roles]:         {role_list}\n"
             if len(_roles) > 1:
                 data += "\n"
-            data += "[In Voice]:      {}\n".format(user.voice.channel if user.voice is not None else None)
-            data += "[AFK]:           {}\n".format(user.voice.afk if user.voice is not None else False)
-        data += "```"
-        await asyncio.sleep(1)
-        await waiting.edit(content=data)
+            data += f"[In Voice]:      {user.voice.channel if user.voice is not None else None}\n"
+            data += f"[AFK]:           {user.voice.afk if user.voice is not None else False}\n"
+
+        await ctx.send(cf.box(data, lang="ini"))
 
     @commands.guild_only()
     @commands.command()
-    async def whatis(self, ctx, id: int):
+    async def whatis(self, ctx, what_is_this_id: int):
         """What is it?"""
         it_is = False
         msg = False
@@ -757,28 +811,43 @@ class Tools(commands.Cog):
         for rl in rls:
             roles.extend(rl)
 
+        guild_list = [g for g in self.bot.guilds]
+        emoji_list = [e for e in self.bot.emojis]
+
         look_at = (
-            self.bot.guilds
-            + self.bot.emojis
+            guild_list
+            + emoji_list
             + roles
             + [m for m in self.bot.get_all_members()]
             + [c for c in self.bot.get_all_channels()]
         )
 
-        if ctx.guild.id == id:
+        if ctx.guild.id == what_is_this_id:
             it_is = ctx.guild
-        elif ctx.channel.id == id:
+        elif ctx.channel.id == what_is_this_id:
             it_is = ctx.channel
-        elif ctx.author.id == id:
+        elif ctx.author.id == what_is_this_id:
             it_is = ctx.author
 
         if not it_is:
-            it_is = discord.utils.get(look_at, id=id)
+            it_is = discord.utils.get(look_at, id=what_is_this_id)
+
+        if not it_is:
+            for g in guild_list:
+                thread_or_sticker = g.get_thread(what_is_this_id)
+                if thread_or_sticker:
+                    return await ctx.invoke(self.chinfo, what_is_this_id)
+
+                for sticker in g.stickers:
+                    if sticker.id == what_is_this_id:
+                        return await ctx.invoke(self.stinfo, sticker)
 
         if isinstance(it_is, discord.Guild):
-            await ctx.invoke(self.sinfo, id)
+            await ctx.invoke(self.sinfo, what_is_this_id)
         elif isinstance(it_is, discord.abc.GuildChannel):
-            await ctx.invoke(self.chinfo, id)
+            await ctx.invoke(self.chinfo, what_is_this_id)
+        elif isinstance(it_is, discord.Thread):
+            await ctx.invoke(self.chinfo, what_is_this_id)
         elif isinstance(it_is, (discord.User, discord.Member)):
             await ctx.invoke(self.uinfo, it_is)
         elif isinstance(it_is, discord.Role):
@@ -789,32 +858,7 @@ class Tools(commands.Cog):
             await ctx.send("I could not find anything for this ID.")
 
     @staticmethod
-    def _dynamic_time(time):
-        try:
-            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
-        except ValueError:
-            time = f"{str(time)}.0"
-            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f")
-        date_now = datetime.datetime.now(datetime.timezone.utc)
-        date_now = date_now.replace(tzinfo=None)
-        since_join = date_now - date_join
-
-        mins, secs = divmod(int(since_join.total_seconds()), 60)
-        hrs, mins = divmod(mins, 60)
-        days, hrs = divmod(hrs, 24)
-        mths, wks, days = Tools._count_months(days)
-        yrs, mths = divmod(mths, 12)
-
-        m = f"{yrs}y {mths}mth {wks}w {days}d {hrs}h {mins}m {secs}s"
-        m2 = [x for x in m.split() if x[0] != "0"]
-        s = " ".join(m2[:2])
-        if s:
-            return f"{s} ago"
-        else:
-            return ""
-
-    @staticmethod
-    def _count_months(days):
+    def count_months(days):
         lens = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
         cy = itertools.cycle(lens)
         months = 0
@@ -832,10 +876,107 @@ class Tools(commands.Cog):
         weeks, days = divmod(m_temp, 7)
         return months, weeks, days
 
-    def fetch_joined_at(self, user, guild):
+    def category_format(self, cat_chan_tuple: tuple):
+        cat = cat_chan_tuple[0]
+        chs = cat_chan_tuple[1]
+
+        chfs = self.channels_format(chs)
+        if chfs != []:
+            ch_forms = ["\t" + f for f in chfs]
+            return "\n".join([f"{cat.name} :: {cat.id}"] + ch_forms)
+        else:
+            return "\n".join([f"{cat.name} :: {cat.id}"] + ["\tNo Channels"])
+
+    @staticmethod
+    def channels_format(channels: list):
+        if channels == []:
+            return []
+
+        channel_form = "{name} :: {ctype} :: {cid}"
+
+        def type_name(channel):
+            return channel.__class__.__name__[:-7]
+
+        name_justify = max([len(c.name[:24]) for c in channels])
+        type_justify = max([len(type_name(c)) for c in channels])
+
+        return [
+            channel_form.format(
+                name=c.name[:24].ljust(name_justify),
+                ctype=type_name(c).ljust(type_justify),
+                cid=c.id,
+            )
+            for c in channels
+        ]
+
+    def _dynamic_time(self, time):
+        try:
+            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f%z")
+        except ValueError:
+            time = f"{str(time)}.0"
+            date_join = datetime.datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f%z")
+        date_now = discord.utils.utcnow()
+        since_join = date_now - date_join
+
+        mins, secs = divmod(int(since_join.total_seconds()), 60)
+        hrs, mins = divmod(mins, 60)
+        days, hrs = divmod(hrs, 24)
+        mths, wks, days = self.count_months(days)
+        yrs, mths = divmod(mths, 12)
+
+        m = f"{yrs}y {mths}mth {wks}w {days}d {hrs}h {mins}m {secs}s"
+        m2 = [x for x in m.split() if x[0] != "0"]
+        s = " ".join(m2[:2])
+        if s:
+            return f"{s} ago"
+        else:
+            return ""
+
+    @staticmethod
+    def fetch_joined_at(user, guild):
         return user.joined_at
 
-    def _role_from_string(self, guild, rolename, roles=None):
+    async def message_from_message_link(self, ctx: commands.Context, message_link: str):
+        bad_link_msg = "That doesn't look like a message link, I can't reach that message, "
+        bad_link_msg += "or you didn't attach a sticker to the command message."
+        no_guild_msg = "You aren't in that guild."
+        no_channel_msg = "You can't view that channel."
+        no_message_msg = "That message wasn't found."
+        no_sticker_msg = "There are no stickers attached to that message."
+
+        if not "discord.com/channels/" in message_link:
+            return bad_link_msg
+        ids = message_link.split("/")
+        if len(ids) != 7:
+            return bad_link_msg
+
+        guild = self.bot.get_guild(int(ids[4]))
+        if not guild:
+            return bad_link_msg
+
+        channel = guild.get_channel_or_thread(int(ids[5]))
+        if not channel:
+            channel = self.bot.get_channel(int(ids[5]))
+        if not channel:
+            return bad_link_msg
+
+        if ctx.author not in guild.members:
+            return no_guild_msg
+        if not channel.permissions_for(ctx.author).read_messages:
+            return no_channel_msg
+
+        try:
+            message = await channel.fetch_message(int(ids[6]))
+        except discord.errors.NotFound:
+            return no_message_msg
+
+        if not message.stickers:
+            return no_sticker_msg
+
+        return message
+
+    @staticmethod
+    def role_from_string(guild, rolename, roles=None):
         if roles is None:
             roles = guild.roles
         role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
@@ -861,36 +1002,3 @@ class Tools(commands.Cog):
             key=lambda t: t[0].position,
         )
         return channels, category_channels
-
-    def channels_format(self, channels: list):
-        if channels == []:
-            return []
-
-        channel_form = "{name} :: {ctype} :: {cid}"
-
-        def type_name(channel):
-            return channel.__class__.__name__[:-7]
-
-        name_justify = max([len(c.name[:24]) for c in channels])
-        type_justify = max([len(type_name(c)) for c in channels])
-
-        return [
-            channel_form.format(
-                name=c.name[:24].ljust(name_justify),
-                ctype=type_name(c).ljust(type_justify),
-                cid=c.id,
-            )
-            for c in channels
-        ]
-
-    def category_format(self, cat_chan_tuple: tuple):
-
-        cat = cat_chan_tuple[0]
-        chs = cat_chan_tuple[1]
-
-        chfs = self.channels_format(chs)
-        if chfs != []:
-            ch_forms = ["\t" + f for f in chfs]
-            return "\n".join([f"{cat.name} :: {cat.id}"] + ch_forms)
-        else:
-            return "\n".join([f"{cat.name} :: {cat.id}"] + ["\tNo Channels"])

@@ -1,8 +1,9 @@
 {
     "author": ["aikaterna"],
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "Thanks for installing.",
+    "min_bot_version": "3.5.0",
     "short": "Fetch text from a URL.",
     "description": "Fetch text from a URL.",
-    "tags": ["api"],
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "tags": ["api"]
 }

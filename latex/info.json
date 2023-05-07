@@ -1,10 +1,11 @@
 {
     "author": ["aikaterna", "Stevy"],
     "description": "Generates an image for a LaTeX expression.",
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "Thanks for installing, have fun.",
+    "min_bot_version": "3.5.0",
     "short": "Generates an image for a LaTeX expression.",
     "tags": ["latex"],
     "requirements": ["pillow"],
-    "type": "COG",
-    "end_user_data_statement": "This cog does not persistently store data or metadata about users."
+    "type": "COG"
 }
