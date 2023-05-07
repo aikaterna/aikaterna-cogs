@@ -155,7 +155,7 @@ class Chatchart(commands.Cog):
                     colour=await self.bot.get_embed_colour(location=channel),
                 )
                 if channel.permissions_for(channel.guild.me).send_messages:
-                    await channel.trigger_typing()
+                    await channel.typing()
                 if animation_message_deleted is False:
                     try:
                         await animation_message.edit(embed=new_embed)
