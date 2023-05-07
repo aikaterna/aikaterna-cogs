@@ -3,5 +3,6 @@
     "install_msg": "Thanks for installing. Please read the help for the `massunban` command to get started, once you have loaded the cog.",
     "short": "Mass unban users.",
     "description": "Mass unban users by the ban reason used.",
+    "max_bot_version": "3.4.99",
     "tags": ["unban"]
 }

@@ -5,5 +5,6 @@
     "short": "Voice activity logs",
     "tags": ["voice", "activity", "logs"],
     "type": "COG",
+    "max_bot_version": "3.4.99",
     "end_user_data_statement": "This cog stores discord IDs as needed for operation. This cog stores voice channel connection time per-user when toggled on in a server. This cog does not support data requests, but will respect deletion requests."
 }

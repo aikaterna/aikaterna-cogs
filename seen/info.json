@@ -4,5 +4,6 @@
     "short": "Check when the user was last active on a server.",
     "tags": ["seen", "activity"],
     "type": "COG",
+    "max_bot_version": "3.4.99",
     "end_user_data_statement": "This cog does not persistently store end user data. This cog does store discord IDs and last seen timestamp as needed for operation. "
 }

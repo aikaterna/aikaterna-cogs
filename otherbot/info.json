@@ -6,5 +6,6 @@
     "short": "Alerts a role when bot(s) go offline.",
     "tags": ["bot", "offline", "uptime"],
     "type": "COG",
+    "max_bot_version": "3.4.99",
     "end_user_data_statement": "This cog does not persistently store end user data. This cog does store discord IDs as needed for operation. "
 }

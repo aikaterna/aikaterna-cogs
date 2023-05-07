@@ -1,8 +1,7 @@
 # aikaterna-cogs
 v3 Cogs for Red-DiscordBot by Twentysix26.
 
-### >>> These cogs are for Red 3.4.x <<<
-### The default branch will switch to Red 3.5 compatible cogs in the near future
+### >>> These cogs are for Red 3.4.x and as so will not be receiving further updates, unless special cases warrant it <<<
 
 adventure - Original concept & cog by locastan. My version is a collaboration between TrustyJAID, Draper, and myself and is now markedly different than locastan's version. The repo can be found on my repo page here on github.
 

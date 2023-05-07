@@ -6,5 +6,6 @@
     "tags": ["game", "games", "tic tac toe", "ttt"],
     "permissions": ["add_reactions"],
     "type": "COG",
+    "max_bot_version": "3.4.99",
     "end_user_data_statement": "This cog does store temporarily (in memory) data about users, which is cleared after the game is done."
 }

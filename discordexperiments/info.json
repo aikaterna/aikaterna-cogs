@@ -4,5 +4,6 @@
     "short": "Create voice invites for experimental Discord applications.",
     "description": "Create voice invites for experimental Discord applications.",
     "tags": ["discord"],
+    "max_bot_version": "3.4.99",
     "end_user_data_statement": "This cog does not persistently store data or metadata about users."
 }
