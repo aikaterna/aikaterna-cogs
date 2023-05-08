@@ -269,7 +269,7 @@ class Tools(commands.Cog):
     async def inrole(self, ctx, *, rolename: str):
         """Check members in the role specified."""
         guild = ctx.guild
-        await ctx.trigger_typing()
+        await ctx.typing()
         if rolename.startswith("<@&"):
             role_id = int(re.search(r"<@&(.{18})>$", rolename)[1])
             role = discord.utils.get(ctx.guild.roles, id=role_id)
@@ -502,7 +502,7 @@ class Tools(commands.Cog):
     @commands.command()
     async def rid(self, ctx, *, rolename):
         """Shows the id of a role."""
-        await ctx.trigger_typing()
+        await ctx.typing()
         if rolename is discord.Role:
             role = rolename
         else:
