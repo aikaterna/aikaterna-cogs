@@ -301,7 +301,7 @@ class RSS(commands.Cog):
         # if author has read messages perm, they can read all public threads *but also* private threads they are in
         if isinstance(channel, discord.Thread) and channel.is_private() and not author_perms.manage_threads:
             try:
-                await thread.fetch_member(ctx.author.id)
+                await channel.fetch_member(ctx.author.id)
             except discord.NotFound:
                 # author is not in a private thread
                 return False
