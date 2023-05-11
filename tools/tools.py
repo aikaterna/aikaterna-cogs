@@ -271,9 +271,9 @@ class Tools(commands.Cog):
         guild = ctx.guild
         await ctx.typing()
         if rolename.startswith("<@&"):
-            role_id = int(re.search(r"<@&(.{18})>$", rolename)[1])
+            role_id = int(re.search(r"<@&(.{17,19})>$", rolename)[1])
             role = discord.utils.get(ctx.guild.roles, id=role_id)
-        elif len(rolename) in [17, 18] and rolename.isdigit():
+        elif len(rolename) in [17, 18, 19] and rolename.isdigit():
             role = discord.utils.get(ctx.guild.roles, id=int(rolename))
         else:
             role = discord.utils.find(lambda r: r.name.lower() == rolename.lower(), guild.roles)
@@ -979,11 +979,15 @@ class Tools(commands.Cog):
     def role_from_string(guild, rolename, roles=None):
         if roles is None:
             roles = guild.roles
-        role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
+        if rolename.startswith("<@&"):
+            role_id = int(re.search(r"<@&(.{17,19})>$", rolename)[1])
+            role = guild.get_role(role_id)
+        else:
+            role = discord.utils.find(lambda r: r.name.lower() == str(rolename).lower(), roles)
         return role
 
     def sort_channels(self, channels):
-        temp = dict()
+        temp = {}
 
         channels = sorted(channels, key=lambda c: c.position)
 
