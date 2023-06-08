@@ -1659,8 +1659,8 @@ class RSS(commands.Cog):
                         await self.get_current_feed(
                             queue_item[2].channel, queue_item[2].feed_name, queue_item[2].feed_data
                         )
-                    except aiohttp.client_exceptions.InvalidURL:
-                        log.debug(f"Feed at {url} is bad or took too long to respond.")
+                    except aiohttp.client_exceptions.InvalidURL as e:
+                        log.debug(f"Feed at {e.url} is bad or took too long to respond.")
                         continue
 
                     if self._post_queue_size < 300:

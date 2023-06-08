@@ -1,3 +1,6 @@
+from typing import List
+
+
 class RssFeed():
     """RSS feed object"""
 

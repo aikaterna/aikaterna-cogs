@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp
 from aiohttp.client_proto import ResponseHandler
 from aiohttp.http_parser import HttpResponseParserPy
@@ -287,7 +288,7 @@ class IcyParser(commands.Cog):
 
         except Exception:
             log.error(
-                f"Icyparser's _metadata_read encountered an error while trying to read a stream at {url}", exc_info=True
+                f"Icyparser's _metadata_read encountered an error while trying to read a stream at {resp.url}", exc_info=True
             )
         return None
 
