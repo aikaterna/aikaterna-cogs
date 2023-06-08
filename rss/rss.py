@@ -33,7 +33,7 @@ IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 warnings.filterwarnings(
     "ignore",
