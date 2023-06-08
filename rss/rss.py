@@ -7,6 +7,7 @@ import discord
 import feedparser
 import filetype
 import io
+import itertools
 import logging
 import re
 import time
@@ -1004,7 +1005,7 @@ class RSS(commands.Cog):
     async def _rss_listall(self, ctx):
         """List all saved feeds for this server."""
         all_channels = await self.config.all_channels()
-        all_guild_channels = [x.id for x in ctx.guild.channels]
+        all_guild_channels = [x.id for x in itertools.chain(ctx.guild.channels, ctx.guild.threads)]
         msg = ""
         for channel_id, data in all_channels.items():
             if channel_id in all_guild_channels:
