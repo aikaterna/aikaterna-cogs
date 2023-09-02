@@ -60,7 +60,7 @@ I used `[p]rss template test **$title**\n$link\n\n$summary_detail_plaintext` her
 Unfortunately, there are no images to use in these template tags on this test as there are no `$content_image` tags listed in `[p]rss listtags` nor does `$media_content` or the plaintext version of that tag have any image urls. If the post display needed an image preview, we would need to set this feed to display with the embed off, and with a link included, so that Discord can display it if the site is supported.  
 
 ##### Media template tags
-The `$media_content` tag or any other `$media_`-prefixed tag usually holds non-image content. This can include and is not limited to video links and audio links. Rarely, there will be an image url in `$media_content` tags, but it should not be the case if the feed or site owner is tagging the feed elements or html elements properly.  
+The `$media_content` tag, `$media_url` tag, or any other `$media_`-prefixed tag usually holds non-image content. This can include and is not limited to video links and audio links. Rarely, there will be an image url in `$media_content` or `$media_url` tags, but it should not be the case if the feed or site owner is tagging the feed elements or html elements properly.  
 
 ##### Image template tags
 Image tags are usually named `$content_image01` or similar, where every image url found in the feed post adds 1 to the name value. For example the second image url gathered from the feed post would be named `$content_image02` if it was present in `[p]rss listtags`. Rarely, an image url might be found under the `$links_plaintext` tag, if present.  

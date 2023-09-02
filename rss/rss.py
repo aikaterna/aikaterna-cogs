@@ -33,7 +33,7 @@ IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 warnings.filterwarnings(
     "ignore",
@@ -233,6 +233,17 @@ class RSS(commands.Cog):
                             image_rel = list_item["rel"]
                             enclosure_content_counter += 1
                             name = f"media_plaintext{str(enclosure_content_counter).zfill(2)}"
+                            rss_object[name] = image_url
+                            rss_object["is_special"].append(name)
+                        except KeyError:
+                            pass
+
+                        # special tag for enclosure["url"] so that users can differentiate them
+                        # from image urls found in enclosure["href"]
+                        try:
+                            image_url = list_item["url"]
+                            enclosure_content_counter += 1
+                            name = f"media_url{str(enclosure_content_counter).zfill(2)}"
                             rss_object[name] = image_url
                             rss_object["is_special"].append(name)
                         except KeyError:
