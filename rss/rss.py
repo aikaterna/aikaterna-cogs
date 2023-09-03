@@ -33,7 +33,7 @@ IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.1.3"
+__version__ = "2.1.4"
 
 warnings.filterwarnings(
     "ignore",
@@ -211,6 +211,7 @@ class RSS(commands.Cog):
                     if list_item_check == TagType.DICT:
                         authors_content_counter = 0
                         enclosure_content_counter = 0
+                        enclosure_url_counter = 0
 
                         # common "authors" tag format
                         try:
@@ -1055,7 +1056,7 @@ class RSS(commands.Cog):
 
     async def _rss_list_tags_helper(self, ctx, rss_feed: dict, feed_name: str):
         """Helper function for rss listtags."""
-        msg = f"[ Available Tags for {feed_name} ]\n\n\t"
+        msg = f"[ Available Template Tags for {feed_name} ]\n\n\t"
         feedparser_obj = await self._fetch_feedparser_object(rss_feed["url"])
 
         if not feedparser_obj:
@@ -1239,9 +1240,7 @@ class RSS(commands.Cog):
         pass
 
     @_rss_tag.command(name="allow")
-    async def _rss_tag_allow(
-        self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, tag: str = None
-    ):
+    async def _rss_tag_allow(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None, *, tag: str = None):
         """
         Set an allowed tag for a feed to be posted. The tag must match exactly (without regard to title casing).
         No regex or placeholder qualification.
@@ -1339,6 +1338,61 @@ class RSS(commands.Cog):
             await ctx.send("Template added successfully.")
         else:
             await ctx.send("Feed not found!")
+
+    @rss.command(name="viewtags")
+    async def _rss_view_tags(self, ctx, feed_name: str, channel: Optional[GuildMessageable] = None):
+        """View a preview of template tag content available from a specific feed."""
+        channel = channel or ctx.channel
+        channel_permission_check = await self._check_channel_permissions(ctx, channel)
+        if not channel_permission_check:
+            return
+
+        rss_feed = await self.config.channel(channel).feeds.get_raw(feed_name, default=None)
+
+        if not rss_feed:
+            await ctx.send("No feed with that name in this channel.")
+            return
+
+        async with ctx.typing():
+            await self._rss_view_tags_helper(ctx, rss_feed, feed_name)
+
+    async def _rss_view_tags_helper(self, ctx, rss_feed: dict, feed_name: str):
+        """Helper function for rss viewtags."""
+        blue_ansi_prefix = "\u001b[1;40;34m"
+        reset_ansi_prefix = "\u001b[0m"
+        msg = f"{blue_ansi_prefix}[ Template Tag Content Preview for {feed_name} ]{reset_ansi_prefix}\n\n\t"
+        feedparser_obj = await self._fetch_feedparser_object(rss_feed["url"])
+
+        if not feedparser_obj:
+            await ctx.send("Couldn't fetch that feed.")
+            return
+        if feedparser_obj.entries:
+            # this feed has posts
+            feedparser_plus_obj = await self._add_to_feedparser_object(feedparser_obj.entries[0], rss_feed["url"])
+        else:
+            # this feed does not have posts, but it has a header with channel information
+            feedparser_plus_obj = await self._add_to_feedparser_object(feedparser_obj.feed, rss_feed["url"])
+
+        longest_key = max(feedparser_plus_obj, key=len)
+        longest_key_len = len(longest_key)
+        for tag_name, tag_content in sorted(feedparser_plus_obj.items()):
+            if tag_name in INTERNAL_TAGS:
+                # these tags attached to the rss feed object are for internal handling options
+                continue
+
+            tag_content = str(tag_content).replace("[", "").replace("]", "").replace("\n", " ").replace('"', "")
+            tag_content = tag_content.lstrip(" ")
+
+            space = "\N{SPACE}"
+            tag_name_padded = (
+                f"{blue_ansi_prefix}${tag_name}{reset_ansi_prefix}{space*(longest_key_len - len(tag_name))}"
+            )
+            if len(tag_content) > 50:
+                tag_content = tag_content[:50] + "..."
+            msg += f"{tag_name_padded}  {tag_content}\n\t"
+
+        for msg_part in pagify(msg, delims=["\n\t", "\n\n"]):
+            await ctx.send(box(msg_part.rstrip("\n\t"), lang="ansi"))
 
     @rss.command(name="version", hidden=True)
     async def _rss_version(self, ctx):
