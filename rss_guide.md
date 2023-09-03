@@ -22,7 +22,9 @@ Add the RSS feed, giving it a name you can refer to later. I'm using `test` in t
 
 ### Set a feed post template
 
-At of the time of this guide being written, you must explore the tags that are present on the feed to create a template that displays feed posts as you wish to see them. In the future, there will be a command to explore what all feed tags offer without having to set a testing template first.  
+Use `[p]rss viewtags` with the feed name to view a small content preview of all template tags on the most recent post.
+
+![viewtags](https://github.com/aikaterna/aikaterna-cogs/assets/20862007/c234d354-a060-4119-8bcc-3e838c23faff)
 
 The default template of every feed is a simple embed with the feed entry title, the url if present, and the date of the entry.
 
