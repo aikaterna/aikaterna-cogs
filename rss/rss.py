@@ -33,7 +33,7 @@ IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 warnings.filterwarnings(
     "ignore",
@@ -242,8 +242,8 @@ class RSS(commands.Cog):
                         # from image urls found in enclosure["href"]
                         try:
                             image_url = list_item["url"]
-                            enclosure_content_counter += 1
-                            name = f"media_url{str(enclosure_content_counter).zfill(2)}"
+                            enclosure_url_counter += 1
+                            name = f"media_url{str(enclosure_url_counter).zfill(2)}"
                             rss_object[name] = image_url
                             rss_object["is_special"].append(name)
                         except KeyError:
@@ -427,6 +427,9 @@ class RSS(commands.Cog):
             timeout = aiohttp.ClientTimeout(total=20)
             async with aiohttp.ClientSession(headers=self._headers, timeout=timeout) as session:
                 async with session.get(url) as resp:
+                    if resp.status == 404:
+                        friendly_msg = "The server returned 404 Not Found. Check your url and try again."
+                        return None, friendly_msg
                     html = await resp.read()
             return html, None
         except aiohttp.client_exceptions.ClientConnectorError:
