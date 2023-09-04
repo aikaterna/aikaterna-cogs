@@ -33,7 +33,7 @@ IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.1.4"
+__version__ = "2.1.5"
 
 warnings.filterwarnings(
     "ignore",
@@ -1391,7 +1391,7 @@ class RSS(commands.Cog):
                 tag_content = tag_content[:50] + "..."
             msg += f"{tag_name_padded}  {tag_content}\n\t"
 
-        for msg_part in pagify(msg, delims=["\n\t", "\n\n"]):
+        for msg_part in pagify(msg, delims=["\n\t", "\n\n"], page_length=1900):
             await ctx.send(box(msg_part.rstrip("\n\t"), lang="ansi"))
 
     @rss.command(name="version", hidden=True)
