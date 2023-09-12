@@ -2,6 +2,7 @@ import discord
 from redbot.core import Config, commands, checks
 from typing import Optional, Literal
 import re
+from datetime import datetime
 
 IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
@@ -52,7 +53,16 @@ class Away(commands.Cog):
             else:
                 msg += bar_char
 
-        msg += " `{:.7}`/`{:.7}`".format(str(elapsed_time), str(total_time))
+        dt_elapsed_time = datetime.utcfromtimestamp(elapsed_time.total_seconds())
+        dt_total_time = datetime.utcfromtimestamp(total_time.total_seconds())
+        format_str = "%M:%S"
+        if dt_total_time.hour >= 1:
+            format_str = "%H:" + format_str
+
+        elapsed_time = dt_elapsed_time.strftime(format_str)
+        total_time = dt_total_time.strftime(format_str)
+
+        msg += " `{}`/`{}`".format(elapsed_time, total_time)
         return msg
 
     async def make_embed_message(self, author, message, state=None):
