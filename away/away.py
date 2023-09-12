@@ -55,12 +55,16 @@ class Away(commands.Cog):
 
         dt_elapsed_time = datetime.utcfromtimestamp(elapsed_time.total_seconds())
         dt_total_time = datetime.utcfromtimestamp(total_time.total_seconds())
-        format_str = "%M:%S"
-        if dt_total_time.hour >= 1:
-            format_str = "%H:" + format_str
 
-        elapsed_time = dt_elapsed_time.strftime(format_str)
-        total_time = dt_total_time.strftime(format_str)
+        if dt_total_time.hour >= 1: #If song is an hour or over long
+            total_time = dt_total_time.strftime(f"{dt_total_time.hour}:%M:%S")
+            if dt_elapsed_time.hour == 0: #If time elapsed has not been over an hour
+                elapsed_time = dt_elapsed_time.strftime(f"{dt_elapsed_time.minute}:%S")
+            else:
+                elapsed_time = dt_elapsed_time.strftime(f"{dt_elapsed_time.hour}:%M:%S")
+        else:
+            elapsed_time = dt_elapsed_time.strftime(f"{dt_elapsed_time.minute}:%S")
+            total_time = dt_total_time.strftime(f"{dt_total_time.minute}:%S")
 
         msg += " `{}`/`{}`".format(elapsed_time, total_time)
         return msg
