@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 
 class TrickOrTreat(commands.Cog):
@@ -117,9 +117,15 @@ class TrickOrTreat(commands.Cog):
                 "That's not a candy type! Use the inventory command to see what you have.",
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
-        if userdata[candy_type] < number:
+        try:
+            if userdata[candy_type] < number:
+                return await ctx.send(
+                    f"You don't have that many {candy_type}.",
+                    reference=ctx.message.to_reference(fail_if_not_exists=False),
+                )
+        except KeyError:
             return await ctx.send(
-                f"You don't have that many {candy_type}.",
+                f"You don't have any {candy_type}.",
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
         if userdata[candy_type] == 0:
