@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.2.8"
+__version__ = "0.2.9"
 
 
 class TrickOrTreat(commands.Cog):
@@ -108,24 +108,18 @@ class TrickOrTreat(commands.Cog):
         if candy_type in ["stars", "star"]:
             candy_type = "stars"
         if candy_type in ["chocolate", "chocolates"]:
-            candy_type = "chocolate"
+            candy_type = "chocolates"
         if candy_type in ["cookie", "cookies"]:
             candy_type = "cookies"
-        candy_list = ["candies", "chocolate", "lollipops", "cookies", "stars"]
+        candy_list = ["candies", "chocolates", "lollipops", "cookies", "stars"]
         if candy_type not in candy_list:
             return await ctx.send(
                 "That's not a candy type! Use the inventory command to see what you have.",
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
-        try:
-            if userdata[candy_type] < number:
-                return await ctx.send(
-                    f"You don't have that many {candy_type}.",
-                    reference=ctx.message.to_reference(fail_if_not_exists=False),
-                )
-        except KeyError:
+        if userdata[candy_type] < number:
             return await ctx.send(
-                f"You don't have any {candy_type}.",
+                f"You don't have that many {candy_type}.",
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
         if userdata[candy_type] == 0:
