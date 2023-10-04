@@ -598,12 +598,19 @@ class TrickOrTreat(commands.Cog):
     async def add(self, ctx, channel: discord.TextChannel):
         """Add a text channel for Trick or Treating."""
         channel_list = await self.config.guild(ctx.guild).channel()
+        tottoggle = await self.config.guild(ctx.guild).toggle()
+        if not tottoggle:
+            toggle_info = (
+                f"\nThe game toggle for this server is **Off**. Turn it on with the `{ctx.prefix}tottoggle` command."
+            )
+        else:
+            toggle_info = ""
         if channel.id not in channel_list:
             channel_list.append(channel.id)
             await self.config.guild(ctx.guild).channel.set(channel_list)
-            await ctx.send(f"{channel.mention} added to the valid Trick or Treat channels.")
+            await ctx.send(f"{channel.mention} added to the valid Trick or Treat channels.{toggle_info}")
         else:
-            await ctx.send(f"{channel.mention} is already in the list of Trick or Treat channels.")
+            await ctx.send(f"{channel.mention} is already in the list of Trick or Treat channels.{toggle_info}")
 
     @commands.guild_only()
     @totchannel.command()
