@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.2.9"
+__version__ = "0.2.10"
 
 
 class TrickOrTreat(commands.Cog):
@@ -243,9 +243,7 @@ class TrickOrTreat(commands.Cog):
                 phrase = f"You feel worse!\n*Sickness has gone up by {new_sickness - old_sickness}*"
             else:
                 phrase = f"You feel better!\n*Sickness has gone down by {old_sickness - new_sickness}*"
-            await ctx.reply(
-                f"{random.choice(eat_phrase)} {number} {pluralcookie}. {phrase}"
-            )
+            await ctx.reply(f"{random.choice(eat_phrase)} {number} {pluralcookie}. {phrase}")
             await self.config.user(ctx.author).sickness.set(new_sickness)
             await self.config.user(ctx.author).cookies.set(userdata["cookies"] - number)
             await self.config.user(ctx.author).eaten.set(userdata["eaten"] + number)
@@ -300,6 +298,7 @@ class TrickOrTreat(commands.Cog):
     @commands.bot_has_permissions(embed_links=True, add_reactions=True)
     async def cboard(self, ctx):
         """Show the candy eating leaderboard."""
+        space = "\N{SPACE}"
         userinfo = await self.config._all_from_scope(scope="USER")
         if not userinfo:
             return await ctx.send(
@@ -316,11 +315,9 @@ class TrickOrTreat(commands.Cog):
             pound_len=pound_len + 3,
             score="Candies Eaten",
             score_len=score_len + 6,
-            name="\N{THIN SPACE}" + "Name"
-            if not str(ctx.author.mobile_status) in ["online", "idle", "dnd"]
-            else "Name",
+            name="Name",
         )
-        temp_msg = header
+        scoreboard_msg = self._red(header)
         for pos, account in enumerate(sorted_acc):
             if account[1]["eaten"] == 0:
                 continue
@@ -331,31 +328,41 @@ class TrickOrTreat(commands.Cog):
                     user_obj = await self.bot.fetch_user(account[0])
             except AttributeError:
                 user_obj = await self.bot.fetch_user(account[0])
-            
-            _user_name = discord.utils.escape_markdown(user_obj.name)
-            user_name = f"{_user_name}#{user_obj.discriminator}"
-            if len(user_name) > 28:
-                user_name = f"{_user_name[:19]}...#{user_obj.discriminator}"
+
+            if user_obj.discriminator != "0":
+                if len(user_obj.name) > 28:
+                    user_name = f"{user_obj.name[:19]}...#{user_obj.discriminator}"
+                else:
+                    user_name = f"{user_obj.name}#{user_obj.discriminator}"
+            else:
+                if len(user_obj.name) > 28:
+                    user_name = f"{user_obj.name[:25]}..."
+                else:
+                    user_name = user_obj.name
+
             user_idx = pos + 1
             if user_obj == ctx.author:
-                temp_msg += (
-                    f"{f'{user_idx}.': <{pound_len + 2}} "
-                    f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} <<{user_name}>>\n"
+                user_highlight = self._yellow(f"<<{user_name}>>")
+                scoreboard_msg += (
+                    f"{self._yellow(user_idx)}. {space*pound_len}"
+                    f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} {user_highlight}\n"
                 )
             else:
-                temp_msg += (
-                    f"{f'{user_idx}.': <{pound_len + 2}} "
+                scoreboard_msg += (
+                    f"{self._yellow(user_idx)}. {space*pound_len}"
                     f"{humanize_number(account[1]['eaten']) + ' 🍬': <{score_len + 4}} {user_name}\n"
                 )
 
         page_list = []
         pages = 1
-        for page in pagify(temp_msg, delims=["\n"], page_length=1000):
+        for page in pagify(scoreboard_msg, delims=["\n"], page_length=1000):
             embed = discord.Embed(
                 colour=0xF4731C,
-                description=box(f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog") + (box(page, lang="md")),
+                description=box(f"\N{CANDY} Global Leaderboard \N{CANDY}", lang="prolog") + (box(page, lang="ansi")),
             )
-            embed.set_footer(text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(temp_msg) / 1500))}")
+            embed.set_footer(
+                text=f"Page {humanize_number(pages)}/{humanize_number(math.ceil(len(scoreboard_msg) / 1000))}"
+            )
             pages += 1
             page_list.append(embed)
         return await menu(ctx, page_list, DEFAULT_CONTROLS)
@@ -789,3 +796,17 @@ class TrickOrTreat(commands.Cog):
         await bot_talking.edit(content=random.choice(greet_messages))
         await asyncio.sleep(2)
         await message.channel.send(win_message)
+
+    @staticmethod
+    def _red(to_transform: str):
+        red_ansi_prefix = "\u001b[0;31m"
+        reset_ansi_prefix = "\u001b[0;0m"
+        new_string = f"{red_ansi_prefix}{to_transform}{reset_ansi_prefix}"
+        return new_string
+
+    @staticmethod
+    def _yellow(to_transform: str):
+        yellow_ansi_prefix = "\u001b[0;33m"
+        reset_ansi_prefix = "\u001b[0;0m"
+        new_string = f"{yellow_ansi_prefix}{to_transform}{reset_ansi_prefix}"
+        return new_string
