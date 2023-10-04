@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.2.11"
+__version__ = "0.2.12"
 
 
 class TrickOrTreat(commands.Cog):
@@ -465,11 +465,23 @@ class TrickOrTreat(commands.Cog):
             picked_user = user
         else:
             picked_user = self.bot.get_user(random.choice(valid_user))
+
+        if picked_user.discriminator != "0":
+            picked_user_name = f"{picked_user.name}#{picked_user.discriminator}"
+        else:
+            picked_user_name = picked_user.name
+
         picked_candy_now = await self.config.user(picked_user).candies()
         if picked_candy_now == 0:
             chance = random.randint(1, 25)
             if chance in range(21, 25):
                 new_picked_user = self.bot.get_user(random.choice(valid_user))
+
+                if new_picked_user.discriminator != "0":
+                    new_picked_user_name = f"{new_picked_user.name}#{new_picked_user.discriminator}"
+                else:
+                    new_picked_user_name = new_picked_user.name
+
                 new_picked_candy_now = await self.config.user(new_picked_user).candies()
                 if chance in range(24, 25):
                     if new_picked_candy_now == 0:
@@ -479,7 +491,7 @@ class TrickOrTreat(commands.Cog):
                         )
                         await asyncio.sleep(random.randint(3, 6))
                         return await message.edit(
-                            content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you picked {new_picked_user.name}#{new_picked_user.discriminator}'s pockets but they had no candy either!"
+                            content=f"There was nothing in {picked_user}'s pockets, so you picked {new_picked_user_name}'s pockets but they had no candy either!"
                         )
                 else:
                     message = await ctx.send(
@@ -488,7 +500,7 @@ class TrickOrTreat(commands.Cog):
                     )
                     await asyncio.sleep(random.randint(3, 6))
                     return await message.edit(
-                        content=f"There was nothing in {picked_user.name}#{picked_user.discriminator}'s pockets, so you looked around again... you saw {new_picked_user.name}#{new_picked_user.discriminator} in the distance, but you didn't think you could catch up..."
+                        content=f"There was nothing in {picked_user}'s pockets, so you looked around again... you saw {new_picked_user_name} in the distance, but you didn't think you could catch up..."
                     )
             if chance in range(10, 20):
                 message = await ctx.send(
@@ -497,7 +509,7 @@ class TrickOrTreat(commands.Cog):
                 )
                 await asyncio.sleep(random.randint(3, 6))
                 return await message.edit(
-                    content=f"You snuck up on {picked_user.name}#{picked_user.discriminator} and tried picking their pockets but there was nothing there!"
+                    content=f"You snuck up on {picked_user} and tried picking their pockets but there was nothing there!"
                 )
             else:
                 message = await ctx.send(
@@ -541,9 +553,7 @@ class TrickOrTreat(commands.Cog):
             await asyncio.sleep(4)
             await message.edit(content="There seems to be an unsuspecting victim in the corner...")
             await asyncio.sleep(4)
-            return await message.edit(
-                content=f"You stole {pieces} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
-            )
+            return await message.edit(content=f"You stole {pieces} \N{CANDY} from {picked_user}!")
         if chance in range(11, 17):
             await self.config.user(picked_user).candies.set(picked_candy_now - round(pieces / 2))
             await self.config.user(ctx.author).candies.set(user_candy_now + round(pieces / 2))
@@ -554,9 +564,7 @@ class TrickOrTreat(commands.Cog):
             await asyncio.sleep(4)
             await message.edit(content="There seems to be an unsuspecting victim in the corner...")
             await asyncio.sleep(4)
-            return await message.edit(
-                content=f"You stole {round(pieces/2)} \N{CANDY} from {picked_user.name}#{picked_user.discriminator}!"
-            )
+            return await message.edit(content=f"You stole {round(pieces/2)} \N{CANDY} from {picked_user}!")
         else:
             message = await ctx.send(
                 random.choice(sneak_phrases),
