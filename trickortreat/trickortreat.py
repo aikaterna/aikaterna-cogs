@@ -9,7 +9,7 @@ from redbot.core import commands, checks, Config, bank
 from redbot.core.utils.chat_formatting import box, pagify, humanize_number
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
-__version__ = "0.2.10"
+__version__ = "0.2.11"
 
 
 class TrickOrTreat(commands.Cog):
@@ -101,15 +101,15 @@ class TrickOrTreat(commands.Cog):
                 "You pretend to eat a candy.",
                 reference=ctx.message.to_reference(fail_if_not_exists=False),
             )
-        if candy_type in ["candies", "candy"]:
+        if candy_type in ["candies", "candy", "\U0001f36c"]:
             candy_type = "candies"
-        if candy_type in ["lollipops", "lollipop"]:
+        if candy_type in ["lollipops", "lollipop", "\U0001f36d"]:
             candy_type = "lollipops"
-        if candy_type in ["stars", "star"]:
+        if candy_type in ["stars", "star", "\U00002b50"]:
             candy_type = "stars"
-        if candy_type in ["chocolate", "chocolates"]:
+        if candy_type in ["chocolate", "chocolates", "\U0001f36b"]:
             candy_type = "chocolates"
-        if candy_type in ["cookie", "cookies"]:
+        if candy_type in ["cookie", "cookies", "\U0001f960"]:
             candy_type = "cookies"
         candy_list = ["candies", "chocolates", "lollipops", "cookies", "stars"]
         if candy_type not in candy_list:
