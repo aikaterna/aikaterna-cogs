@@ -2,6 +2,7 @@ import discord
 from redbot.core import Config, commands, checks
 from typing import Optional, Literal
 import re
+from datetime import datetime
 
 IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
@@ -52,7 +53,20 @@ class Away(commands.Cog):
             else:
                 msg += bar_char
 
-        msg += " `{:.7}`/`{:.7}`".format(str(elapsed_time), str(total_time))
+        dt_elapsed_time = datetime.utcfromtimestamp(elapsed_time.total_seconds())
+        dt_total_time = datetime.utcfromtimestamp(total_time.total_seconds())
+
+        if dt_total_time.hour >= 1: #If song is an hour or over long
+            total_time = dt_total_time.strftime(f"{dt_total_time.hour}:%M:%S")
+            if dt_elapsed_time.hour == 0: #If time elapsed has not been over an hour
+                elapsed_time = dt_elapsed_time.strftime(f"{dt_elapsed_time.minute}:%S")
+            else:
+                elapsed_time = dt_elapsed_time.strftime(f"{dt_elapsed_time.hour}:%M:%S")
+        else:
+            elapsed_time = dt_elapsed_time.strftime(f"{dt_elapsed_time.minute}:%S")
+            total_time = dt_total_time.strftime(f"{dt_total_time.minute}:%S")
+
+        msg += " `{}`/`{}`".format(elapsed_time, total_time)
         return msg
 
     async def make_embed_message(self, author, message, state=None):
