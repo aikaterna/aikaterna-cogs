@@ -25,7 +25,7 @@ class Wolfram(commands.Cog):
         self.config = Config.get_conf(self, 2788801004)
         self.config.register_guild(**default_global)
 
-    @commands.command(name="wolfram", aliases=["ask"])
+    @commands.command(name="wolfram")
     async def _wolfram(self, ctx, *question: str):
         """Ask Wolfram Alpha any question."""
         api_key = await self.config.WOLFRAM_API_KEY()
