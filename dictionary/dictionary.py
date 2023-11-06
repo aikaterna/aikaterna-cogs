@@ -120,33 +120,28 @@ class Dictionary(commands.Cog):
             await ctx.send("Error getting information from the website.")
             return
 
-        website_data = None
-        script = data.find_all("script")
-        for item in script:
-            if item.string:
-                if "window.INITIAL_STATE" in item.string:
-                    content = item.string
-                    content = content.lstrip("window.INITIAL_STATE =").rstrip(";")
-                    content = content.replace("undefined", '"None"').replace(": true", ': "True"').replace(": false", ': "False"')
-                    try:
-                        website_data = json.loads(content)
-                    except json.decoder.JSONDecodeError:
-                        return None
-                    except Exception as e:
-                        log.exception(e, exc_info=e)
-                        await ctx.send("Something broke. Check your console for more information.")
-                        return None
+        if lookup_type == "antonyms":
+            antonym_sections = data.find_all(
+                "a", class_=["Cil3vPqnHSU3LLCTZ62n c2bTkbyZ6pxWgWJDxVMX nqaIr5nC4kceBVw8A7mF"]
+            )
+            antonym_list = []
+            for item in antonym_sections:
+                antonym_list.append(item.text)
+            return antonym_list
 
-        final = []
-        if website_data:
-            tuna_api_data = website_data["searchData"]["tunaApiData"]
-            if not tuna_api_data:
-                return None
-            syn_list = tuna_api_data["posTabs"][0][lookup_type]
-            for syn in syn_list:
-                final.append(syn["term"])
-
-        return final
+        else:
+            synonym_sections = data.find_all(
+                "a",
+                class_=[
+                    "Cil3vPqnHSU3LLCTZ62n Ip2xyQSEjrh_jZExawdC fQdXDP6Pfndr85gESLI_",
+                    "Cil3vPqnHSU3LLCTZ62n Ip2xyQSEjrh_jZExawdC DL3p3OH7u8i4dIoN1agF",
+                    "Cil3vPqnHSU3LLCTZ62n Ip2xyQSEjrh_jZExawdC MjZsFvWY0uOO_JJhtba_",
+                ],
+            )
+            synonym_list = []
+            for item in synonym_sections:
+                synonym_list.append(item.text)
+            return synonym_list
 
     async def _get_soup_object(self, url):
         try:
