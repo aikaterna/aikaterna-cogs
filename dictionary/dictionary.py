@@ -120,28 +120,61 @@ class Dictionary(commands.Cog):
             await ctx.send("Error getting information from the website.")
             return
 
-        if lookup_type == "antonyms":
-            antonym_sections = data.find_all(
-                "a", class_=["Cil3vPqnHSU3LLCTZ62n c2bTkbyZ6pxWgWJDxVMX nqaIr5nC4kceBVw8A7mF"]
-            )
-            antonym_list = []
-            for item in antonym_sections:
-                antonym_list.append(item.text)
-            return antonym_list
-
+        script = data.find("script", id="preloaded-state")
+        if script:
+            script_text = script.string
+            script_text = script_text.strip()
+            script_text = script_text.replace("window.__PRELOADED_STATE__ = ", "")
         else:
-            synonym_sections = data.find_all(
-                "a",
-                class_=[
-                    "Cil3vPqnHSU3LLCTZ62n Ip2xyQSEjrh_jZExawdC fQdXDP6Pfndr85gESLI_",
-                    "Cil3vPqnHSU3LLCTZ62n Ip2xyQSEjrh_jZExawdC DL3p3OH7u8i4dIoN1agF",
-                    "Cil3vPqnHSU3LLCTZ62n Ip2xyQSEjrh_jZExawdC MjZsFvWY0uOO_JJhtba_",
-                ],
-            )
-            synonym_list = []
-            for item in synonym_sections:
-                synonym_list.append(item.text)
-            return synonym_list
+            await ctx.send("Error fetching script from the website.")
+            return
+
+        try:
+            data = json.loads(script_text)
+        except json.decoder.JSONDecodeError:
+            await ctx.send("Error decoding script from the website.")
+            return
+        except Exception as e:
+            log.exception(e, exc_info=e)
+            await ctx.send("Something broke. Check your console for more information.")
+            return
+
+        try:
+            data_prefix = data["thesaurus"]["thesaurusData"]["data"]["slugs"][0]["entries"][0]["partOfSpeechGroups"][0]["shortDefinitions"][0]
+        except KeyError:
+            return None
+
+        if lookup_type == "antonyms":
+            try:
+                antonym_subsection = data_prefix["antonyms"]
+            except KeyError:
+                return None
+            antonyms = []
+            for item in antonym_subsection:
+                try:
+                    antonyms.append(item["targetWord"])
+                except KeyError:
+                    pass
+            if antonyms:
+                return antonyms
+            else:
+                return None
+
+        if lookup_type == "synonyms":
+            try:
+                synonyms_subsection = data_prefix["synonyms"]
+            except KeyError:
+                return None
+            synonyms = []
+            for item in synonyms_subsection:
+                try:
+                    synonyms.append(item["targetWord"])
+                except KeyError:
+                    pass
+            if synonyms:
+                return synonyms
+            else:
+                return None
 
     async def _get_soup_object(self, url):
         try:
