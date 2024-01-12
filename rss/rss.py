@@ -33,7 +33,7 @@ IPV6_RE = re.compile("([a-f0-9:]+:+)+[a-f0-9]+")
 GuildMessageable = Union[discord.TextChannel, discord.VoiceChannel, discord.StageChannel, discord.Thread]
 
 
-__version__ = "2.1.5"
+__version__ = "2.1.6"
 
 warnings.filterwarnings(
     "ignore",
@@ -64,7 +64,7 @@ class RSS(commands.Cog):
 
         self._read_feeds_loop = None
 
-        self._headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"}
+        self._headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"}
 
     async def red_delete_data_for_user(self, **kwargs):
         """Nothing to delete"""
@@ -425,8 +425,13 @@ class RSS(commands.Cog):
     async def _get_url_content(self, url):
         """Helper for rss add/_valid_url."""
         try:
+            # force github.com to serve us xml instead of json
+            headers = self._headers
+            if "github.com" in url:
+                headers["Accept"] = "application/vnd.github+xml"
+
             timeout = aiohttp.ClientTimeout(total=20)
-            async with aiohttp.ClientSession(headers=self._headers, timeout=timeout) as session:
+            async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
                 async with session.get(url) as resp:
                     if resp.status == 404:
                         friendly_msg = "The server returned 404 Not Found. Check your url and try again."
