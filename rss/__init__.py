@@ -1,5 +1,6 @@
+from red_commons.logging import maybe_update_logger_class
+maybe_update_logger_class()
 from redbot.core import commands
-
 from .rss import RSS
 
 __red_end_user_data_statement__ = "This cog does not persistently store data or metadata about users."
