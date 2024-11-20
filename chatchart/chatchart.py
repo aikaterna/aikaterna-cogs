@@ -237,6 +237,9 @@ class Chatchart(commands.Cog):
         For each channel that the bot is allowed to scan. It will take the last 1000 messages from each channel.
         And proceed to build a chart out of that.
         """
+        message_limit = await self.config.limit()
+        if (message_limit != 0) and (messages > message_limit):
+            messages = message_limit
         if messages < 5:
             return await ctx.send("Don't be silly.")
         channel_list = []
