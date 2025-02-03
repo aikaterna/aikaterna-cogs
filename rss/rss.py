@@ -472,6 +472,9 @@ class RSS(commands.Cog):
         if not html:
             return SimpleNamespace(entries=None, error=error_msg, url=url)
 
+        # Remove leading empty lines or whitespace
+        html = html.lstrip()
+
         feedparser_obj = feedparser.parse(html)
         if feedparser_obj.bozo:
             error_msg = f"Bozo feed: feedparser is unable to parse the response from {url}.\n"
@@ -607,7 +610,9 @@ class RSS(commands.Cog):
                 if not text:
                     raise NoFeedContent(error_msg)
                     return False
-
+                    
+                # Remove leading empty lines or whitespace
+                text = text.lstrip()
                 rss = feedparser.parse(text)
                 if rss.bozo:
                     error_message = rss.feed.get("summary", str(rss))[:1500]
