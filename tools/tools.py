@@ -209,6 +209,7 @@ class Tools(commands.Cog):
             discord.CategoryChannel: "Category",
             discord.StageChannel: "Stage Channel",
             discord.Thread: "Thread",
+            discord.ForumChannel: "Forum Channel",
         }
 
         with sps(Exception):
