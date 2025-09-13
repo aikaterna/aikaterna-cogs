@@ -40,7 +40,10 @@ class VoiceLogs(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 2708181003, force_registration=True)
 
-        default_guild = {"toggle": False}
+        default_guild = {
+            "toggle": False,
+            "log_channel": None  # NEW: store the channel ID for announcements
+        }
         default_user = {"history": []}
 
         #    history is a list of dict entries
@@ -63,6 +66,13 @@ class VoiceLogs(commands.Cog):
         You must have the bot Mod or Admin role or View Audit Log permissions to view and use the commands.
         """
         pass
+
+    @_command_voicelog.command(name="setchannel")
+    @checks.mod_or_permissions(manage_guild=True)
+    async def _command_voicelog_setchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Set the text channel where join/leave messages will be sent."""
+        await self.config.guild(ctx.guild).log_channel.set(channel.id)
+        await ctx.send(f"✅ Voice log announcements will be sent to {channel.mention}")
 
     @_command_voicelog.command(name="user", aliases=["u"])
     @checks.mod_or_permissions(view_audit_log=True)
@@ -161,6 +171,20 @@ class VoiceLogs(commands.Cog):
                         "joined_at": datetime.now(timezone.utc).timestamp(),
                     }
                     user_info.append(entry)
+
+            # 📢 Send announcement
+            log_channel_id = await self.config.guild(member.guild).log_channel()
+            if log_channel_id:
+                log_channel = member.guild.get_channel(log_channel_id)
+                if log_channel:
+                    if before.channel is None and after.channel is not None:
+                        await log_channel.send(f"🔊 **{member.display_name}** joined **{after.channel.name}**")
+                    elif before.channel is not None and after.channel is None:
+                        await log_channel.send(f"🔇 **{member.display_name}** left **{before.channel.name}**")
+                    elif before.channel != after.channel:
+                        await log_channel.send(
+                            f"🔄 **{member.display_name}** moved from **{before.channel.name}** to **{after.channel.name}**"
+                        )
 
         except Exception as e:
             log.error(f"Error in on_voice_state_update:\n{e}", exc_info=True)
