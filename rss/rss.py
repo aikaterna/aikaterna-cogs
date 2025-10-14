@@ -1059,6 +1059,28 @@ class RSS(commands.Cog):
         async with ctx.typing():
             await self._rss_list_tags_helper(ctx, rss_feed, feed_name)
 
+    @rss.command(name="move")
+    async def rss_move(self, ctx, name: str, to_channel: discord.TextChannel, from_channel: discord.TextChannel = None):
+        """Move an RSS feed to a different channel.
+        
+        Usage: [p]rss move <name> <to-channel> [from-channel]
+        If from-channel is not specified, it defaults to the current channel."""
+        from_channel = from_channel or ctx.channel
+        from_permission_check = await self._check_channel_permissions(ctx, from_channel, addl_send_messages_check=True)
+        if not from_permission_check:
+            return
+        to_permission_check = await self._check_channel_permissions(ctx, to_channel)
+        if not to_permission_check:
+            return
+        async with self.config.channel(from_channel).feeds() as from_feeds:
+            if name not in from_feeds:
+                await ctx.send(f"No feed with that name exists in {from_channel.mention}!")
+                return
+            feed_data = from_feeds.pop(name)
+        async with self.config.channel(to_channel).feeds() as to_feeds:
+            to_feeds[name] = feed_data
+        await ctx.send(f"Moved RSS feed '{name}' from {from_channel.mention} to {to_channel.mention}")
+
     async def _rss_list_tags_helper(self, ctx, rss_feed: dict, feed_name: str):
         """Helper function for rss listtags."""
         msg = f"[ Available Template Tags for {feed_name} ]\n\n\t"
